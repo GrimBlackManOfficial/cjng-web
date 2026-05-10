@@ -22,10 +22,9 @@
             align-items: center; 
             height: 100vh; 
             margin: 0; 
-            text-transform: uppercase;
         }
 
-        /* Scanline efekt (přesně jako na dashboardu) */
+        /* Scanline efekt */
         body::after {
             content: "";
             position: absolute;
@@ -33,97 +32,139 @@
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
                         linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
             background-size: 100% 4px, 3px 100%;
-            z-index: 10;
+            z-index: 100;
             pointer-events: none;
         }
 
-        #terminal-container { 
-            width: 90%; 
-            max-width: 800px; 
-            z-index: 5;
-            background: rgba(10, 0, 0, 0.8);
-            padding: 40px;
-            border-left: 2px solid var(--red);
-            box-shadow: -10px 0 30px rgba(255, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
+        /* Kontejner pro terminál */
+        #main-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .header {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.5em;
-            letter-spacing: 10px;
-            color: var(--red);
-            margin-bottom: 30px;
-            text-shadow: 0 0 10px var(--red-glow);
+        #terminal-body {
+            width: 100%;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .line { 
             margin-bottom: 8px; 
             opacity: 0; 
-            transform: translateX(-5px); 
+            transform: translateX(-10px); 
             animation: fadeIn 0.2s forwards; 
-            font-size: 0.9em;
+            font-size: 1em;
             letter-spacing: 2px;
-            color: #ccc;
+            color: #aaa;
+            text-transform: uppercase;
         }
 
         @keyframes fadeIn { 
             to { opacity: 1; transform: translateX(0); } 
         }
 
-        .status-ok { color: #00ff41; font-weight: bold; }
-        .status-wait { color: #ffcc00; }
-        .status-critical { color: var(--red); font-weight: bold; text-shadow: 0 0 5px var(--red); }
-
-        .btn-login { 
-            display: none; 
-            background: transparent; 
-            color: #fff; 
-            border: 1px solid var(--red); 
-            padding: 15px 35px; 
-            font-family: 'Orbitron', monospace; 
-            cursor: pointer; 
-            margin-top: 40px; 
-            letter-spacing: 5px;
-            transition: all 0.4s ease;
-            text-shadow: 0 0 5px var(--red-glow);
-            position: relative;
+        /* Moderní Login Box (skrytý na začátku) */
+        #login-module {
+            display: none;
+            opacity: 0;
+            transform: scale(0.8) translateY(20px);
+            background: rgba(15, 0, 0, 0.9);
+            border: 1px solid var(--red);
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            z-index: 50;
+            position: absolute;
         }
 
-        .btn-login:hover {
+        /* Animace "skládání z dat" */
+        .assemble-anim {
+            animation: assemble 0.6s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes assemble {
+            0% { opacity: 0; transform: scale(1.5); filter: blur(20px) hue-rotate(90deg); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0) hue-rotate(0deg); }
+        }
+
+        .status-ok { color: #00ff41; font-weight: bold; }
+        .status-critical { color: var(--red); text-shadow: 0 0 5px var(--red); }
+
+        .btn-auth {
+            background: none;
+            border: 1px solid var(--red);
+            color: #fff;
+            padding: 15px 40px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9em;
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: 0.4s;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-auth:hover {
             background: var(--red);
             color: #000;
-            box-shadow: 0 0 30px var(--red-glow);
-            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--red);
         }
 
-        .typing::after {
-            content: "|";
-            animation: blink 0.7s infinite;
+        .module-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--red);
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            letter-spacing: 5px;
         }
 
-        @keyframes blink { 50% { opacity: 0; } }
+        .module-subtitle {
+            font-size: 0.7em;
+            color: #666;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        /* Skrytí terminálu */
+        .fade-out {
+            opacity: 0 !important;
+            transform: scale(1.1) !important;
+            filter: blur(10px);
+        }
     </style>
 </head>
 <body>
-    <div id="terminal-container">
-        <div class="header">CJNG_MAINFRAME</div>
+
+    <div id="main-wrapper">
         <div id="terminal-body"></div>
+
+        <div id="login-module">
+            <div class="module-title">CJNG SÍŤ</div>
+            <div class="module-subtitle">VYŽADOVÁNA BIOMETRICKÁ AUTORIZACE</div>
+            <div style="width: 50px; height: 2px; background: var(--red); margin: 0 auto 25px;"></div>
+            <button class="btn-auth" onclick="startAuth()">VSTOUPIT DO SYSTÉMU</button>
+        </div>
     </div>
 
     <script>
         const lines = [
-            "> INITIALIZING ENCRYPTED UPLINK...",
-            "> CONNECTION: <span class='status-ok'>ESTABLISHED</span>",
-            "> BYPASSING REGIONAL FIREWALLS... <span class='status-ok'>DONE</span>",
-            "> LOADING PERSONAL_DOSSIER_DATABASE...",
-            "> DECRYPTING ACCESS_PROTOCOLS...",
-            "> STATUS: <span class='status-critical'>UNAUTHORIZED ACCESS DETECTED</span>",
-            "> APPLYING 'CJNG' CLOAKING SIGNATURE...",
-            "> ACCESS GRANTED. WELCOME, OPERATIVE."
+            "> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...",
+            "> STATUS: <span class='status-ok'>ZABEZPEČENO</span>",
+            "> PŘEMOSTĚNÍ VLÁDNÍHO FIREWALLU... OK",
+            "> NAČÍTÁM PROTOKOL 'CARTEL-NET'...",
+            "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...",
+            "> <span class='status-critical'>VAROVÁNÍ: NEOPRÁVNĚNÝ PŘÍSTUP BUDE POTRESTÁN</span>",
+            "> ČISTÍM DIGITÁLNÍ STOPU...",
+            "> PŘÍSTUP POVOLEN. ČEKÁM NA IDENTIFIKACI."
         ];
 
         const terminalBody = document.getElementById('terminal-body');
+        const loginModule = document.getElementById('login-module');
         let index = 0;
 
         function addLine() {
@@ -134,32 +175,35 @@
                 terminalBody.appendChild(div);
                 index++;
                 
-                // Rychlejší sekvence (200-500ms místo původních 800ms)
-                let delay = Math.random() * (400 - 150) + 150;
-                
-                // Jedna malá pauza uprostřed pro efekt
-                if (index === 4) delay = 800; 
+                let delay = Math.random() * (300 - 100) + 100;
+                if (index === 6) delay = 800; // Dramatická pauza před koncem
 
                 setTimeout(addLine, delay);
             } else {
-                showButton();
+                setTimeout(transitionToLogin, 600);
             }
         }
 
-        function showButton() {
-            const btn = document.createElement('button');
-            btn.className = 'btn-login';
-            btn.innerHTML = "AUTHORIZE IDENTITY";
+        function transitionToLogin() {
+            // Terminál zmizí
+            terminalBody.classList.add('fade-out');
             
-            btn.onclick = () => { 
-                btn.innerHTML = "CONNECTING...";
-                window.location.href = '/api/auth/login'; 
-            };
-            
-            terminalBody.appendChild(btn);
             setTimeout(() => {
-                btn.style.display = "block";
-            }, 300);
+                terminalBody.style.display = 'none';
+                // Objeví se login box s efektem "poskládání"
+                loginModule.style.display = 'block';
+                setTimeout(() => {
+                    loginModule.classList.add('assemble-anim');
+                    loginModule.style.opacity = '1';
+                }, 50);
+            }, 800);
+        }
+
+        function startAuth() {
+            const btn = document.querySelector('.btn-auth');
+            btn.innerHTML = "PROPOJOVÁNÍ...";
+            btn.style.borderColor = "#666";
+            window.location.href = '/api/auth/login';
         }
 
         window.onload = addLine;
