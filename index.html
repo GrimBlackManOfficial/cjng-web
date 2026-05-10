@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CJNG | Distribution Control</title>
+    <style>
+        body {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        .dashboard {
+            border: 1px solid #333;
+            background: #111;
+            padding: 20px;
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.1);
+        }
+        h1 { color: #ff0000; text-transform: uppercase; letter-spacing: 5px; }
+        .stats { display: flex; justify-content: space-around; border-bottom: 1px solid #333; padding-bottom: 20px; }
+        .status-online { color: #00ff00; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #222; padding: 10px; text-align: left; }
+        th { background: #1a1a1a; color: #888; }
+        .btn { padding: 5px 10px; cursor: pointer; border: none; }
+        .btn-edit { background: #444; color: white; }
+        .btn-delete { background: #ff0000; color: white; }
+    </style>
+</head>
+<body>
+    <h1>CJNG Distribution</h1>
+    <p>Status: <span class="status-online">CONNECTED</span></p>
+
+    <div class="dashboard">
+        <div class="stats">
+            <div>Prodáno: <span id="total-sold">0 ks</span></div>
+            <div>Výnos: <span id="total-revenue">0 $</span></div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Zaměstnanec</th>
+                    <th>Zůstatek</th>
+                    <th>Akce</th>
+                </tr>
+            </thead>
+            <tbody id="data-table">
+                <tr>
+                    <td colspan="3" style="text-align:center;">Načítám data z databáze...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
