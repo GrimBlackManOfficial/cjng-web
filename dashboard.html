@@ -3,205 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CJNG Mainframe | Secured</title>
+    <title>CJNG | Secured Mainframe</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --red: #ff0000; 
-            --red-low: rgba(255, 0, 0, 0.2);
-            --red-glow: rgba(255, 0, 0, 0.6);
-            --bg: #030303; 
-            --panel: rgba(15, 15, 15, 0.9);
-            --border: rgba(255, 0, 0, 0.3);
-            --text: #e0e0e0;
-            --green: #00ff00;
-            --cyan: #00ffff;
+            --red-glow: rgba(255, 0, 0, 0.7);
+            --bg: #020202; 
+            --card-bg: rgba(15, 15, 15, 0.7);
+            --border: rgba(255, 0, 0, 0.25);
+            --green: #00ff41;
+            --cyan: #00f2ff;
+            --glass: rgba(255, 255, 255, 0.03);
         }
 
         body { 
             background: var(--bg); 
-            color: var(--text); 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            color: #fff; 
+            font-family: 'Rajdhani', sans-serif; 
             margin: 0; 
             display: flex; 
             height: 100vh; 
             overflow: hidden;
-            letter-spacing: 0.5px;
         }
 
-        /* Scanline efekt přes celou obrazovku */
-        body::after {
+        /* Ambientní podsvícení a animace pozadí */
+        body::before {
             content: "";
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
-            background-size: 100% 4px, 3px 100%;
-            z-index: 100;
-            pointer-events: none;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, #1a0202 0%, transparent 70%);
+            animation: pulse 15s infinite alternate;
+            z-index: -1;
         }
 
-        /* Sidebar */
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 0.8; }
+        }
+
+        /* Sidebar s neonovým okrajem */
         nav { 
-            width: 300px; 
-            background: #000; 
+            width: 280px; 
+            background: rgba(0, 0, 0, 0.9); 
             border-right: 1px solid var(--border); 
             display: flex; 
             flex-direction: column; 
-            padding: 20px;
+            padding: 30px 15px;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
             z-index: 10;
         }
 
         .brand {
-            padding: 20px 10px;
             text-align: center;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 25px;
+            margin-bottom: 40px;
         }
 
         .brand-text {
-            font-weight: 900;
-            font-size: 1.4em;
-            letter-spacing: 4px;
-            color: #fff;
-            text-shadow: 0 0 10px var(--red-glow);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2em;
+            letter-spacing: 6px;
+            background: linear-gradient(to bottom, #fff, #ff0000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px var(--red-glow));
         }
 
-        /* Uživatelský profil */
-        .user-box {
-            background: var(--red-low);
+        /* User Identity Card */
+        .user-identity {
+            background: var(--glass);
             border: 1px solid var(--border);
-            padding: 15px;
+            padding: 20px;
             border-radius: 4px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
         }
 
-        #username { font-weight: bold; font-size: 1em; color: #fff; text-transform: uppercase; }
+        .user-identity::before {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 2px;
+            background: var(--red);
+            animation: scan-line 3s infinite;
+        }
+
+        @keyframes scan-line {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        #username { font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 1px; color: #fff; }
 
         .role-badge {
-            font-size: 0.65em;
-            padding: 2px 8px;
-            border-radius: 2px;
-            background: #000;
+            font-size: 0.6em;
+            padding: 3px 10px;
             border: 1px solid var(--red);
             color: var(--red);
+            margin-top: 10px;
             display: inline-block;
-            margin-top: 5px;
-            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 0 5px var(--red-glow);
         }
 
-        /* Harmonika menu */
-        .menu-category {
-            margin-bottom: 10px;
-        }
+        /* Moderní Menu s harmonikou */
+        .menu-group { margin-bottom: 10px; }
 
-        .menu-btn {
+        .menu-trigger {
             width: 100%;
             background: none;
             border: none;
             color: #888;
+            padding: 12px;
             text-align: left;
-            padding: 12px 10px;
             font-size: 0.85em;
-            font-weight: bold;
-            letter-spacing: 1.5px;
+            font-weight: 700;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             transition: 0.3s;
             text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
-        .menu-btn:hover { color: #fff; background: rgba(255,255,255,0.05); }
+        .menu-trigger:hover { color: var(--red); background: rgba(255,0,0,0.05); }
 
         .submenu {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease-out;
-            background: rgba(255,255,255,0.02);
-            border-radius: 0 0 4px 4px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(0,0,0,0.3);
+            border-left: 1px solid var(--border);
+            margin-left: 5px;
         }
 
-        .submenu.open { max-height: 500px; }
+        .submenu.open { max-height: 200px; padding: 5px 0; }
 
         .nav-item {
-            display: block;
-            padding: 10px 25px;
-            color: #666;
+            padding: 10px 20px;
+            color: #555;
             text-decoration: none;
+            display: block;
             font-size: 0.8em;
-            transition: 0.2s;
-            border-left: 2px solid transparent;
+            transition: 0.3s;
         }
 
-        .nav-item:hover, .nav-item.active {
-            color: #fff;
-            background: var(--red-low);
-            border-left: 2px solid var(--red);
-        }
+        .nav-item:hover { color: #fff; padding-left: 25px; background: rgba(255,255,255,0.02); }
 
-        /* Hlavní obsah */
-        main { 
-            flex: 1; 
-            padding: 40px; 
-            overflow-y: auto; 
-            position: relative;
-        }
+        /* Hlavní plocha */
+        main { flex: 1; padding: 50px; overflow-y: auto; position: relative; }
 
-        .header-area {
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 40px;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             padding-bottom: 20px;
+            margin-bottom: 40px;
         }
 
-        .header-area h1 { margin: 0; font-size: 1.2em; letter-spacing: 5px; color: #555; }
+        .top-bar h1 { font-family: 'Orbitron', sans-serif; font-size: 1em; letter-spacing: 8px; color: #444; margin: 0; }
 
-        /* Karty */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        /* Karty s efektem záře */
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
 
         .card {
-            background: var(--panel);
+            background: var(--card-bg);
             border: 1px solid var(--border);
-            padding: 25px;
+            padding: 30px;
+            border-radius: 2px;
             position: relative;
-            transition: 0.3s;
+            transition: 0.4s;
+            backdrop-filter: blur(5px);
         }
 
-        .card:hover { 
-            box-shadow: 0 0 20px var(--red-low);
-            border-color: var(--red);
+        .card::after {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: 0 0 15px transparent; transition: 0.4s;
         }
 
-        .card-title {
-            font-size: 0.75em;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            display: block;
-        }
+        .card:hover { transform: translateY(-5px); border-color: var(--red); }
+        .card:hover::after { box-shadow: 0 0 30px var(--red-glow); }
 
-        .stat { font-size: 3em; font-weight: 900; color: #fff; font-family: 'Courier New', Courier, monospace; }
+        .card-label { font-size: 0.7em; color: #666; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; }
+
+        .stat-number { font-family: 'Orbitron', sans-serif; font-size: 2.5em; font-weight: 700; color: #fff; }
 
         .maestro-only, .vedeni-only { display: none; }
 
-        .btn-exit {
+        .logout-btn {
             margin-top: auto;
-            padding: 15px;
-            background: none;
-            border: 1px solid #333;
+            border: 1px solid #222;
+            padding: 12px;
             color: #444;
+            text-align: center;
             cursor: pointer;
             font-size: 0.7em;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             transition: 0.3s;
         }
 
-        .btn-exit:hover { border-color: var(--red); color: var(--red); }
+        .logout-btn:hover { border-color: var(--red); color: var(--red); box-shadow: 0 0 10px var(--red-glow); }
 
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--red); }
     </style>
 </head>
 <body>
@@ -209,139 +218,120 @@
     <nav>
         <div class="brand">
             <div class="brand-text">CJNG</div>
-            <div style="font-size: 0.5em; color: #444; letter-spacing: 3px; margin-top: 5px;">CENTRAL DATA-NODE</div>
+            <div style="font-size: 0.5em; color: #444; letter-spacing: 4px; margin-top: 5px;">NETWORK ACCESS SECURED</div>
         </div>
 
-        <div class="user-box">
-            <div id="username">NAČÍTÁNÍ...</div>
+        <div class="user-identity">
+            <div id="username">IDENTIFIKUJI...</div>
             <div id="user-role-display"></div>
         </div>
 
-        <div class="menu-category">
-            <button class="menu-btn" onclick="toggleSubmenu('sub1')">SÍŤOVÉ PŘEHLEDY <span>+</span></button>
-            <div id="sub1" class="submenu">
-                <a href="#" class="nav-item active">HLAVNÍ DASHBOARD</a>
-                <a href="#" class="nav-item">OSOBNÍ DOSSIER</a>
+        <div class="menu-group">
+            <button class="menu-trigger" onclick="toggleSub('m1')">DATA_PŘEHLED <span>[+]</span></button>
+            <div id="m1" class="submenu">
+                <a href="#" class="nav-item">SÍŤOVÝ STATUS</a>
+                <a href="#" class="nav-item">MOJE DATA</a>
             </div>
         </div>
 
-        <div class="menu-category maestro-only">
-            <button class="menu-btn" onclick="toggleSubmenu('sub2')">LOGISTICKÉ OPERACE <span>+</span></button>
-            <div id="sub2" class="submenu">
-                <a href="#" class="nav-item">DISTRIBUČNÍ TOK</a>
-                <a href="#" class="nav-item">KONTROLA SKLADŮ</a>
+        <div class="menu-group maestro-only">
+            <button class="menu-trigger" onclick="toggleSub('m2')">LOGISTIKA <span>[+]</span></button>
+            <div id="m2" class="submenu">
+                <a href="#" class="nav-item">DLUŽNICKÁ KONTROLA</a>
+                <a href="#" class="nav-item">INVENTÁŘ DROG</a>
             </div>
         </div>
 
-        <div class="menu-category vedeni-only">
-            <button class="menu-btn" onclick="toggleSubmenu('sub3')">CENTRÁLNÍ SPRÁVA <span>+</span></button>
-            <div id="sub3" class="submenu">
-                <a href="#" class="nav-item">FINANČNÍ TOKY</a>
-                <a href="#" class="nav-item">SEZNAM OPERATIVCŮ</a>
+        <div class="menu-group vedeni-only">
+            <button class="menu-trigger" onclick="toggleSub('m3')">CENTRÁLA <span>[+]</span></button>
+            <div id="m3" class="submenu">
+                <a href="#" class="nav-item">FINANCE KARTELU</a>
+                <a href="#" class="nav-item">PERSONÁLNÍ SEZNAM</a>
             </div>
         </div>
 
-        <div class="menu-category">
-            <button class="menu-btn" onclick="toggleSubmenu('sub4')">PROTOKOLY <span>+</span></button>
-            <div id="sub4" class="submenu">
-                <a href="#" class="nav-item">KODEX C.J.N.G.</a>
-                <a href="#" class="nav-item">BEZPEČNOSTNÍ SMĚRNICE</a>
-            </div>
-        </div>
-
-        <button class="btn-exit" onclick="location.href='/'">ODPOJIT_TERMINAL</button>
+        <div class="logout-btn" onclick="location.href='/'">TERM_DEACTIVATE</div>
     </nav>
 
     <main>
-        <div class="header-area">
-            <h1>STATUS: SECURED</h1>
-            <div id="live-clock" style="font-family: monospace; color: #333; font-size: 0.9em;"></div>
+        <div class="top-bar">
+            <h1>CENTRAL_UNIT_NODE_01</h1>
+            <div id="clock" style="font-family: 'Orbitron'; font-size: 0.8em; color: var(--red); text-shadow: 0 0 5px var(--red-glow);"></div>
         </div>
 
         <div class="grid">
-            <div class="vedeni-only card" style="grid-column: 1 / -1;">
-                <span class="card-title">CELKOVÁ PASIVA ORGANIZACE</span>
-                <div class="stat" id="org-debt" style="color: var(--red); text-shadow: 0 0 15px var(--red-glow);">0 KS</div>
+            <div class="vedeni-only card" style="grid-column: span 3; border-left: 4px solid var(--red);">
+                <span class="card-label">PASIVA ORGANIZACE (CELKEM)</span>
+                <div class="stat-number" id="org-debt" style="color: var(--red);">0 KS</div>
             </div>
 
             <div class="card">
-                <span class="card-title">PŘIJATÉ ZÁSILKY</span>
-                <div class="stat" id="my-vydano" style="color: var(--green);">0</div>
+                <span class="card-label">ZÁSILKY PŘIJATO</span>
+                <div class="stat-number" id="my-vydano" style="color: var(--green);">0</div>
             </div>
 
             <div class="card">
-                <span class="card-title">ODEVZDANÉ ZÁSILKY</span>
-                <div class="stat" id="my-odevzdano" style="color: var(--cyan);">0</div>
+                <span class="card-label">ZÁSILKY ODEVZDÁNO</span>
+                <div class="stat-number" id="my-odevzdano" style="color: var(--cyan);">0</div>
             </div>
 
             <div class="card">
-                <span class="card-title">AKTUÁLNÍ DLUŽNÁ ČÁSTKA</span>
-                <div class="stat" id="my-dluh" style="color: var(--red);">0</div>
+                <span class="card-label">TVŮJ OSOBNÍ DLUH</span>
+                <div class="stat-number" id="my-dluh" style="color: var(--red);">0</div>
             </div>
         </div>
 
         <div class="maestro-only card" style="margin-top: 25px;">
-            <span class="card-title">LOGISTICKÝ MONITORING DLUŽNÍKŮ</span>
-            <div id="admin-table-area" style="margin-top: 20px; color: #444; font-size: 0.9em;">
-                PŘIPOJOVÁNÍ K DATABÁZI...
+            <span class="card-label">LOGISTICKÝ MONITORING SÍTĚ</span>
+            <div id="admin-table" style="color: #444; font-size: 0.9em; margin-top: 20px;">
+                NAČÍTÁM ENCRYPTED DATA...
             </div>
         </div>
     </main>
 
     <script>
-        // --- KONFIGURACE ---
         const ROLES = {
             VEDENI: "1468388299642241281",
             MAESTRO: "1429877779918491789",
             IT_TECHNIK: "1489322789205971174",
-            MARINA: "1417573119664722185",
-            ZAMESTNANCI: ["1434516891212316744", "1417244306334547978", "1417244307336859730"] 
+            MARINA: "1417573119664722185"
         };
 
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('user') || "OPERATIVEC_X";
         const userRoles = (urlParams.get('roles') || "").split(',');
 
-        document.getElementById('username').innerText = username;
+        document.getElementById('username').innerText = username.toUpperCase();
 
-        // Funkce pro vysouvání menu
-        function toggleSubmenu(id) {
-            const sub = document.getElementById(id);
-            const allSubmenus = document.querySelectorAll('.submenu');
-            
-            allSubmenus.forEach(s => {
+        function toggleSub(id) {
+            document.querySelectorAll('.submenu').forEach(s => {
                 if(s.id !== id) s.classList.remove('open');
             });
-
-            sub.classList.toggle('open');
+            document.getElementById(id).classList.toggle('open');
         }
 
         function checkPermissions() {
             let display = document.getElementById('user-role-display');
-            
             if (userRoles.includes(ROLES.VEDENI) || userRoles.includes(ROLES.IT_TECHNIK)) {
                 document.querySelectorAll('.vedeni-only, .maestro-only').forEach(el => el.style.display = 'block');
-                display.innerHTML = '<span class="role-badge">VEDENÍ</span>';
+                display.innerHTML = '<span class="role-badge">VEDENÍ KARTELU</span>';
             } 
-            else if (userRoles.includes(ROLES.MARINA)) {
-                document.querySelectorAll('.vedeni-only').forEach(el => el.style.display = 'block');
-                display.innerHTML = '<span class="role-badge" style="border-color:var(--cyan); color:var(--cyan);">A-TEAM DOHLED</span>';
-            }
             else if (userRoles.includes(ROLES.MAESTRO)) {
                 document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
-                display.innerHTML = '<span class="role-badge" style="border-color:var(--green); color:var(--green);">DISTRIBUTOR</span>';
+                display.innerHTML = '<span class="role-badge" style="color:var(--green); border-color:var(--green);">MAESTRO</span>';
             }
             else {
-                display.innerHTML = '<span class="role-badge" style="border-color:#555; color:#555;">OPERATIVEC</span>';
+                display.innerHTML = '<span class="role-badge" style="color:#666; border-color:#333;">SICARIO</span>';
             }
         }
 
-        // Live hodiny
-        setInterval(() => {
+        function updateClock() {
             const now = new Date();
-            document.getElementById('live-clock').innerText = now.toLocaleString('cs-CZ');
-        }, 1000);
+            document.getElementById('clock').innerText = now.toLocaleTimeString('cs-CZ');
+        }
 
+        setInterval(updateClock, 1000);
+        updateClock();
         checkPermissions();
     </script>
 </body>
