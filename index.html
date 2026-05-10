@@ -3,60 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CJNG | Distribution Control</title>
+    <title>CJNG | Panel Distribuce</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            background-color: #0a0a0a;
-            color: #ffffff;
-            font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-        .dashboard {
-            border: 1px solid #333;
-            background: #111;
-            padding: 20px;
-            width: 80%;
-            max-width: 800px;
-            box-shadow: 0 0 20px rgba(255, 0, 0, 0.1);
-        }
-        h1 { color: #ff0000; text-transform: uppercase; letter-spacing: 5px; }
-        .stats { display: flex; justify-content: space-around; border-bottom: 1px solid #333; padding-bottom: 20px; }
-        .status-online { color: #00ff00; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #222; padding: 10px; text-align: left; }
-        th { background: #1a1a1a; color: #888; }
-        .btn { padding: 5px 10px; cursor: pointer; border: none; }
-        .btn-edit { background: #444; color: white; }
-        .btn-delete { background: #ff0000; color: white; }
+        body { background-color: #0a0a0a; color: #ffffff; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .dashboard { border: 1px solid #333; background: #111; padding: 20px; width: 95%; max-width: 1100px; box-shadow: 0 0 20px rgba(255, 0, 0, 0.2); border-radius: 5px; margin-top: 20px; }
+        h1 { color: #ff0000; text-transform: uppercase; letter-spacing: 5px; text-shadow: 2px 2px #000; margin-bottom: 5px; }
+        .stats { display: flex; justify-content: space-around; border-bottom: 1px solid #333; padding-bottom: 20px; margin-bottom: 20px; font-weight: bold; font-size: 1.2em; }
+        .status-online { color: #00ff00; animation: blink 2s infinite; font-size: 0.8em; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #222; padding: 12px; text-align: left; }
+        th { background: #1a1a1a; color: #888; text-transform: uppercase; font-size: 0.8em; }
+        tr:hover { background: #161616; }
+        .val-red { color: #ff4444; font-weight: bold; }
+        .val-green { color: #00ff00; }
+        .loading { text-align: center; padding: 40px; color: #888; font-style: italic; }
+        .id-cell { font-size: 0.85em; color: #aaa; }
     </style>
 </head>
 <body>
-    <h1>CJNG Distribution</h1>
-    <p>Status: <span class="status-online">CONNECTED</span></p>
+    <h1>CJNG | Internal System</h1>
+    <p><span class="status-online">● ENCRYPTED CONNECTION ACTIVE</span></p>
 
     <div class="dashboard">
         <div class="stats">
-            <div>Prodáno: <span id="total-sold">0 ks</span></div>
-            <div>Výnos: <span id="total-revenue">0 $</span></div>
+            <div>CELKOVÝ DLUH: <span id="total-debt" style="color: #ff0000;">0 ks</span></div>
+            <div>ODHADOVANÝ VÝNOS: <span id="total-revenue" style="color: #00ff00;">0 $</span></div>
         </div>
 
-        <table>
+        <table id="main-table">
             <thead>
                 <tr>
-                    <th>Zaměstnanec</th>
-                    <th>Zůstatek</th>
-                    <th>Akce</th>
+                    <th>Zaměstnanec (ID)</th>
+                    <th>Celkem Vydáno</th>
+                    <th>Celkem Odevzdáno</th>
+                    <th>Aktuální Dluh</th>
                 </tr>
             </thead>
             <tbody id="data-table">
-                <tr>
-                    <td colspan="3" style="text-align:center;">Načítám data z databáze...</td>
-                </tr>
+                <tr><td colspan="4" class="loading">Navazuji spojení s databází CJNG...</td></tr>
             </tbody>
         </table>
     </div>
+
+    <script>
+        // Tvůj Supabase Config
+        const SUPABASE_URL = 'https://ybzprivahzjqpanvunli.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
+
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function nactiData() {
+            try {
+                // Načtení dat z tabulek
+                const { data: vydeje, error: err1 } = await _supabase.from('vydej_kokainu').select('*');
+                const { data: evidence, error: err2 } = await _supabase.from('evidence_prace').select('*').eq('typ_prace', 'prodej');
+
+                if (err1 || err2) throw new Error("Chyba při stahování dat");
+
+                let stats = {};
+                let celkovyDluh = 0;
+
+                // Sčítání výdejů
+                vydeje?.forEach(v => {
+                    if (!stats[v.user_id]) stats[v.user_id] = { vydano: 0, prodano: 0 };
+                    stats[v.user_id].vydano += (v.pocet_vydano || 0);
+                });
+
+                // Sčítání prodejů
+                evidence?.forEach(e => {
+                    if (!stats[e.user_id]) stats[e.user_id] = { vydano: 0, prodano: 0 };
+                    stats[e.user_id].prodano += (e.mnozstvi || 0);
+                });
+
+                const tableBody = document.getElementById('data-table');
+                tableBody.innerHTML = '';
+
+                let nasliJsmeDluhy = false;
+
+                for (const uid in stats) {
+                    const zustatek = stats[uid].vydano - stats[uid].prodano;
+                    if (zustatek <= 0) continue; // Lidi bez dluhu neřešíme
+
+                    nasliJsmeDluhy = true;
+                    celkovyDluh += zustatek;
+
+                    const row = `
+                        <tr>
+                            <td class="id-cell">${uid}</td>
+                            <td class="val-green">${stats[uid].vydano} ks</td>
+                            <td>${stats[uid].prodano} ks</td>
+                            <td class="val-red">${zustatek} ks</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                }
+
+                if (!nasliJsmeDluhy) {
+                    tableBody.innerHTML = '<tr><td colspan="4" class="loading">Všechny dluhy jsou vyřízeny. Systém je čistý.</td></tr>';
+                }
+
+                document.getElementById('total-debt').innerText = celkovyDluh.toLocaleString() + ' ks';
+                document.getElementById('total-revenue').innerText = (celkovyDluh * 620).toLocaleString() + ' $';
+
+            } catch (err) {
+                console.error("Chyba:", err);
+                document.getElementById('data-table').innerHTML = '<tr><td colspan="4" style="color:red; text-align:center; padding: 20px;">CHYBA PŘIPOJENÍ: Ověřte nastavení CORS v Supabase.</td></tr>';
+            }
+        }
+
+        // Spuštění
+        nactiData();
+        // Refresh každých 30 vteřin
+        setInterval(nactiData, 30000);
+    </script>
 </body>
 </html>
