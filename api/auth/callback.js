@@ -26,13 +26,13 @@ export default async function handler(req, res) {
             });
         }
 
-        // 2. Získání informací o uživateli
+        // 2. Získání informací o uživateli (Základní data)
         const userResponse = await fetch('https://discord.com/api/users/@me', {
             headers: { Authorization: `Bearer ${tokens.access_token}` },
         });
         const userData = await userResponse.json();
 
-        // 3. Získání rolí na tvém serveru (1417241414693031988)
+        // 3. Získání dat člena konkrétního serveru (pro přezdívku a role)
         const guildId = "1417241414693031988"; 
         
         const memberResponse = await fetch(`https://discord.com/api/users/@me/guilds/${guildId}/member`, {
@@ -50,9 +50,15 @@ export default async function handler(req, res) {
             return res.status(500).send("Nepodařilo se načíst tvoje role. Zkus se přihlásit znovu.");
         }
 
+        // --- LOGIKA PRO PŘEZDÍVKU ---
+        // 1. memberData.nick (přezdívka na serveru)
+        // 2. userData.global_name (nové Discord jméno)
+        // 3. userData.username (starý Discord handle)
+        const finalNickname = memberData.nick || userData.global_name || userData.username;
+
         // 4. Úspěch -> Směr Dashboard
-        // Předáme jméno a role v URL adrese
-        const userEncoded = encodeURIComponent(userData.username);
+        // Předáme přezdívku a role v URL adrese
+        const userEncoded = encodeURIComponent(finalNickname);
         const rolesEncoded = memberData.roles.join(',');
         
         res.redirect(`/dashboard.html?user=${userEncoded}&roles=${rolesEncoded}`);
