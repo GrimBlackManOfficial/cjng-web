@@ -1,69 +1,57 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
+
 export default async function handler(req, res) {
     const { code } = req.query;
-    if (!code) return res.status(400).send('Chybí autorizační kód z Discordu.');
+    if (!code) return res.status(400).send('Chybí kód.');
 
     try {
-        // 1. Výměna kódu za Token
+        // 1. Token z Discordu
         const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
             method: 'POST',
             body: new URLSearchParams({
                 client_id: process.env.DISCORD_CLIENT_ID,
                 client_secret: process.env.DISCORD_CLIENT_SECRET,
                 grant_type: 'authorization_code',
-                code: code,
+                code,
                 redirect_uri: process.env.DISCORD_REDIRECT_URI,
             }),
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
-
         const tokens = await tokenResponse.json();
-        
-        if (!tokens.access_token) {
-            return res.status(500).json({ 
-                error: "Chyba autentizace", 
-                message: "Nepodařilo se získat přístupový klíč od Discordu. Zkontroluj CLIENT_SECRET ve Vercelu.",
-                details: tokens 
-            });
-        }
 
-        // 2. Získání informací o uživateli (Základní data)
+        // 2. Info o uživateli z Discordu (získáme jeho ID)
         const userResponse = await fetch('https://discord.com/api/users/@me', {
             headers: { Authorization: `Bearer ${tokens.access_token}` },
         });
-        const userData = await userResponse.json();
+        const discordUser = await userResponse.json();
 
-        // 3. Získání dat člena konkrétního serveru (pro přezdívku a role)
-        const guildId = "1417241414693031988"; 
-        
+        // 3. Kontrola v tabulce zamestnanci podle user_id
+        const { data: zamestnanec } = await supabase
+            .from('zamestnanci')
+            .select('jmeno_prijmeni, prezdivka')
+            .eq('user_id', discordUser.id)
+            .single();
+
+        if (!zamestnanec) {
+            return res.status(403).send("Nejsi v databázi kartelu. Kontaktuj Maestra.");
+        }
+
+        // 4. Získání rolí na serveru (pro přístup do admin sekce)
+        const guildId = "1417241414693031988";
         const memberResponse = await fetch(`https://discord.com/api/users/@me/guilds/${guildId}/member`, {
             headers: { Authorization: `Bearer ${tokens.access_token}` },
         });
-
         const memberData = await memberResponse.json();
+        const roles = (memberData.roles || []).join(',');
 
-        // Pokud uživatel není na serveru
-        if (memberResponse.status === 404) {
-            return res.status(403).send(`Přístup odepřen: Uživatel ${userData.username} není členem CJNG serveru.`);
-        }
-
-        if (!memberData.roles) {
-            return res.status(500).send("Nepodařilo se načíst tvoje role. Zkus se přihlásit znovu.");
-        }
-
-        // --- LOGIKA PRO PŘEZDÍVKU ---
-        // 1. memberData.nick (přezdívka na serveru)
-        // 2. userData.global_name (nové Discord jméno)
-        // 3. userData.username (starý Discord handle)
-        const finalNickname = memberData.nick || userData.global_name || userData.username;
-
-        // 4. Úspěch -> Směr Dashboard
-        // Předáme přezdívku a role v URL adrese
-        const userEncoded = encodeURIComponent(finalNickname);
-        const rolesEncoded = memberData.roles.join(',');
-        
-        res.redirect(`/dashboard.html?user=${userEncoded}&roles=${rolesEncoded}`);
+        // Přesměrování na dashboard s parametry
+        const name = encodeURIComponent(zamestnanec.jmeno_prijmeni);
+        const nick = encodeURIComponent(zamestnanec.prezdivka || "");
+        res.redirect(`/dashboard.html?id=${discordUser.id}&name=${name}&nick=${nick}&roles=${roles}`);
 
     } catch (err) {
-        res.status(500).send("Kritická chyba systému: " + err.message);
+        res.status(500).json({ error: err.message });
     }
 }
