@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Inicializace Supabase (používá proměnné prostředí z Vercelu)
+// Inicializace Supabase pomocí proměnných prostředí z Vercelu
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
 export default async function handler(req, res) {
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         if (!tokens.access_token) {
             return res.status(500).json({ 
                 error: "Chyba autentizace", 
-                message: "Nepodařilo se získat přístupový klíč od Discordu. Zkontroluj CLIENT_SECRET ve Vercelu.",
+                message: "Nepodařilo se získat přístupový klíč od Discordu.",
                 details: tokens 
             });
         }
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
         });
         const userData = await userResponse.json();
 
-        // 3. --- KONTROLA V DATABÁZI KARTELU (SUPABASE) ---
+        // 3. KONTROLA V DATABÁZI KARTELU (SUPABASE)
         const { data: zamestnanec, error: dbError } = await supabase
             .from('zamestnanci')
             .select('*')
@@ -48,9 +48,8 @@ export default async function handler(req, res) {
             return res.status(403).send(`PŘÍSTUP ODEPŘEN: Uživatel ID ${userData.id} není registrován v databázi kartelu.`);
         }
 
-        // 4. Získání dat člena konkrétního serveru (pro přezdívku a role)
+        // 4. Získání dat člena konkrétního serveru (pro role a nick)
         const guildId = "1417241414693031988"; 
-        
         const memberResponse = await fetch(`https://discord.com/api/users/@me/guilds/${guildId}/member`, {
             headers: { Authorization: `Bearer ${tokens.access_token}` },
         });
@@ -59,25 +58,20 @@ export default async function handler(req, res) {
 
         // Pokud uživatel není na serveru
         if (memberResponse.status === 404) {
-            return res.status(403).send(`Přístup odepřen: Uživatel ${userData.username} není členem CJNG serveru.`);
+            return res.status(403).send(`Přístup odepřen: Uživatel není členem CJNG serveru.`);
         }
 
-        if (!memberData.roles) {
-            return res.status(500).send("Nepodařilo se načíst tvoje role. Zkus se přihlásit znovu.");
-        }
-
-        // --- LOGIKA PRO PŘEZDÍVKU ---
-        // Priorita: 1. Jméno ze Supabase | 2. Nick na serveru | 3. Globální jméno | 4. Username
+        // Logika pro jméno: Priorita je Supabase -> Server Nick -> Discord Name
         const finalNickname = zamestnanec.jmeno_prijmeni || memberData.nick || userData.global_name || userData.username;
 
-        // 5. Úspěch -> Směr Dashboard
-        // Předáváme jméno, role a ID (pro sčítání drog v dashboardu)
+        // 5. Přesměrování na Dashboard
         const userEncoded = encodeURIComponent(finalNickname);
-        const rolesEncoded = memberData.roles.join(',');
+        const rolesEncoded = (memberData.roles || []).join(',');
         
-        res.redirect(`/dashboard.html?user=${userEncoded}&roles=${rolesEncoded}&id=${userData.id}`);
+        // PŘIDÁVÁME ID PRO FETCHSTATS V DASHBOARDU
+        return res.redirect(`/dashboard.html?user=${userEncoded}&roles=${rolesEncoded}&id=${userData.id}`);
 
     } catch (err) {
-        res.status(500).send("Kritická chyba systému: " + err.message);
+        return res.status(500).send("Kritická chyba systému: " + err.message);
     }
 }
