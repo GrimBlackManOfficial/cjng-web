@@ -13,9 +13,24 @@
         #terminal-body { width: 100%; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
         .line { margin-bottom: 8px; opacity: 0; transform: translateX(-10px); animation: fadeIn 0.2s forwards; font-size: 1em; letter-spacing: 2px; color: #aaa; text-transform: uppercase; }
         @keyframes fadeIn { to { opacity: 1; transform: translateX(0); } }
+        
+        /* Satelitní Tracking Animace */
+        .satellite-wrap { position: relative; width: 60px; height: 60px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; }
+        .sat-core { width: 10px; height: 10px; background: var(--red); border-radius: 50%; box-shadow: 0 0 15px var(--red); z-index: 2; }
+        .sat-wave { position: absolute; border: 2px solid var(--red); border-radius: 50%; animation: pulse 2s infinite; opacity: 0; }
+        .sat-wave:nth-child(2) { animation-delay: 0.5s; }
+        .sat-wave:nth-child(3) { animation-delay: 1s; }
+        @keyframes pulse {
+            0% { width: 10px; height: 10px; opacity: 0.8; }
+            100% { width: 60px; height: 60px; opacity: 0; }
+        }
+        .tracking-active .sat-wave { animation-duration: 0.6s !important; border-color: #fff; }
+        .tracking-active .sat-core { background: #fff; box-shadow: 0 0 20px #fff; }
+
         #login-module { display: none; opacity: 0; transform: scale(0.8) translateY(20px); background: rgba(15, 0, 0, 0.9); border: 1px solid var(--red); padding: 40px; text-align: center; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2); backdrop-filter: blur(15px); z-index: 50; position: absolute; }
         .assemble-anim { animation: assemble 0.6s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes assemble { 0% { opacity: 0; transform: scale(1.5); filter: blur(20px) hue-rotate(90deg); } 100% { opacity: 1; transform: scale(1); filter: blur(0) hue-rotate(0deg); } }
+        
         .status-ok { color: #00ff41; font-weight: bold; }
         .status-critical { color: var(--red); text-shadow: 0 0 5px var(--red); }
         .btn-auth { background: none; border: 1px solid var(--red); color: #fff; padding: 15px 40px; font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 4px; transition: 0.4s; margin-top: 20px; position: relative; overflow: hidden; pointer-events: none; }
@@ -28,6 +43,12 @@
     <div id="main-wrapper">
         <div id="terminal-body"></div>
         <div id="login-module">
+            <div class="satellite-wrap" id="sat-node">
+                <div class="sat-core"></div>
+                <div class="sat-wave"></div>
+                <div class="sat-wave"></div>
+                <div class="sat-wave"></div>
+            </div>
             <div class="module-title">CJNG SÍŤ</div>
             <div class="module-subtitle">PROBÍHÁ AUTOMATICKÁ AUTORIZACE</div>
             <div style="width: 50px; height: 2px; background: var(--red); margin: 0 auto 25px;"></div>
@@ -71,6 +92,7 @@
         const terminalBody = document.getElementById('terminal-body');
         const loginModule = document.getElementById('login-module');
         const authBtn = document.getElementById('auth-btn');
+        const satNode = document.getElementById('sat-node');
         let index = 0;
 
         function addLine() {
@@ -80,18 +102,17 @@
                 div.innerHTML = lines[index++];
                 terminalBody.appendChild(div);
                 
-                // Zvukové variace podle obsahu
                 if (div.innerText.includes("VAROVÁNÍ")) {
-                    playSound(100, 'square', 0.6, 0.15); // Alarm
+                    playSound(100, 'square', 0.6, 0.15); 
                 } else if (div.innerText.includes("PŘÍSTUP POVOLEN")) {
                     playSound(800, 'sine', 0.2, 0.1);
-                    setTimeout(() => playSound(1000, 'sine', 0.2, 0.1), 100); // Dvojité pípnutí
+                    setTimeout(() => playSound(1000, 'sine', 0.2, 0.1), 100); 
                 } else {
-                    playSound(400 + (Math.random() * 300), 'sine', 0.06, 0.04); // Data blip
+                    playSound(400 + (Math.random() * 300), 'sine', 0.06, 0.04); 
                 }
 
                 let delay = Math.random() * (400 - 150) + 150;
-                if (index === 6 || index === 10) delay = 1000; // Pauza u varování a dešifrování
+                if (index === 6 || index === 10) delay = 1000; 
                 setTimeout(addLine, delay);
             } else {
                 setTimeout(transitionToLogin, 800);
@@ -100,12 +121,10 @@
 
         function transitionToLogin() {
             terminalBody.classList.add('fade-out');
-            // Hluboký zvuk odchodu terminálu
             playSound(60, 'sine', 1.2, 0.1);
             setTimeout(() => {
                 terminalBody.style.display = 'none';
                 loginModule.style.display = 'block';
-                // Digitální zvuk sestavení
                 playSound(150, 'sawtooth', 0.8, 0.05, true);
                 setTimeout(() => { 
                     loginModule.classList.add('assemble-anim'); 
@@ -119,23 +138,28 @@
             authBtn.innerHTML = "PROPOJOVÁNÍ...";
             authBtn.style.background = "var(--red)";
             authBtn.style.color = "#000";
-            // Zvuk finální autorizace
+            satNode.classList.add('tracking-active'); // Spustí rychlou animaci satelitu
+            
+            // Zvuk tracking signálu (rychlé pípání)
+            const interval = setInterval(() => {
+                playSound(1200, 'sine', 0.05, 0.05);
+            }, 150);
+
             playSound(440, 'triangle', 0.5, 0.1);
             setTimeout(() => {
+                clearInterval(interval);
                 window.location.href = '/api/auth/login';
-            }, 800);
+            }, 1500); // Prodlouženo na 1.5s pro vyniknutí animace
         }
 
         window.onclick = () => { 
             if(audioCtx.state === 'suspended') {
                 audioCtx.resume();
-                // Hluboké hučení na pozadí při startu po kliku
                 playSound(40, 'sine', 2.0, 0.05);
             }
         };
         
         window.onload = () => {
-            // První řádek se spustí hned, zvuky až po prvním kliku uživatele kamkoliv
             addLine();
         };
     </script>
