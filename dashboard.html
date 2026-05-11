@@ -10,86 +10,97 @@
     <style>
         :root { 
             --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
-            --bg: #020202; --card-bg: rgba(15, 15, 15, 0.7);
-            --border: rgba(255, 0, 0, 0.25); --green: #00ff41; --cyan: #00f2ff;
-            --glass: rgba(255, 255, 255, 0.03);
+            --bg: #020202; --card-bg: rgba(15, 15, 15, 0.8);
+            --border: rgba(255, 0, 0, 0.25);
         }
         body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        nav { width: 280px; background: rgba(0, 0, 0, 0.9); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; backdrop-filter: blur(15px); z-index: 10; }
-        .brand-text { font-family: 'Orbitron', sans-serif; font-size: 2em; letter-spacing: 6px; background: linear-gradient(to bottom, #fff, #ff0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; margin-bottom: 40px; filter: drop-shadow(0 0 10px var(--red-glow)); }
-        .user-identity { background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 4px; margin-bottom: 30px; position: relative; overflow: hidden; }
-        .user-identity::before { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px; background: var(--red); animation: scan 3s infinite; }
-        @keyframes scan { 0% { left: -100%; } 100% { left: 100%; } }
-        #username { font-family: 'Orbitron', sans-serif; font-size: 0.9em; color: #fff; letter-spacing: 1px; }
-        .role-badge { font-size: 0.6em; padding: 3px 10px; border: 1px solid var(--red); color: var(--red); margin-top: 10px; display: inline-block; text-transform: uppercase; }
-        .menu-trigger { width: 100%; background: none; border: none; color: #888; padding: 12px; text-align: left; font-size: 0.85em; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 2px; }
-        .submenu { max-height: 0; overflow: hidden; transition: 0.4s; background: rgba(0,0,0,0.3); border-left: 1px solid var(--border); margin-left: 5px; }
-        .submenu.open { max-height: 400px; padding: 5px 0; }
-        .nav-item { padding: 10px 20px; color: #555; text-decoration: none; display: block; font-size: 0.8em; transition: 0.3s; }
-        .nav-item:hover { color: #fff; background: rgba(255,255,255,0.02); padding-left: 25px; }
-        main { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+        
+        /* Sidebar */
+        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; }
+        .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
+        
+        .user-info { border: 1px solid var(--border); padding: 20px; margin-bottom: 30px; background: rgba(255,0,0,0.02); }
+        #display-name { font-family: 'Orbitron'; font-size: 0.9em; margin-bottom: 10px; }
+        .role-badge { font-size: 0.65em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; }
+
+        /* Menu */
+        .menu-group { margin-bottom: 20px; }
+        .menu-label { font-size: 0.7em; color: #444; letter-spacing: 2px; margin-bottom: 10px; padding-left: 10px; }
+        .nav-link { color: #888; text-decoration: none; display: block; padding: 12px 15px; font-size: 0.85em; transition: 0.3s; border-left: 2px solid transparent; }
+        .nav-link:hover { color: #fff; background: rgba(255,0,0,0.05); border-left: 2px solid var(--red); }
+
+        /* Main Content */
+        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; position: relative; backdrop-filter: blur(5px); }
-        .card-label { font-size: 0.7em; color: #666; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; display: block; }
-        .stat-number { font-family: 'Orbitron', sans-serif; font-size: 2em; color: #fff; }
-        .maestro-only, .vedeni-only, .marina-only { display: none; }
-        .logout-btn { margin-top: auto; border: 1px solid #222; padding: 12px; color: #444; text-align: center; cursor: pointer; letter-spacing: 2px; }
-        canvas { width: 100% !important; height: 250px !important; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); }
+        .card-title { font-size: 0.7em; color: #666; letter-spacing: 2px; margin-bottom: 15px; }
+        .stat { font-family: 'Orbitron'; font-size: 2.2em; }
+
+        /* Visibility */
+        .admin-only, .maestro-only, .vedeni-only { display: none; }
+        
+        .logout { margin-top: auto; color: #444; text-align: center; cursor: pointer; font-size: 0.8em; letter-spacing: 2px; }
+        .logout:hover { color: var(--red); }
     </style>
 </head>
 <body>
 
     <nav>
-        <div class="brand-text">CJNG</div>
-        <div class="user-identity">
-            <div id="username">IDENTIFIKUJI...</div>
-            <div id="user-role-display"></div>
+        <div class="brand">CJNG</div>
+        <div class="user-info">
+            <div id="display-name">IDENTIFIKACE...</div>
+            <div id="display-badge"></div>
         </div>
 
         <div class="menu-group">
-            <button class="menu-trigger" onclick="toggleSub('m1')">MOJE_SLOŽKA <span>[+]</span></button>
-            <div id="m1" class="submenu">
-                <a href="#" class="nav-item">OSOBNÍ PŘEHLED</a>
-            </div>
+            <div class="menu-label">PERSONAL_DATA</div>
+            <a href="#" class="nav-link">PŘEHLED ZÁSILEK</a>
+            <a href="#" class="nav-link">NAHLÁSIT VÝROBU</a>
         </div>
 
         <div class="menu-group maestro-only">
-            <button class="menu-trigger" onclick="toggleSub('m2')">LOGISTIKA_DROG <span>[+]</span></button>
-            <div id="m2" class="submenu">
-                <a href="#" class="nav-item">GRAFY PRODUKCE</a>
-            </div>
+            <div class="menu-label">LOGISTIKA_MAESTRO</div>
+            <a href="#" class="nav-link">VÝDEJ ZAMĚSTNANCŮM</a>
+            <a href="#" class="nav-item">SKLADOVÉ ZÁSOBY</a>
+            <a href="#" class="nav-item">LOGY DISTRIBUCE</a>
         </div>
 
-        <div class="menu-group marina-only">
-            <button class="menu-trigger" onclick="toggleSub('m3')">A-TEAM_DOZOR <span>[+]</span></button>
-            <div id="m3" class="submenu">
-                <a href="#" class="nav-item">KONTROLA PRAVIDEL</a>
-            </div>
+        <div class="menu-group admin-only">
+            <div class="menu-label">A-TEAM_DOZOR</div>
+            <a href="#" class="nav-link">MONITORING (READ ONLY)</a>
+            <a href="#" class="nav-link">LOGY SYSTÉMU</a>
         </div>
 
         <div class="menu-group vedeni-only">
-            <button class="menu-trigger" onclick="toggleSub('m4')">CENTRÁLA_VEDENÍ <span>[+]</span></button>
-            <div id="m4" class="submenu">
-                <a href="#" class="nav-item">FINANCE KARTELU</a>
-            </div>
+            <div class="menu-label">VEDENÍ_KARTELU</div>
+            <a href="#" class="nav-link">FINANCE ORGANIZACE</a>
+            <a href="#" class="nav-link">ZAMĚSTNANECKÉ SLOŽKY</a>
+            <a href="#" class="nav-link">NASTAVENÍ NODŮ</a>
         </div>
 
-        <div class="logout-btn" onclick="location.href='/'">LOGOUT</div>
+        <div class="logout" onclick="location.href='/'">DEAKTIVOVAT_TERMINÁL</div>
     </nav>
 
     <main>
         <div class="grid">
             <div class="card">
-                <span class="card-label">MOJE PŘIJATÉ ZÁSILKY</span>
-                <div class="stat-number" id="my-vydano">0 KS</div>
+                <div class="card-title">MOJE ODEBRANÉ ZÁSILKY</div>
+                <div id="my-vydano" class="stat">0 KS</div>
             </div>
             <div class="card">
-                <span class="card-label">AKTUÁLNÍ DLUH</span>
-                <div class="stat-number" id="my-dluh" style="color: var(--red);">0 KS</div>
+                <div class="card-title">OSOBNÍ DLUH</div>
+                <div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div>
             </div>
-            <div class="card marina-only vedeni-only maestro-only" style="grid-column: span 3;">
-                <span class="card-label">MONITORING GLOBÁLNÍ PRODUKCE (Z TABULKY VYDEJ_KOKAINU)</span>
-                <canvas id="productionChart"></canvas>
+            <div class="card">
+                <div class="card-title">STATUS SÍTĚ</div>
+                <div class="stat" style="color: #00ff41; font-size: 1.2em;">SECURED // ACTIVE</div>
+            </div>
+
+            <div class="card maestro-only vedeni-only admin-only" style="grid-column: span 3;">
+                <div class="card-title">STRATEGICKÁ ANALÝZA DISTRIBUCE (CELKOVÝ VÝNOS)</div>
+                <div style="height: 350px; position: relative;">
+                    <canvas id="profiChart"></canvas>
+                </div>
             </div>
         </div>
     </main>
@@ -102,66 +113,60 @@
         const ROLES = {
             VEDENI: "1468388299642241281",
             MAESTRO: "1429877779918491789",
-            MARINA: "1417573119664722185",
-            IT: "1489322789205971174"
+            MARINA: "1417573119664722185" // A-Team dozor
         };
 
         const urlParams = new URLSearchParams(window.location.search);
-        const username = urlParams.get('user') || "OPERATIVEC";
-        const userRoles = (urlParams.get('roles') || "").split(',');
+        const name = urlParams.get('user') || "OPERATIVEC";
+        const roles = (urlParams.get('roles') || "").split(',');
         const discordId = urlParams.get('id');
 
-        document.getElementById('username').innerText = username.toUpperCase();
+        document.getElementById('display-name').innerText = name.toUpperCase();
 
-        function toggleSub(id) {
-            document.getElementById(id).classList.toggle('open');
-        }
-
-        function checkPermissions() {
-            const display = document.getElementById('user-role-display');
+        function setupPermissions() {
+            const badge = document.getElementById('display-badge');
             let label = "ZAMĚSTNANEC CJNG";
 
-            if (userRoles.includes(ROLES.VEDENI) || userRoles.includes(ROLES.IT)) {
-                document.querySelectorAll('.vedeni-only, .maestro-only, .marina-only').forEach(e => e.style.display = 'block');
+            if (roles.includes(ROLES.VEDENI)) {
+                document.querySelectorAll('.vedeni-only, .maestro-only, .admin-only').forEach(el => el.style.display = 'block');
                 label = "VEDENÍ KARTELU";
-            } else if (userRoles.includes(ROLES.MARINA)) {
-                document.querySelectorAll('.marina-only, .vedeni-only, .maestro-only').forEach(e => e.style.display = 'block');
+            } 
+            else if (roles.includes(ROLES.MARINA)) {
+                document.querySelectorAll('.admin-only, .vedeni-only, .maestro-only').forEach(el => el.style.display = 'block');
                 label = "A-TEAM DOZOR";
-            } else if (userRoles.includes(ROLES.MAESTRO)) {
-                document.querySelectorAll('.maestro-only').forEach(e => e.style.display = 'block');
+            }
+            else if (roles.includes(ROLES.MAESTRO)) {
+                document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
                 label = "MAESTRO DE DROGAS";
             }
-            display.innerHTML = `<span class="role-badge">${label}</span>`;
+
+            badge.innerHTML = `<span class="role-badge">${label}</span>`;
         }
 
-        async function fetchStats() {
+        async function fetchRealData() {
             if (!discordId) return;
-            // OPRAVA: Použit sloupec 'pocet_vydano'
-            const { data } = await _supabase.from('vydej_kokainu').select('pocet_vydano').eq('user_id', discordId);
-            if (data) {
-                const total = data.reduce((sum, row) => sum + (parseInt(row.pocet_vydano) || 0), 0);
-                document.getElementById('my-vydano').innerText = total.toLocaleString() + " KS";
-                document.getElementById('my-dluh').innerText = total.toLocaleString() + " KS";
+            
+            // Osobní data
+            const { data: userData } = await _supabase.from('vydej_kokainu').select('pocet_vydano').eq('user_id', discordId);
+            if (userData) {
+                const total = userData.reduce((sum, r) => sum + (parseInt(r.pocet_vydano) || 0), 0);
+                document.getElementById('my-vydano').innerText = total + " KS";
+                document.getElementById('my-dluh').innerText = total + " KS";
+            }
+
+            // Data pro graf (jen pro vyvolené)
+            if (roles.some(r => [ROLES.VEDENI, ROLES.MAESTRO, ROLES.MARINA].includes(r))) {
+                const { data: chartData } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
+                if (chartData) renderProfiChart(chartData);
             }
         }
 
-        async function initChart() {
-            const canvas = document.getElementById('productionChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            
-            // OPRAVA: Načítáme 'pocet_vydano' a 'datum' (přesně podle tvého screenshotu)
-            const { data, error } = await _supabase
-                .from('vydej_kokainu')
-                .select('pocet_vydano, datum')
-                .order('datum', { ascending: true });
-
-            if (error || !data) return;
-
+        function renderProfiChart(rawData) {
+            const ctx = document.getElementById('profiChart').getContext('2d');
             const stats = {};
-            data.forEach(row => {
-                const date = new Date(row.datum).toLocaleDateString('cs-CZ');
-                stats[date] = (stats[date] || 0) + (parseInt(row.pocet_vydano) || 0);
+            rawData.forEach(r => {
+                const d = new Date(r.datum).toLocaleDateString('cs-CZ');
+                stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0);
             });
 
             new Chart(ctx, {
@@ -169,31 +174,31 @@
                 data: {
                     labels: Object.keys(stats),
                     datasets: [{
-                        label: 'VYDÁNO KS',
+                        label: 'DISTRIBUCE',
                         data: Object.values(stats),
                         borderColor: '#ff0000',
                         backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                        fill: true,
                         tension: 0.4,
-                        fill: true
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#ff0000'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
-                        x: { grid: { display: false }, ticks: { color: '#666' } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#444', font: { family: 'Rajdhani' } } },
+                        x: { grid: { display: false }, ticks: { color: '#444', font: { family: 'Rajdhani' } } }
                     },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
-        checkPermissions();
-        fetchStats();
-        if (userRoles.includes(ROLES.MAESTRO) || userRoles.includes(ROLES.VEDENI) || userRoles.includes(ROLES.MARINA) || userRoles.includes(ROLES.IT)) {
-            initChart();
-        }
+        setupPermissions();
+        fetchRealData();
     </script>
 </body>
 </html>
