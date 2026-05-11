@@ -92,13 +92,6 @@
                     <a href="#" class="nav-link" onclick="showDossier()">Vlastní složka (Dossier)</a>
                 </div>
             </div>
-            <div class="menu-category maestro-only vedeni-only">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">CENTRÁLA <i>▶</i></button>
-                <div class="submenu">
-                    <a href="#" class="nav-link">Logistika</a>
-                    <a href="#" class="nav-link">Sklad</a>
-                </div>
-            </div>
         </div>
         <div class="logout" onclick="location.href='/'">Odhlásit se</div>
     </nav>
@@ -166,7 +159,7 @@
         function showDashboard() { 
             document.getElementById('dashboard-view').style.display = 'block'; 
             document.getElementById('dossier-section').style.display = 'none';
-            fetchChartData(); // Refresh grafu při návratu
+            fetchChartData(); 
         }
 
         async function fetchChartData() {
@@ -249,8 +242,14 @@
         function setupPermissions() {
             const b = document.getElementById('display-badge');
             let l = "OPERATIVEC CJNG";
-            if (rArr.includes(ROLES.VEDENI)) { l = "VEDENÍ KARTELU"; document.querySelectorAll('.vedeni-only').forEach(e => e.style.display = 'block'); }
-            else if (rArr.includes(ROLES.MAESTRO)) { l = "MAESTRO"; document.querySelectorAll('.maestro-only').forEach(e => e.style.display = 'block'); }
+            if (rArr.includes(ROLES.VEDENI)) { 
+                l = "VEDENÍ KARTELU"; 
+                document.querySelectorAll('.vedeni-only').forEach(e => e.style.display = 'block'); 
+            }
+            else if (rArr.includes(ROLES.MAESTRO)) { 
+                l = "MAESTRO"; 
+                document.querySelectorAll('.maestro-only').forEach(e => e.style.display = 'block'); 
+            }
             b.innerHTML = `<span class="role-badge">${l}</span>`;
         }
 
