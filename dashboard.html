@@ -15,7 +15,6 @@
         }
         body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar */
         nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; }
         .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
         
@@ -23,20 +22,17 @@
         #display-name { font-family: 'Orbitron'; font-size: 0.9em; margin-bottom: 10px; }
         .role-badge { font-size: 0.65em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; }
 
-        /* Menu */
         .menu-group { margin-bottom: 20px; }
         .menu-label { font-size: 0.7em; color: #444; letter-spacing: 2px; margin-bottom: 10px; padding-left: 10px; }
         .nav-link { color: #888; text-decoration: none; display: block; padding: 12px 15px; font-size: 0.85em; transition: 0.3s; border-left: 2px solid transparent; }
         .nav-link:hover { color: #fff; background: rgba(255,0,0,0.05); border-left: 2px solid var(--red); }
 
-        /* Main Content */
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); }
         .card-title { font-size: 0.7em; color: #666; letter-spacing: 2px; margin-bottom: 15px; }
         .stat { font-family: 'Orbitron'; font-size: 2.2em; }
 
-        /* Visibility */
         .admin-only, .maestro-only, .vedeni-only { display: none; }
         
         .logout { margin-top: auto; color: #444; text-align: center; cursor: pointer; font-size: 0.8em; letter-spacing: 2px; }
@@ -61,8 +57,8 @@
         <div class="menu-group maestro-only">
             <div class="menu-label">LOGISTIKA_MAESTRO</div>
             <a href="#" class="nav-link">VÝDEJ ZAMĚSTNANCŮM</a>
-            <a href="#" class="nav-item">SKLADOVÉ ZÁSOBY</a>
-            <a href="#" class="nav-item">LOGY DISTRIBUCE</a>
+            <a href="#" class="nav-link">SKLADOVÉ ZÁSOBY</a>
+            <a href="#" class="nav-link">LOGY DISTRIBUCE</a>
         </div>
 
         <div class="menu-group admin-only">
@@ -93,11 +89,11 @@
             </div>
             <div class="card">
                 <div class="card-title">STATUS SÍTĚ</div>
-                <div class="stat" style="color: #00ff41; font-size: 1.2em;">SECURED // ACTIVE</div>
+                <div class="stat" style="color: #00ff41; font-size: 1.2em;">REAL-TIME // SECURED</div>
             </div>
 
             <div class="card maestro-only vedeni-only admin-only" style="grid-column: span 3;">
-                <div class="card-title">STRATEGICKÁ ANALÝZA DISTRIBUCE (CELKOVÝ VÝNOS)</div>
+                <div class="card-title">STRATEGICKÁ ANALÝZA DISTRIBUCE (LIVE)</div>
                 <div style="height: 350px; position: relative;">
                     <canvas id="profiChart"></canvas>
                 </div>
@@ -110,10 +106,12 @@
         const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
+        let globalChart = null;
+
         const ROLES = {
             VEDENI: "1468388299642241281",
             MAESTRO: "1429877779918491789",
-            MARINA: "1417573119664722185" // A-Team dozor
+            MARINA: "1417573119664722185"
         };
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -139,14 +137,13 @@
                 document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
                 label = "MAESTRO DE DROGAS";
             }
-
             badge.innerHTML = `<span class="role-badge">${label}</span>`;
         }
 
-        async function fetchRealData() {
+        async function fetchData() {
             if (!discordId) return;
             
-            // Osobní data
+            // Osobní statistiky
             const { data: userData } = await _supabase.from('vydej_kokainu').select('pocet_vydano').eq('user_id', discordId);
             if (userData) {
                 const total = userData.reduce((sum, r) => sum + (parseInt(r.pocet_vydano) || 0), 0);
@@ -154,14 +151,14 @@
                 document.getElementById('my-dluh').innerText = total + " KS";
             }
 
-            // Data pro graf (jen pro vyvolené)
+            // Data pro graf
             if (roles.some(r => [ROLES.VEDENI, ROLES.MAESTRO, ROLES.MARINA].includes(r))) {
                 const { data: chartData } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
-                if (chartData) renderProfiChart(chartData);
+                if (chartData) renderChart(chartData);
             }
         }
 
-        function renderProfiChart(rawData) {
+        function renderChart(rawData) {
             const ctx = document.getElementById('profiChart').getContext('2d');
             const stats = {};
             rawData.forEach(r => {
@@ -169,7 +166,9 @@
                 stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0);
             });
 
-            new Chart(ctx, {
+            if (globalChart) globalChart.destroy();
+
+            globalChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Object.keys(stats),
@@ -189,16 +188,28 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#444', font: { family: 'Rajdhani' } } },
-                        x: { grid: { display: false }, ticks: { color: '#444', font: { family: 'Rajdhani' } } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#444' } },
+                        x: { grid: { display: false }, ticks: { color: '#444' } }
                     },
                     plugins: { legend: { display: false } }
                 }
             });
         }
 
+        // REAL-TIME ODBĚR
+        function subscribeToChanges() {
+            _supabase
+                .channel('schema-db-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, (payload) => {
+                    console.log('Změna detekována, aktualizuji...');
+                    fetchData(); // Znovu načte data a překreslí graf i statistiky
+                })
+                .subscribe();
+        }
+
         setupPermissions();
-        fetchRealData();
+        fetchData();
+        subscribeToChanges();
     </script>
 </body>
 </html>
