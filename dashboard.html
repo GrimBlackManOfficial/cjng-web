@@ -54,11 +54,7 @@
             z-index: 10;
         }
 
-        .brand {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
+        .brand { text-align: center; margin-bottom: 40px; }
         .brand-text {
             font-family: 'Orbitron', sans-serif;
             font-size: 2em;
@@ -87,10 +83,7 @@
             animation: scan-line 3s infinite;
         }
 
-        @keyframes scan-line {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
+        @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
 
         #username { font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 1px; color: #fff; }
 
@@ -106,7 +99,6 @@
         }
 
         .menu-group { margin-bottom: 10px; }
-
         .menu-trigger {
             width: 100%;
             background: none;
@@ -149,7 +141,6 @@
         .nav-item:hover { color: #fff; padding-left: 25px; background: rgba(255,255,255,0.02); }
 
         main { flex: 1; padding: 50px; overflow-y: auto; position: relative; }
-
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -173,16 +164,9 @@
             backdrop-filter: blur(5px);
         }
 
-        .card::after {
-            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            box-shadow: 0 0 15px transparent; transition: 0.4s;
-        }
-
-        .card:hover { transform: translateY(-5px); border-color: var(--red); }
-        .card:hover::after { box-shadow: 0 0 30px var(--red-glow); }
+        .card:hover { transform: translateY(-5px); border-color: var(--red); box-shadow: 0 0 20px var(--red-glow); }
 
         .card-label { font-size: 0.7em; color: #666; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; }
-
         .stat-number { font-family: 'Orbitron', sans-serif; font-size: 2.5em; font-weight: 700; color: #fff; }
 
         .maestro-only, .vedeni-only { display: none; }
@@ -198,12 +182,7 @@
             letter-spacing: 3px;
             transition: 0.3s;
         }
-
-        .logout-btn:hover { border-color: var(--red); color: var(--red); box-shadow: 0 0 10px var(--red-glow); }
-
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #000; }
-        ::-webkit-scrollbar-thumb { background: var(--red); }
+        .logout-btn:hover { border-color: var(--red); color: var(--red); }
     </style>
 </head>
 <body>
@@ -249,7 +228,7 @@
     <main>
         <div class="top-bar">
             <h1>CENTRAL_UNIT_NODE_01</h1>
-            <div id="clock" style="font-family: 'Orbitron'; font-size: 0.8em; color: var(--red); text-shadow: 0 0 5px var(--red-glow);"></div>
+            <div id="clock" style="font-family: 'Orbitron'; font-size: 0.8em; color: var(--red);"></div>
         </div>
 
         <div class="grid">
@@ -273,26 +252,17 @@
                 <div class="stat-number" id="my-dluh" style="color: var(--red);">0</div>
             </div>
         </div>
-
-        <div class="maestro-only card" style="margin-top: 25px;">
-            <span class="card-label">LOGISTICKÝ MONITORING SÍTĚ</span>
-            <div id="admin-table" style="color: #444; font-size: 0.9em; margin-top: 20px;">
-                NAČÍTÁM ENCRYPTED DATA...
-            </div>
-        </div>
     </main>
 
     <script>
-        // --- KONFIGURACE ---
         const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
         const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
 
-        const ROLES = {
+        const ROLES_IDS = {
             VEDENI: "1468388299642241281",
             MAESTRO: "1429877779918491789",
-            IT_TECHNIK: "1489322789205971174",
-            MARINA: "1417573119664722185"
+            IT_TECHNIK: "1489322789205971174"
         };
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -303,32 +273,25 @@
         document.getElementById('username').innerText = username.toUpperCase();
 
         function toggleSub(id) {
-            document.querySelectorAll('.submenu').forEach(s => {
-                if(s.id !== id) s.classList.remove('open');
-            });
             document.getElementById(id).classList.toggle('open');
         }
 
         function checkPermissions() {
             let display = document.getElementById('user-role-display');
-            if (userRoles.includes(ROLES.VEDENI) || userRoles.includes(ROLES.IT_TECHNIK)) {
+            if (userRoles.includes(ROLES_IDS.VEDENI) || userRoles.includes(ROLES_IDS.IT_TECHNIK)) {
                 document.querySelectorAll('.vedeni-only, .maestro-only').forEach(el => el.style.display = 'block');
                 display.innerHTML = '<span class="role-badge">VEDENÍ KARTELU</span>';
             } 
-            else if (userRoles.includes(ROLES.MAESTRO)) {
+            else if (userRoles.includes(ROLES_IDS.MAESTRO)) {
                 document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
                 display.innerHTML = '<span class="role-badge" style="color:var(--green); border-color:var(--green);">MAESTRO</span>';
-            }
-            else {
+            } else {
                 display.innerHTML = '<span class="role-badge" style="color:#666; border-color:#333;">SICARIO</span>';
             }
         }
 
-        // FUNKCE PRO NAČÍTÁNÍ DROG
         async function fetchStats() {
             if (!discordId) return;
-
-            // Sčítání balíčků z tabulky vydej_kokainu
             const { data, error } = await _supabase
                 .from('vydej_kokainu')
                 .select('pocet_vydano')
@@ -337,14 +300,12 @@
             if (data) {
                 const totalVydano = data.reduce((sum, row) => sum + (parseInt(row.pocet_vydano) || 0), 0);
                 document.getElementById('my-vydano').innerText = totalVydano.toLocaleString() + " KS";
-                // Zde můžeš později přidat odečítání odevzdaných pro výpočet dluhu
                 document.getElementById('my-dluh').innerText = totalVydano.toLocaleString() + " KS";
             }
         }
 
         function updateClock() {
-            const now = new Date();
-            document.getElementById('clock').innerText = now.toLocaleTimeString('cs-CZ');
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('cs-CZ');
         }
 
         setInterval(updateClock, 1000);
