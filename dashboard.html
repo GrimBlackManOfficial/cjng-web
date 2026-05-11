@@ -16,9 +16,15 @@
         body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         /* Sidebar */
-        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; }
+        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
+        nav.collapsed { transform: translateX(-100%); position: absolute; }
+        
         .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
         
+        /* Ovládání minimalizace */
+        .sidebar-toggle { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-family: 'Orbitron'; font-weight: bold; z-index: 110; font-size: 1.2em; }
+        .open-btn { position: fixed; left: 20px; top: 20px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 10px 15px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8em; z-index: 90; display: none; box-shadow: 0 0 10px var(--red-glow); }
+
         /* Box s rotujícím okrajem */
         .user-info { padding: 20px; margin-bottom: 30px; background: rgba(0, 0, 0, 0.8); position: relative; border: 1px solid var(--border); overflow: hidden; }
         .user-info::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--red)); animation: rotate-border 4s linear infinite; z-index: 0; }
@@ -41,7 +47,8 @@
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
 
         /* Main Content */
-        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); }
+        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); transition: margin-left 0.4s; }
+        
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
@@ -75,7 +82,10 @@
 </head>
 <body>
 
-    <nav>
+    <button class="open-btn" id="openBtn" onclick="toggleSidebar()">☰ MENU</button>
+
+    <nav id="sidebar">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">✕</button>
         <div class="brand">CJNG</div>
         <div class="user-info">
             <div class="user-content">
@@ -152,6 +162,13 @@
         const uId = urlParams.get('id');
 
         document.getElementById('display-name').innerText = uName.toUpperCase();
+
+        function toggleSidebar() {
+            const nav = document.getElementById('sidebar');
+            const openBtn = document.getElementById('openBtn');
+            nav.classList.toggle('collapsed');
+            openBtn.style.display = nav.classList.contains('collapsed') ? 'block' : 'none';
+        }
 
         function toggleSubmenu(btn) {
             const sub = btn.nextElementSibling;
