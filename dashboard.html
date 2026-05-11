@@ -15,28 +15,59 @@
         }
         body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; }
+        /* Sidebar */
+        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; }
         .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
         
-        .user-info { border: 1px solid var(--border); padding: 20px; margin-bottom: 30px; background: rgba(255,0,0,0.02); }
-        #display-name { font-family: 'Orbitron'; font-size: 0.9em; margin-bottom: 10px; }
-        .role-badge { font-size: 0.65em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; }
+        .user-info { border: 1px solid var(--border); padding: 20px; margin-bottom: 30px; background: rgba(255,0,0,0.02); position: relative; overflow: hidden; }
+        .user-info::after { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 1px; background: var(--red); animation: scan 4s linear infinite; }
+        @keyframes scan { 100% { left: 100%; } }
+        #display-name { font-family: 'Orbitron'; font-size: 0.9em; margin-bottom: 10px; color: #fff; }
+        .role-badge { font-size: 0.65em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
 
-        .menu-group { margin-bottom: 20px; }
-        .menu-label { font-size: 0.7em; color: #444; letter-spacing: 2px; margin-bottom: 10px; padding-left: 10px; }
-        .nav-link { color: #888; text-decoration: none; display: block; padding: 12px 15px; font-size: 0.85em; transition: 0.3s; border-left: 2px solid transparent; }
-        .nav-link:hover { color: #fff; background: rgba(255,0,0,0.05); border-left: 2px solid var(--red); }
+        /* Accordion Menu */
+        .menu-container { flex: 1; overflow-y: auto; }
+        .menu-category { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .category-trigger { 
+            width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; 
+            text-align: left; font-family: 'Orbitron'; font-size: 0.75em; cursor: pointer; 
+            display: flex; justify-content: space-between; align-items: center; 
+            transition: 0.3s; letter-spacing: 1px;
+        }
+        .category-trigger:hover { color: var(--red); background: rgba(255,0,0,0.03); }
+        .category-trigger i { font-style: normal; transition: transform 0.3s; opacity: 0.5; }
+        .category-trigger.active { color: #fff; border-left: 2px solid var(--red); }
+        .category-trigger.active i { transform: rotate(90deg); opacity: 1; }
 
+        .submenu { 
+            max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            background: rgba(255,255,255,0.02); 
+        }
+        .submenu.open { max-height: 300px; }
+        
+        .nav-link { 
+            color: #666; text-decoration: none; display: block; padding: 10px 25px; 
+            font-size: 0.8em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
+
+        /* Visibility */
+        .admin-only, .maestro-only, .vedeni-only { display: none; }
+
+        /* Main Content */
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-size: 0.7em; color: #666; letter-spacing: 2px; margin-bottom: 15px; }
         .stat { font-family: 'Orbitron'; font-size: 2.2em; }
-
-        .admin-only, .maestro-only, .vedeni-only { display: none; }
         
-        .logout { margin-top: auto; color: #444; text-align: center; cursor: pointer; font-size: 0.8em; letter-spacing: 2px; }
-        .logout:hover { color: var(--red); }
+        .logout { padding: 15px; color: #444; text-align: center; cursor: pointer; font-size: 0.8em; letter-spacing: 2px; border-top: 1px solid var(--border); transition: 0.3s; }
+        .logout:hover { color: var(--red); background: rgba(255,0,0,0.05); }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: var(--red); }
     </style>
 </head>
 <body>
@@ -48,30 +79,41 @@
             <div id="display-badge"></div>
         </div>
 
-        <div class="menu-group">
-            <div class="menu-label">PERSONAL_DATA</div>
-            <a href="#" class="nav-link">PŘEHLED ZÁSILEK</a>
-            <a href="#" class="nav-link">NAHLÁSIT VÝROBU</a>
-        </div>
+        <div class="menu-container">
+            <div class="menu-category">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">SEC_PERSONNEL <i>▶</i></button>
+                <div class="submenu">
+                    <a href="#" class="nav-link">Osobní přehled</a>
+                    <a href="#" class="nav-link">Hlášení produkce</a>
+                    <a href="#" class="nav-link">Změna šifry</a>
+                </div>
+            </div>
 
-        <div class="menu-group maestro-only">
-            <div class="menu-label">LOGISTIKA_MAESTRO</div>
-            <a href="#" class="nav-link">VÝDEJ ZAMĚSTNANCŮM</a>
-            <a href="#" class="nav-link">SKLADOVÉ ZÁSOBY</a>
-            <a href="#" class="nav-link">LOGY DISTRIBUCE</a>
-        </div>
+            <div class="menu-category maestro-only">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">LOG_DISTRIBUTION <i>▶</i></button>
+                <div class="submenu">
+                    <a href="#" class="nav-link">Logistika výdejů</a>
+                    <a href="#" class="nav-link">Stav depozitáře</a>
+                    <a href="#" class="nav-link">Analytika Maestro</a>
+                </div>
+            </div>
 
-        <div class="menu-group admin-only">
-            <div class="menu-label">A-TEAM_DOZOR</div>
-            <a href="#" class="nav-link">MONITORING (READ ONLY)</a>
-            <a href="#" class="nav-link">LOGY SYSTÉMU</a>
-        </div>
+            <div class="menu-category admin-only">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">EXT_SURVEILLANCE <i>▶</i></button>
+                <div class="submenu">
+                    <a href="#" class="nav-link">Monitoring sítě</a>
+                    <a href="#" class="nav-link">Logy integrity</a>
+                </div>
+            </div>
 
-        <div class="menu-group vedeni-only">
-            <div class="menu-label">VEDENÍ_KARTELU</div>
-            <a href="#" class="nav-link">FINANCE ORGANIZACE</a>
-            <a href="#" class="nav-link">ZAMĚSTNANECKÉ SLOŽKY</a>
-            <a href="#" class="nav-link">NASTAVENÍ NODŮ</a>
+            <div class="menu-category vedeni-only">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">HQ_OPERATIONS <i>▶</i></button>
+                <div class="submenu">
+                    <a href="#" class="nav-link">Finanční toky</a>
+                    <a href="#" class="nav-link">Kádrové složky</a>
+                    <a href="#" class="nav-link">System override</a>
+                </div>
+            </div>
         </div>
 
         <div class="logout" onclick="location.href='/'">DEAKTIVOVAT_TERMINÁL</div>
@@ -80,20 +122,20 @@
     <main>
         <div class="grid">
             <div class="card">
-                <div class="card-title">MOJE ODEBRANÉ ZÁSILKY</div>
+                <div class="card-title">CELKOVÉ ODEBRANÉ ZÁSILKY</div>
                 <div id="my-vydano" class="stat">0 KS</div>
             </div>
             <div class="card">
-                <div class="card-title">OSOBNÍ DLUH</div>
+                <div class="card-title">AKTUÁLNÍ OPERAČNÍ DLUH</div>
                 <div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div>
             </div>
             <div class="card">
                 <div class="card-title">STATUS SÍTĚ</div>
-                <div class="stat" style="color: #00ff41; font-size: 1.2em;">REAL-TIME // SECURED</div>
+                <div class="stat" style="color: #00ff41; font-size: 1.2em;">LIVE_ENCRYPTED</div>
             </div>
 
             <div class="card maestro-only vedeni-only admin-only" style="grid-column: span 3;">
-                <div class="card-title">STRATEGICKÁ ANALÝZA DISTRIBUCE (LIVE)</div>
+                <div class="card-title">STRATEGICKÁ ANALÝZA DISTRIBUCE (REAL-TIME FEED)</div>
                 <div style="height: 350px; position: relative;">
                     <canvas id="profiChart"></canvas>
                 </div>
@@ -116,24 +158,38 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         const name = urlParams.get('user') || "OPERATIVEC";
-        const roles = (urlParams.get('roles') || "").split(',');
+        const rolesArray = (urlParams.get('roles') || "").split(',');
         const discordId = urlParams.get('id');
 
         document.getElementById('display-name').innerText = name.toUpperCase();
+
+        function toggleSubmenu(btn) {
+            const submenu = btn.nextElementSibling;
+            const isOpen = submenu.classList.contains('open');
+            
+            // Zavřít ostatní
+            document.querySelectorAll('.submenu').forEach(s => s.classList.remove('open'));
+            document.querySelectorAll('.category-trigger').forEach(t => t.classList.remove('active'));
+            
+            if (!isOpen) {
+                submenu.classList.add('open');
+                btn.classList.add('active');
+            }
+        }
 
         function setupPermissions() {
             const badge = document.getElementById('display-badge');
             let label = "ZAMĚSTNANEC CJNG";
 
-            if (roles.includes(ROLES.VEDENI)) {
+            if (rolesArray.includes(ROLES.VEDENI)) {
                 document.querySelectorAll('.vedeni-only, .maestro-only, .admin-only').forEach(el => el.style.display = 'block');
                 label = "VEDENÍ KARTELU";
             } 
-            else if (roles.includes(ROLES.MARINA)) {
+            else if (rolesArray.includes(ROLES.MARINA)) {
                 document.querySelectorAll('.admin-only, .vedeni-only, .maestro-only').forEach(el => el.style.display = 'block');
                 label = "A-TEAM DOZOR";
             }
-            else if (roles.includes(ROLES.MAESTRO)) {
+            else if (rolesArray.includes(ROLES.MAESTRO)) {
                 document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
                 label = "MAESTRO DE DROGAS";
             }
@@ -142,8 +198,6 @@
 
         async function fetchData() {
             if (!discordId) return;
-            
-            // Osobní statistiky
             const { data: userData } = await _supabase.from('vydej_kokainu').select('pocet_vydano').eq('user_id', discordId);
             if (userData) {
                 const total = userData.reduce((sum, r) => sum + (parseInt(r.pocet_vydano) || 0), 0);
@@ -151,8 +205,7 @@
                 document.getElementById('my-dluh').innerText = total + " KS";
             }
 
-            // Data pro graf
-            if (roles.some(r => [ROLES.VEDENI, ROLES.MAESTRO, ROLES.MARINA].includes(r))) {
+            if (rolesArray.some(r => [ROLES.VEDENI, ROLES.MAESTRO, ROLES.MARINA].includes(r))) {
                 const { data: chartData } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
                 if (chartData) renderChart(chartData);
             }
@@ -196,15 +249,10 @@
             });
         }
 
-        // REAL-TIME ODBĚR
         function subscribeToChanges() {
-            _supabase
-                .channel('schema-db-changes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, (payload) => {
-                    console.log('Změna detekována, aktualizuji...');
-                    fetchData(); // Znovu načte data a překreslí graf i statistiky
-                })
-                .subscribe();
+            _supabase.channel('schema-db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => {
+                fetchData();
+            }).subscribe();
         }
 
         setupPermissions();
