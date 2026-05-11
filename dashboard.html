@@ -21,11 +21,9 @@
         
         .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
         
-        /* Ovládání minimalizace */
         .sidebar-toggle { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-family: 'Orbitron'; font-weight: bold; z-index: 110; font-size: 1.2em; }
         .open-btn { position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8em; z-index: 90; display: none; box-shadow: 0 0 10px var(--red-glow); }
 
-        /* Box s rotujícím okrajem */
         .user-info { padding: 20px; margin-bottom: 30px; background: rgba(0, 0, 0, 0.8); position: relative; border: 1px solid var(--border); overflow: hidden; }
         .user-info::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--red)); animation: rotate-border 4s linear infinite; z-index: 0; }
         .user-info::after { content: ""; position: absolute; inset: 2px; background: #000; z-index: 1; }
@@ -35,7 +33,6 @@
         #display-name { font-family: 'Rajdhani'; font-weight: 700; font-size: 1.1em; margin-bottom: 10px; color: #fff; letter-spacing: 1px; }
         .role-badge { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.75em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
 
-        /* Menu */
         .menu-container { flex: 1; overflow-y: auto; }
         .menu-category { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .category-trigger { width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; text-align: left; font-family: 'Rajdhani'; font-weight: 700; font-size: 0.9em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
@@ -46,30 +43,56 @@
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
 
         /* Main Content */
-        main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); transition: all 0.4s; display: flex; flex-direction: column; }
+        main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; }
         
-        /* Satelitní Network Sekce */
+        /* CJNG GLOBAL VISUALS */
         .welcome-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 1.5s ease-out; }
-        .welcome-header-wrapper { text-align: center; z-index: 10; position: absolute; top: 0; }
-        .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2.2em; letter-spacing: 10px; text-shadow: 0 0 20px var(--red-glow); margin-bottom: 5px; }
-        .status-line { font-family: 'Rajdhani'; color: #00ff41; font-weight: bold; letter-spacing: 4px; font-size: 0.8em; text-transform: uppercase; }
+        
+        .header-ui { position: absolute; top: 0; text-align: center; width: 100%; padding-top: 20px; }
+        .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2.5em; letter-spacing: 15px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
+        .status-line { font-family: 'Rajdhani'; color: #00ff41; font-weight: bold; letter-spacing: 5px; font-size: 0.9em; margin-top: 10px; opacity: 0.8; }
 
-        /* Globe Container */
-        .globe-container { position: relative; width: 400px; height: 400px; transform-style: preserve-3d; perspective: 1000px; margin-top: 40px; }
-        .globe { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,0,0,0.2); box-shadow: inset 0 0 50px rgba(255,0,0,0.3), 0 0 30px rgba(255,0,0,0.1); animation: rotateGlobe 20s linear infinite; }
-        .globe::before, .globe::after { content: ''; position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,0,0,0.1); transform: translate(-50%, -50%) rotateX(90deg); }
-        .globe::after { transform: translate(-50%, -50%) rotateY(90deg); }
+        /* Vyskakovací okénka */
+        .ui-popup { position: absolute; background: rgba(0,0,0,0.8); border: 1px solid var(--red); padding: 10px; font-size: 0.7em; font-family: 'Orbitron'; color: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 50; width: 150px; }
+        .ui-popup.active { opacity: 1; animation: slidePopup 4s forwards; }
+        @keyframes slidePopup { 0% { transform: translateY(20px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
 
-        .satellite-orbit { position: absolute; width: 140%; height: 140%; top: -20%; left: -20%; border: 1px border-radius: 50%; border: 1px dashed rgba(255,0,0,0.1); animation: rotateOrbit 15s linear infinite; transform-style: preserve-3d; }
-        .satellite { position: absolute; width: 8px; height: 8px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px #fff, 0 0 5px var(--red); top: 50%; left: 0; }
-        .signal-beam { position: absolute; top: 50%; left: 50%; width: 2px; height: 200px; background: linear-gradient(to top, var(--red), transparent); transform-origin: top; opacity: 0; animation: ping 3s infinite; }
+        /* Globe & Network Visual */
+        .globe-wrapper { position: relative; width: 500px; height: 500px; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
+        
+        .earth-glow { position: absolute; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, transparent 70%); filter: blur(20px); }
 
-        @keyframes rotateGlobe { from { transform: rotateY(0deg) rotateX(10deg); } to { transform: rotateY(360deg) rotateX(10deg); } }
-        @keyframes rotateOrbit { from { transform: rotateY(0deg) rotateZ(20deg); } to { transform: rotateY(360deg) rotateZ(20deg); } }
-        @keyframes ping { 0% { opacity: 0; height: 0; } 50% { opacity: 0.6; height: 180px; } 100% { opacity: 0; height: 220px; } }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        .globe-main { 
+            width: 300px; height: 300px; border-radius: 50%; 
+            border: 1px solid var(--red); position: relative; 
+            animation: rotateGlobe 30s linear infinite; transform-style: preserve-3d; 
+            background: url('https://i.imgur.com/vH9Jpnd.png'); /* Průhledná textura kontinentů */
+            background-size: cover; box-shadow: inset 0 0 50px rgba(255,0,0,0.5);
+        }
 
-        /* Zbytek layoutu */
+        /* Satelity a Orbity */
+        .orbit { position: absolute; border: 1px solid rgba(255,0,0,0.1); border-radius: 50%; transform-style: preserve-3d; }
+        .orbit-1 { width: 450px; height: 450px; animation: rotateOrbit 12s linear infinite; }
+        .orbit-2 { width: 400px; height: 400px; animation: rotateOrbit 18s linear infinite reverse; transform: rotateX(60deg); }
+        .orbit-3 { width: 480px; height: 480px; animation: rotateOrbit 25s linear infinite; transform: rotateX(-45deg); }
+
+        .satellite { 
+            position: absolute; width: 10px; height: 10px; background: #fff; 
+            box-shadow: 0 0 10px #fff, 0 0 20px var(--red); border-radius: 2px;
+            top: 50%; left: -5px; 
+        }
+        .data-beam { 
+            position: absolute; top: 50%; left: 0; width: 220px; height: 1px; 
+            background: linear-gradient(90deg, var(--red), transparent); 
+            transform-origin: left; animation: pulseBeam 2s infinite; 
+        }
+
+        @keyframes rotateGlobe { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
+        @keyframes rotateOrbit { from { transform: rotateZ(0deg); } to { transform: rotateZ(360deg); } }
+        @keyframes pulseBeam { 0% { opacity: 0; width: 0; } 50% { opacity: 0.5; width: 220px; } 100% { opacity: 0; width: 250px; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Zbytek layoutu zachován */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
@@ -102,9 +125,9 @@
         @media (max-width: 768px) {
             nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
             nav:not(.collapsed) { transform: translateX(0); }
-            main { padding: 60px 15px 20px 15px; overflow-y: auto; }
-            .globe-container { width: 250px; height: 250px; }
-            .welcome-header { font-size: 1.2em; }
+            main { padding: 20px 10px; overflow-y: auto; }
+            .welcome-header { font-size: 1.5em; letter-spacing: 5px; }
+            .globe-wrapper { width: 300px; height: 300px; transform: scale(0.6); }
             .grid, .dossier-grid, .logs-chat-container { grid-template-columns: 1fr; }
         }
     </style>
@@ -142,25 +165,28 @@
 
     <main>
         <div id="welcome-view" class="welcome-section">
-            <div class="welcome-header-wrapper">
-                <div class="welcome-header">CJNG NETWORK</div>
-                <div class="status-line">SATELITNÍ SPOJENÍ AKTIVNÍ // ŠIFROVÁNÍ AZTEC-6</div>
+            <div class="header-ui">
+                <h1 class="welcome-header">CJNG GLOBAL</h1>
+                <div class="status-line">SAT-LINK: ACTIVE // ENCRYPT: AZTEC-6</div>
             </div>
-            
-            <div class="globe-container">
-                <div class="globe"></div>
-                <div class="satellite-orbit" style="animation-duration: 10s;">
+
+            <div id="popups-container"></div>
+
+            <div class="globe-wrapper">
+                <div class="earth-glow"></div>
+                <div class="orbit orbit-1">
                     <div class="satellite"></div>
-                    <div class="signal-beam" style="animation-delay: 0s;"></div>
+                    <div class="data-beam"></div>
                 </div>
-                <div class="satellite-orbit" style="animation-duration: 15s; transform: rotateX(45deg);">
-                    <div class="satellite" style="left: 30%;"></div>
-                    <div class="signal-beam" style="animation-delay: 1s;"></div>
+                <div class="orbit orbit-2">
+                    <div class="satellite"></div>
+                    <div class="data-beam"></div>
                 </div>
-                <div class="satellite-orbit" style="animation-duration: 20s; transform: rotateX(-45deg);">
-                    <div class="satellite" style="left: 70%;"></div>
-                    <div class="signal-beam" style="animation-delay: 2s;"></div>
+                <div class="orbit orbit-3">
+                    <div class="satellite"></div>
+                    <div class="data-beam"></div>
                 </div>
+                <div class="globe-main"></div>
             </div>
         </div>
 
@@ -223,7 +249,8 @@
             click: () => playFX(600, 'sine', 0.05, 0.03),
             nav: () => playFX(200, 'square', 0.1, 0.02),
             msg: () => playFX(1000, 'sine', 0.2, 0.05),
-            log: () => playFX(1500, 'sine', 0.02, 0.01)
+            log: () => playFX(1500, 'sine', 0.02, 0.01),
+            data: () => playFX(1200, 'sine', 0.05, 0.02)
         };
 
         const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
@@ -238,6 +265,22 @@
         const uId = urlParams.get('id');
 
         document.getElementById('display-name').innerText = uName.toUpperCase();
+
+        // LOGIKA PRO VYSKAKOVACÍ OKÉNKA
+        const popupMessages = ["ENC_PACKET_RECEIVED", "UP-LINK_STABLE", "GEO-SYNC_OK", "PING: 24ms", "AZTEC_HANDSHAKE", "DATA_STREAM_ON", "NODE_ACTIVE"];
+        function createPopup() {
+            if (document.getElementById('welcome-view').style.display === 'none') return;
+            const container = document.getElementById('popups-container');
+            const popup = document.createElement('div');
+            popup.className = 'ui-popup active';
+            popup.style.left = Math.random() * 70 + 15 + '%';
+            popup.style.top = Math.random() * 60 + 20 + '%';
+            popup.innerText = popupMessages[Math.floor(Math.random() * popupMessages.length)];
+            container.appendChild(popup);
+            SFX.data();
+            setTimeout(() => popup.remove(), 4000);
+        }
+        setInterval(createPopup, 3000);
 
         function toggleSidebar() {
             SFX.click();
