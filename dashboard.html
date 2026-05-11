@@ -22,17 +22,19 @@
         .user-info { border: 1px solid var(--border); padding: 20px; margin-bottom: 30px; background: rgba(255,0,0,0.02); position: relative; overflow: hidden; }
         .user-info::after { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 1px; background: var(--red); animation: scan 4s linear infinite; }
         @keyframes scan { 100% { left: 100%; } }
-        #display-name { font-family: 'Orbitron'; font-size: 0.9em; margin-bottom: 10px; color: #fff; }
-        .role-badge { font-size: 0.65em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
+        
+        /* Oprava diakritiky u jména a badge */
+        #display-name { font-family: 'Rajdhani'; font-weight: 700; font-size: 1.1em; margin-bottom: 10px; color: #fff; letter-spacing: 1px; }
+        .role-badge { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.75em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
 
         /* Accordion Menu */
         .menu-container { flex: 1; overflow-y: auto; }
         .menu-category { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .category-trigger { 
             width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; 
-            text-align: left; font-family: 'Orbitron'; font-size: 0.75em; cursor: pointer; 
+            text-align: left; font-family: 'Rajdhani'; font-weight: 700; font-size: 0.9em; cursor: pointer; 
             display: flex; justify-content: space-between; align-items: center; 
-            transition: 0.3s; letter-spacing: 1px;
+            transition: 0.3s; letter-spacing: 1px; text-transform: uppercase;
         }
         .category-trigger:hover { color: var(--red); background: rgba(255,0,0,0.03); }
         .category-trigger i { font-style: normal; transition: transform 0.3s; opacity: 0.5; }
@@ -47,21 +49,23 @@
         
         .nav-link { 
             color: #666; text-decoration: none; display: block; padding: 10px 25px; 
-            font-size: 0.8em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
+            font-size: 0.9em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px;
         }
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
-
-        /* Visibility */
-        .admin-only, .maestro-only, .vedeni-only { display: none; }
 
         /* Main Content */
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
-        .card-title { font-size: 0.7em; color: #666; letter-spacing: 2px; margin-bottom: 15px; }
+        .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
         .stat { font-family: 'Orbitron'; font-size: 2.2em; }
         
-        .logout { padding: 15px; color: #666; text-align: center; cursor: pointer; font-size: 0.85em; letter-spacing: 3px; border-top: 1px solid var(--border); transition: 0.3s; font-family: 'Orbitron'; text-transform: uppercase; }
+        /* Oprava fontu u statusu pro diakritiku */
+        .stat-status { font-family: 'Rajdhani'; font-weight: 700; font-size: 1.5em; color: #00ff41; letter-spacing: 1px; }
+
+        .admin-only, .maestro-only, .vedeni-only { display: none; }
+        
+        .logout { padding: 15px; color: #666; text-align: center; cursor: pointer; font-size: 0.9em; letter-spacing: 3px; border-top: 1px solid var(--border); transition: 0.3s; font-family: 'Rajdhani'; font-weight: 700; text-transform: uppercase; }
         .logout:hover { color: var(--red); background: rgba(255,0,0,0.05); text-shadow: 0 0 10px var(--red-glow); }
 
         ::-webkit-scrollbar { width: 4px; }
@@ -130,7 +134,7 @@
             </div>
             <div class="card">
                 <div class="card-title">STAV PŘIPOJENÍ</div>
-                <div class="stat" style="color: #00ff41; font-size: 1.2em;">AKTIVNÍ // ŠIFROVÁNO</div>
+                <div class="stat-status">AKTIVNÍ // ŠIFROVÁNO</div>
             </div>
 
             <div class="card maestro-only vedeni-only admin-only" style="grid-column: span 3;">
@@ -165,10 +169,8 @@
         function toggleSubmenu(btn) {
             const submenu = btn.nextElementSibling;
             const isOpen = submenu.classList.contains('open');
-            
             document.querySelectorAll('.submenu').forEach(s => s.classList.remove('open'));
             document.querySelectorAll('.category-trigger').forEach(t => t.classList.remove('active'));
-            
             if (!isOpen) {
                 submenu.classList.add('open');
                 btn.classList.add('active');
@@ -178,7 +180,6 @@
         function setupPermissions() {
             const badge = document.getElementById('display-badge');
             let label = "ZAMĚSTNANEC CJNG";
-
             if (rolesArray.includes(ROLES.VEDENI)) {
                 document.querySelectorAll('.vedeni-only, .maestro-only, .admin-only').forEach(el => el.style.display = 'block');
                 label = "VEDENÍ KARTELU";
@@ -202,7 +203,6 @@
                 document.getElementById('my-vydano').innerText = total.toLocaleString() + " KS";
                 document.getElementById('my-dluh').innerText = total.toLocaleString() + " KS";
             }
-
             if (rolesArray.some(r => [ROLES.VEDENI, ROLES.MAESTRO, ROLES.MARINA].includes(r))) {
                 const { data: chartData } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
                 if (chartData) renderChart(chartData);
@@ -216,9 +216,7 @@
                 const d = new Date(r.datum).toLocaleDateString('cs-CZ');
                 stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0);
             });
-
             if (globalChart) globalChart.destroy();
-
             globalChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -239,8 +237,8 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
-                        x: { grid: { display: false }, ticks: { color: '#666' } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666', font: { family: 'Rajdhani', weight: '700' } } },
+                        x: { grid: { display: false }, ticks: { color: '#666', font: { family: 'Rajdhani', weight: '700' } } }
                     },
                     plugins: { legend: { display: false } }
                 }
