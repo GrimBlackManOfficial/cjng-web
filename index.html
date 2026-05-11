@@ -16,9 +16,12 @@
         #login-module { display: none; opacity: 0; transform: scale(0.8) translateY(20px); background: rgba(15, 0, 0, 0.9); border: 1px solid var(--red); padding: 40px; text-align: center; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2); backdrop-filter: blur(15px); z-index: 50; position: absolute; }
         .assemble-anim { animation: assemble 0.6s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes assemble { 0% { opacity: 0; transform: scale(1.5); filter: blur(20px) hue-rotate(90deg); } 100% { opacity: 1; transform: scale(1); filter: blur(0) hue-rotate(0deg); } }
-        .btn-auth { background: none; border: 1px solid var(--red); color: #fff; padding: 15px 40px; font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 4px; cursor: pointer; transition: 0.4s; margin-top: 20px; }
+        .status-ok { color: #00ff41; font-weight: bold; }
+        .status-critical { color: var(--red); text-shadow: 0 0 5px var(--red); }
+        .btn-auth { background: none; border: 1px solid var(--red); color: #fff; padding: 15px 40px; font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 4px; cursor: pointer; transition: 0.4s; margin-top: 20px; position: relative; overflow: hidden; }
         .btn-auth:hover { background: var(--red); color: #000; box-shadow: 0 0 30px var(--red); }
         .module-title { font-family: 'Orbitron', sans-serif; color: var(--red); font-size: 1.4em; margin-bottom: 10px; letter-spacing: 5px; }
+        .module-subtitle { font-size: 0.7em; color: #666; margin-bottom: 30px; letter-spacing: 2px; }
         .fade-out { opacity: 0 !important; transform: scale(1.1) !important; filter: blur(10px); }
     </style>
 </head>
@@ -27,11 +30,22 @@
         <div id="terminal-body"></div>
         <div id="login-module">
             <div class="module-title">CJNG SÍŤ</div>
-            <button class="btn-auth" onclick="window.location.href='/api/auth/login'">VSTOUPIT DO SYSTÉMU</button>
+            <div class="module-subtitle">VYŽADOVÁNA BIOMETRICKÁ AUTORIZACE</div>
+            <div style="width: 50px; height: 2px; background: var(--red); margin: 0 auto 25px;"></div>
+            <button class="btn-auth" onclick="startAuth()">VSTOUPIT DO SYSTÉMU</button>
         </div>
     </div>
     <script>
-        const lines = ["> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...", "> PŘEMOSTĚNÍ VLÁDNÍHO FIREWALLU... OK", "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...", "> PŘÍSTUP POVOLEN. ČEKÁM NA IDENTIFIKACI."];
+        const lines = [
+            "> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...",
+            "> STATUS: <span class='status-ok'>ZABEZPEČENO</span>",
+            "> PŘEMOSTĚNÍ VLÁDNÍHO FIREWALLU... OK",
+            "> NAČÍTÁM PROTOKOL 'CARTEL-NET'...",
+            "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...",
+            "> <span class='status-critical'>VAROVÁNÍ: NEOPRÁVNĚNÝ PŘÍSTUP BUDE POTRESTÁN</span>",
+            "> ČISTÍM DIGITÁLNÍ STOPU...",
+            "> PŘÍSTUP POVOLEN. ČEKÁM NA IDENTIFIKACI."
+        ];
         const terminalBody = document.getElementById('terminal-body');
         const loginModule = document.getElementById('login-module');
         let index = 0;
@@ -41,17 +55,25 @@
                 div.className = 'line';
                 div.innerHTML = lines[index++];
                 terminalBody.appendChild(div);
-                setTimeout(addLine, 200);
+                let delay = Math.random() * (300 - 100) + 100;
+                if (index === 6) delay = 800;
+                setTimeout(addLine, delay);
             } else {
-                setTimeout(() => {
-                    terminalBody.classList.add('fade-out');
-                    setTimeout(() => {
-                        terminalBody.style.display = 'none';
-                        loginModule.style.display = 'block';
-                        setTimeout(() => { loginModule.classList.add('assemble-anim'); loginModule.style.opacity = '1'; }, 50);
-                    }, 800);
-                }, 600);
+                setTimeout(transitionToLogin, 600);
             }
+        }
+        function transitionToLogin() {
+            terminalBody.classList.add('fade-out');
+            setTimeout(() => {
+                terminalBody.style.display = 'none';
+                loginModule.style.display = 'block';
+                setTimeout(() => { loginModule.classList.add('assemble-anim'); loginModule.style.opacity = '1'; }, 50);
+            }, 800);
+        }
+        function startAuth() {
+            const btn = document.querySelector('.btn-auth');
+            btn.innerHTML = "PROPOJOVÁNÍ...";
+            window.location.href = '/api/auth/login';
         }
         window.onload = addLine;
     </script>
