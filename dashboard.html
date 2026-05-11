@@ -8,196 +8,46 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root { 
-            --red: #ff0000; 
-            --red-glow: rgba(255, 0, 0, 0.7);
-            --bg: #020202; 
-            --card-bg: rgba(15, 15, 15, 0.7);
-            --border: rgba(255, 0, 0, 0.25);
-            --green: #00ff41;
-            --cyan: #00f2ff;
+            --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
+            --bg: #020202; --card-bg: rgba(15, 15, 15, 0.7);
+            --border: rgba(255, 0, 0, 0.25); --green: #00ff41; --cyan: #00f2ff;
             --glass: rgba(255, 255, 255, 0.03);
         }
-
-        body { 
-            background: var(--bg); 
-            color: #fff; 
-            font-family: 'Rajdhani', sans-serif; 
-            margin: 0; 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden;
-        }
-
-        body::before {
-            content: "";
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, #1a0202 0%, transparent 70%);
-            animation: pulse 15s infinite alternate;
-            z-index: -1;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.2); opacity: 0.8; }
-        }
-
-        nav { 
-            width: 280px; 
-            background: rgba(0, 0, 0, 0.9); 
-            border-right: 1px solid var(--border); 
-            display: flex; 
-            flex-direction: column; 
-            padding: 30px 15px;
-            box-shadow: 5px 0 20px rgba(0,0,0,0.5);
-            backdrop-filter: blur(15px);
-            z-index: 10;
-        }
-
-        .brand { text-align: center; margin-bottom: 40px; }
-        .brand-text {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 2em;
-            letter-spacing: 6px;
-            background: linear-gradient(to bottom, #fff, #ff0000);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px var(--red-glow));
-        }
-
-        .user-identity {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 4px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .user-identity::before {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%; width: 100%; height: 2px;
-            background: var(--red);
-            animation: scan-line 3s infinite;
-        }
-
+        body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; position: relative; }
+        body::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, #1a0202 0%, transparent 70%); animation: pulse 15s infinite alternate; z-index: -1; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(1.2); opacity: 0.8; } }
+        nav { width: 280px; background: rgba(0, 0, 0, 0.9); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; backdrop-filter: blur(15px); z-index: 10; }
+        .brand-text { font-family: 'Orbitron', sans-serif; font-size: 2em; letter-spacing: 6px; background: linear-gradient(to bottom, #fff, #ff0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 10px var(--red-glow)); text-align: center; margin-bottom: 40px; }
+        .user-identity { background: var(--glass); border: 1px solid var(--border); padding: 20px; border-radius: 4px; margin-bottom: 30px; position: relative; overflow: hidden; }
+        .user-identity::before { content: ""; position: absolute; top: 0; left: -100%; width: 100%; height: 2px; background: var(--red); animation: scan-line 3s infinite; }
         @keyframes scan-line { 0% { left: -100%; } 100% { left: 100%; } }
-
         #username { font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 1px; color: #fff; }
-
-        .role-badge {
-            font-size: 0.6em;
-            padding: 3px 10px;
-            border: 1px solid var(--red);
-            color: var(--red);
-            margin-top: 10px;
-            display: inline-block;
-            text-transform: uppercase;
-            box-shadow: 0 0 5px var(--red-glow);
-        }
-
-        .menu-group { margin-bottom: 10px; }
-        .menu-trigger {
-            width: 100%;
-            background: none;
-            border: none;
-            color: #888;
-            padding: 12px;
-            text-align: left;
-            font-size: 0.85em;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            transition: 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .menu-trigger:hover { color: var(--red); background: rgba(255,0,0,0.05); }
-
-        .submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            background: rgba(0,0,0,0.3);
-            border-left: 1px solid var(--border);
-            margin-left: 5px;
-        }
-
+        .role-badge { font-size: 0.6em; padding: 3px 10px; border: 1px solid var(--red); color: var(--red); margin-top: 10px; display: inline-block; text-transform: uppercase; box-shadow: 0 0 5px var(--red-glow); }
+        .menu-trigger { width: 100%; background: none; border: none; color: #888; padding: 12px; text-align: left; font-size: 0.85em; font-weight: 700; cursor: pointer; display: flex; justify-content: space-between; text-transform: uppercase; letter-spacing: 2px; }
+        .submenu { max-height: 0; overflow: hidden; transition: 0.4s; background: rgba(0,0,0,0.3); border-left: 1px solid var(--border); margin-left: 5px; }
         .submenu.open { max-height: 200px; padding: 5px 0; }
-
-        .nav-item {
-            padding: 10px 20px;
-            color: #555;
-            text-decoration: none;
-            display: block;
-            font-size: 0.8em;
-            transition: 0.3s;
-        }
-
-        .nav-item:hover { color: #fff; padding-left: 25px; background: rgba(255,255,255,0.02); }
-
-        main { flex: 1; padding: 50px; overflow-y: auto; position: relative; }
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            padding-bottom: 20px;
-            margin-bottom: 40px;
-        }
-
+        .nav-item { padding: 10px 20px; color: #555; text-decoration: none; display: block; font-size: 0.8em; transition: 0.3s; }
+        .nav-item:hover { color: #fff; background: rgba(255,255,255,0.02); }
+        main { flex: 1; padding: 50px; overflow-y: auto; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 40px; }
         .top-bar h1 { font-family: 'Orbitron', sans-serif; font-size: 1em; letter-spacing: 8px; color: #444; margin: 0; }
-
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 30px;
-            border-radius: 2px;
-            position: relative;
-            transition: 0.4s;
-            backdrop-filter: blur(5px);
-        }
-
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; position: relative; transition: 0.4s; backdrop-filter: blur(5px); }
         .card:hover { transform: translateY(-5px); border-color: var(--red); box-shadow: 0 0 20px var(--red-glow); }
-
         .card-label { font-size: 0.7em; color: #666; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 15px; display: block; }
         .stat-number { font-family: 'Orbitron', sans-serif; font-size: 2.5em; font-weight: 700; color: #fff; }
-
         .maestro-only, .vedeni-only { display: none; }
-
-        .logout-btn {
-            margin-top: auto;
-            border: 1px solid #222;
-            padding: 12px;
-            color: #444;
-            text-align: center;
-            cursor: pointer;
-            font-size: 0.7em;
-            letter-spacing: 3px;
-            transition: 0.3s;
-        }
+        .logout-btn { margin-top: auto; border: 1px solid #222; padding: 12px; color: #444; text-align: center; cursor: pointer; font-size: 0.7em; letter-spacing: 3px; transition: 0.3s; }
         .logout-btn:hover { border-color: var(--red); color: var(--red); }
     </style>
 </head>
 <body>
-
     <nav>
-        <div class="brand">
-            <div class="brand-text">CJNG</div>
-            <div style="font-size: 0.5em; color: #444; letter-spacing: 4px; margin-top: 5px;">NETWORK ACCESS SECURED</div>
-        </div>
-
+        <div class="brand-text">CJNG</div>
         <div class="user-identity">
             <div id="username">IDENTIFIKUJI...</div>
             <div id="user-role-display"></div>
         </div>
-
         <div class="menu-group">
             <button class="menu-trigger" onclick="toggleSub('m1')">DATA_PŘEHLED <span>[+]</span></button>
             <div id="m1" class="submenu">
@@ -205,23 +55,12 @@
                 <a href="#" class="nav-item">MOJE DATA</a>
             </div>
         </div>
-
         <div class="menu-group maestro-only">
             <button class="menu-trigger" onclick="toggleSub('m2')">LOGISTIKA <span>[+]</span></button>
             <div id="m2" class="submenu">
-                <a href="#" class="nav-item">DLUŽNICKÁ KONTROLA</a>
                 <a href="#" class="nav-item">INVENTÁŘ DROG</a>
             </div>
         </div>
-
-        <div class="menu-group vedeni-only">
-            <button class="menu-trigger" onclick="toggleSub('m3')">CENTRÁLA <span>[+]</span></button>
-            <div id="m3" class="submenu">
-                <a href="#" class="nav-item">FINANCE KARTELU</a>
-                <a href="#" class="nav-item">PERSONÁLNÍ SEZNAM</a>
-            </div>
-        </div>
-
         <div class="logout-btn" onclick="location.href='/'">TERM_DEACTIVATE</div>
     </nav>
 
@@ -230,25 +69,17 @@
             <h1>CENTRAL_UNIT_NODE_01</h1>
             <div id="clock" style="font-family: 'Orbitron'; font-size: 0.8em; color: var(--red);"></div>
         </div>
-
         <div class="grid">
-            <div class="vedeni-only card" style="grid-column: span 3; border-left: 4px solid var(--red);">
-                <span class="card-label">PASIVA ORGANIZACE (CELKEM)</span>
-                <div class="stat-number" id="org-debt" style="color: var(--red);">0 KS</div>
-            </div>
-
             <div class="card">
                 <span class="card-label">ZÁSILKY PŘIJATO</span>
                 <div class="stat-number" id="my-vydano" style="color: var(--green);">0</div>
             </div>
-
             <div class="card">
                 <span class="card-label">ZÁSILKY ODEVZDÁNO</span>
                 <div class="stat-number" id="my-odevzdano" style="color: var(--cyan);">0</div>
             </div>
-
             <div class="card">
-                <span class="card-label">TVŮJ OSOBNÍ DLUH</span>
+                <span class="card-label">TVŮJ DLUH</span>
                 <div class="stat-number" id="my-dluh" style="color: var(--red);">0</div>
             </div>
         </div>
@@ -258,12 +89,6 @@
         const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
         const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
-
-        const ROLES_IDS = {
-            VEDENI: "1468388299642241281",
-            MAESTRO: "1429877779918491789",
-            IT_TECHNIK: "1489322789205971174"
-        };
 
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('user') || "OPERATIVEC_X";
@@ -276,41 +101,21 @@
             document.getElementById(id).classList.toggle('open');
         }
 
-        function checkPermissions() {
-            let display = document.getElementById('user-role-display');
-            if (userRoles.includes(ROLES_IDS.VEDENI) || userRoles.includes(ROLES_IDS.IT_TECHNIK)) {
-                document.querySelectorAll('.vedeni-only, .maestro-only').forEach(el => el.style.display = 'block');
-                display.innerHTML = '<span class="role-badge">VEDENÍ KARTELU</span>';
-            } 
-            else if (userRoles.includes(ROLES_IDS.MAESTRO)) {
-                document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
-                display.innerHTML = '<span class="role-badge" style="color:var(--green); border-color:var(--green);">MAESTRO</span>';
-            } else {
-                display.innerHTML = '<span class="role-badge" style="color:#666; border-color:#333;">SICARIO</span>';
-            }
-        }
-
         async function fetchStats() {
             if (!discordId) return;
-            const { data, error } = await _supabase
-                .from('vydej_kokainu')
-                .select('pocet_vydano')
-                .eq('user_id', discordId);
-
+            const { data } = await _supabase.from('vydej_kokainu').select('pocet_vydano').eq('user_id', discordId);
             if (data) {
-                const totalVydano = data.reduce((sum, row) => sum + (parseInt(row.pocet_vydano) || 0), 0);
-                document.getElementById('my-vydano').innerText = totalVydano.toLocaleString() + " KS";
-                document.getElementById('my-dluh').innerText = totalVydano.toLocaleString() + " KS";
+                const total = data.reduce((sum, row) => sum + (parseInt(row.pocet_vydano) || 0), 0);
+                document.getElementById('my-vydano').innerText = total.toLocaleString() + " KS";
+                document.getElementById('my-dluh').innerText = total.toLocaleString() + " KS";
             }
         }
 
-        function updateClock() {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString('cs-CZ');
+        if (userRoles.includes("1429877779918491789")) { // Maestro role
+            document.querySelectorAll('.maestro-only').forEach(el => el.style.display = 'block');
         }
 
-        setInterval(updateClock, 1000);
-        updateClock();
-        checkPermissions();
+        setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('cs-CZ'); }, 1000);
         fetchStats();
     </script>
 </body>
