@@ -201,6 +201,35 @@
     </main>
 
     <script>
+        // --- AUDIO ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playFX(freq, type, duration, vol, sweep = false) {
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                if (sweep) osc.frequency.exponentialRampToValueAtTime(freq * 0.1, audioCtx.currentTime + duration);
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + duration);
+            } catch(e) { console.log("Audio block"); }
+        }
+
+        const SFX = {
+            login: () => {
+                playFX(400, 'sawtooth', 0.5, 0.05);
+                setTimeout(() => playFX(600, 'sawtooth', 0.3, 0.05), 150);
+                setTimeout(() => playFX(800, 'sawtooth', 0.8, 0.05), 300);
+            },
+            click: () => playFX(600, 'sine', 0.05, 0.03),
+            nav: () => playFX(200, 'square', 0.1, 0.02),
+            msg: () => playFX(1000, 'sine', 0.2, 0.05),
+            log: () => playFX(1500, 'sine', 0.02, 0.01)
+        };
+
         const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
         const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
@@ -215,6 +244,7 @@
         document.getElementById('display-name').innerText = uName.toUpperCase();
 
         function toggleSidebar() {
+            SFX.click();
             const nav = document.getElementById('sidebar');
             const openBtn = document.getElementById('openBtn');
             nav.classList.toggle('collapsed');
@@ -222,13 +252,15 @@
         }
 
         function handleNav(view) {
-            document.getElementById('welcome-view').style.display = 'none'; // Schovat FAQ
+            SFX.nav();
+            document.getElementById('welcome-view').style.display = 'none';
             if (window.innerWidth <= 768) toggleSidebar();
             if (view === 'dossier') showDossier();
             else showDashboard();
         }
 
         function toggleSubmenu(btn) {
+            SFX.click();
             const sub = btn.nextElementSibling;
             const open = sub.classList.contains('open');
             document.querySelectorAll('.submenu').forEach(s => s.classList.remove('open'));
@@ -311,6 +343,7 @@
         }
 
         async function sendMessage() {
+            SFX.msg();
             const inp = document.getElementById('msg-input');
             const txt = inp.value.trim();
             if (!txt) return;
@@ -333,15 +366,26 @@
             b.innerHTML = `<span class="role-badge">${l}</span>`;
         }
 
-        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => fetchMessages()).subscribe();
-        _supabase.channel('room2').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => fetchData()).subscribe();
-
-        setupPermissions();
-        fetchData();
+        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+            SFX.log();
+            fetchMessages();
+        }).subscribe();
         
-        if(document.getElementById('sidebar').classList.contains('collapsed')) {
-            document.getElementById('openBtn').style.display = 'block';
-        }
+        _supabase.channel('room2').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => {
+            SFX.log();
+            fetchData();
+        }).subscribe();
+
+        // Boot Sequence
+        window.onload = () => {
+            setupPermissions();
+            fetchData();
+            if(document.getElementById('sidebar').classList.contains('collapsed')) {
+                document.getElementById('openBtn').style.display = 'block';
+            }
+            // Spustit welcome zvuk
+            SFX.login();
+        };
 
         document.getElementById('msg-input').onkeypress = (e) => { if(e.key==='Enter') sendMessage(); };
     </script>
