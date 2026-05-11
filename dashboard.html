@@ -48,6 +48,16 @@
         /* Main Content */
         main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); transition: all 0.4s; }
         
+        /* Welcome FAQ Section */
+        .welcome-section { max-width: 800px; margin: 0 auto; animation: fadeIn 1s ease-out; }
+        .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2em; margin-bottom: 20px; border-bottom: 2px solid var(--red); padding-bottom: 10px; text-shadow: 0 0 10px var(--red-glow); }
+        .status-line { font-family: 'Rajdhani'; color: #00ff41; font-weight: bold; margin-bottom: 30px; letter-spacing: 2px; }
+        .faq-item { background: rgba(255,0,0,0.03); border: 1px solid rgba(255,0,0,0.1); padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--red); }
+        .faq-q { color: var(--red); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: 'Orbitron'; font-size: 0.9em; }
+        .faq-a { color: #ccc; line-height: 1.6; font-size: 1.1em; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
@@ -92,6 +102,7 @@
             #chart-card { grid-column: span 1; }
             .stat { font-size: 1.8em; }
             .brand { font-size: 1.8em; margin-bottom: 20px; }
+            .welcome-header { font-size: 1.5em; }
         }
     </style>
 </head>
@@ -127,6 +138,31 @@
     </nav>
 
     <main>
+        <div id="welcome-view" class="welcome-section">
+            <div class="welcome-header">CJNG TERMINÁL // HLAVNÍ UZEL</div>
+            <div class="status-line">PŘIHLÁŠENÍ ÚSPĚŠNÉ... ŠIFROVÁNÍ KONCE-KONCE AKTIVNÍ...</div>
+            
+            <div class="faq-item">
+                <div class="faq-q">K čemu slouží tento terminál?</div>
+                <div class="faq-a">Toto je tvůj přímý kanál k hierarchii kartelu CJNG. Zde spravuješ své zásilky, sleduješ dluhy vůči vedení a komunikuješ přes šifrovaný interkom.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Jak nahlásím odebrané zboží?</div>
+                <div class="faq-a">Veškeré výdeje jsou evidovány automaticky vedením kartelu. Tvou povinností je sledovat sekci "Dossier", kde vidíš potvrzené transakce v reálném čase.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Co znamená stav "Operační dluh"?</div>
+                <div class="faq-a">Představuje aktuální množství zboží, které ti bylo svěřeno k distribuci. Jakmile dluh splatíš odevzdáním financí vedení, bude tvůj stav aktualizován.</div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-q">Bezpečnostní upozornění</div>
+                <div class="faq-a">Tento terminál je sledován. Jakýkoliv pokus o neautorizovaný přístup nebo únik dat bude trestán podle stanov kartelu. Po ukončení práce se vždy odhlaste.</div>
+            </div>
+        </div>
+
         <div id="dashboard-view" style="display: none;">
             <div class="grid">
                 <div class="card"><div class="card-title">CELKEM ODEBRANÉ ZÁSILKY</div><div id="my-vydano" class="stat">0 KS</div></div>
@@ -185,8 +221,8 @@
             openBtn.style.display = nav.classList.contains('collapsed') ? 'block' : 'none';
         }
 
-        // Pomocná funkce pro navigaci, aby se sidebar na mobilu sám zavřel po kliknutí
         function handleNav(view) {
+            document.getElementById('welcome-view').style.display = 'none'; // Schovat FAQ
             if (window.innerWidth <= 768) toggleSidebar();
             if (view === 'dossier') showDossier();
             else showDashboard();
@@ -303,7 +339,6 @@
         setupPermissions();
         fetchData();
         
-        // Iniciace tlačítka pro otevření (pokud je sidebar defaultně collapsed)
         if(document.getElementById('sidebar').classList.contains('collapsed')) {
             document.getElementById('openBtn').style.display = 'block';
         }
