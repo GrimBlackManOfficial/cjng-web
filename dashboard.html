@@ -88,8 +88,13 @@
             <div class="menu-category">
                 <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL <i>▶</i></button>
                 <div class="submenu">
-                    <a href="#" class="nav-link" onclick="showDashboard()">Přehled operací</a>
                     <a href="#" class="nav-link" onclick="showDossier()">Vlastní složka (Dossier)</a>
+                </div>
+            </div>
+            <div class="menu-category maestro-only vedeni-only">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">VEDENÍ <i>▶</i></button>
+                <div class="submenu">
+                    <a href="#" class="nav-link" onclick="showDashboard()">Přehled operací</a>
                 </div>
             </div>
         </div>
@@ -97,7 +102,7 @@
     </nav>
 
     <main>
-        <div id="dashboard-view">
+        <div id="dashboard-view" style="display: none;">
             <div class="grid">
                 <div class="card"><div class="card-title">CELKEM ODEBRANÉ ZÁSILKY</div><div id="my-vydano" class="stat">0 KS</div></div>
                 <div class="card"><div class="card-title">AKTUÁLNÍ OPERAČNÍ DLUH</div><div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div></div>
