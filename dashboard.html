@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CJNG | Secured Mainframe</title>
+    <title>CJNG | Operační Systém</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
@@ -61,10 +61,9 @@
         .card-title { font-size: 0.7em; color: #666; letter-spacing: 2px; margin-bottom: 15px; }
         .stat { font-family: 'Orbitron'; font-size: 2.2em; }
         
-        .logout { padding: 15px; color: #444; text-align: center; cursor: pointer; font-size: 0.8em; letter-spacing: 2px; border-top: 1px solid var(--border); transition: 0.3s; }
-        .logout:hover { color: var(--red); background: rgba(255,0,0,0.05); }
+        .logout { padding: 15px; color: #666; text-align: center; cursor: pointer; font-size: 0.85em; letter-spacing: 3px; border-top: 1px solid var(--border); transition: 0.3s; font-family: 'Orbitron'; text-transform: uppercase; }
+        .logout:hover { color: var(--red); background: rgba(255,0,0,0.05); text-shadow: 0 0 10px var(--red-glow); }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: var(--red); }
@@ -81,48 +80,48 @@
 
         <div class="menu-container">
             <div class="menu-category">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">SEC_PERSONNEL <i>▶</i></button>
+                <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL <i>▶</i></button>
                 <div class="submenu">
-                    <a href="#" class="nav-link">Osobní přehled</a>
-                    <a href="#" class="nav-link">Hlášení produkce</a>
-                    <a href="#" class="nav-link">Změna šifry</a>
+                    <a href="#" class="nav-link">Přehled produkce</a>
+                    <a href="#" class="nav-link">Zadat nový výdej</a>
+                    <a href="#" class="nav-link">Zabezpečení účtu</a>
                 </div>
             </div>
 
             <div class="menu-category maestro-only">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">LOG_DISTRIBUTION <i>▶</i></button>
+                <button class="category-trigger" onclick="toggleSubmenu(this)">LOGISTIKA A SKLAD <i>▶</i></button>
                 <div class="submenu">
-                    <a href="#" class="nav-link">Logistika výdejů</a>
-                    <a href="#" class="nav-link">Stav depozitáře</a>
-                    <a href="#" class="nav-link">Analytika Maestro</a>
+                    <a href="#" class="nav-link">Správa distribuce</a>
+                    <a href="#" class="nav-link">Inventura skladu</a>
+                    <a href="#" class="nav-link">Logy zaměstnanců</a>
                 </div>
             </div>
 
             <div class="menu-category admin-only">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">EXT_SURVEILLANCE <i>▶</i></button>
+                <button class="category-trigger" onclick="toggleSubmenu(this)">EXTERNÍ DOZOR <i>▶</i></button>
                 <div class="submenu">
                     <a href="#" class="nav-link">Monitoring sítě</a>
-                    <a href="#" class="nav-link">Logy integrity</a>
+                    <a href="#" class="nav-link">Kontrola integrity</a>
                 </div>
             </div>
 
             <div class="menu-category vedeni-only">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">HQ_OPERATIONS <i>▶</i></button>
+                <button class="category-trigger" onclick="toggleSubmenu(this)">CENTRÁLNÍ VELENÍ <i>▶</i></button>
                 <div class="submenu">
-                    <a href="#" class="nav-link">Finanční toky</a>
-                    <a href="#" class="nav-link">Kádrové složky</a>
-                    <a href="#" class="nav-link">System override</a>
+                    <a href="#" class="nav-link">Finanční přehled</a>
+                    <a href="#" class="nav-link">Personální složky</a>
+                    <a href="#" class="nav-link">Správa systému</a>
                 </div>
             </div>
         </div>
 
-        <div class="logout" onclick="location.href='/'">DEAKTIVOVAT_TERMINÁL</div>
+        <div class="logout" onclick="location.href='/'">Odhlásit se</div>
     </nav>
 
     <main>
         <div class="grid">
             <div class="card">
-                <div class="card-title">CELKOVÉ ODEBRANÉ ZÁSILKY</div>
+                <div class="card-title">CELKEM ODEBRANÉ ZÁSILKY</div>
                 <div id="my-vydano" class="stat">0 KS</div>
             </div>
             <div class="card">
@@ -130,12 +129,12 @@
                 <div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div>
             </div>
             <div class="card">
-                <div class="card-title">STATUS SÍTĚ</div>
-                <div class="stat" style="color: #00ff41; font-size: 1.2em;">LIVE_ENCRYPTED</div>
+                <div class="card-title">STAV PŘIPOJENÍ</div>
+                <div class="stat" style="color: #00ff41; font-size: 1.2em;">AKTIVNÍ // ŠIFROVÁNO</div>
             </div>
 
             <div class="card maestro-only vedeni-only admin-only" style="grid-column: span 3;">
-                <div class="card-title">STRATEGICKÁ ANALÝZA DISTRIBUCE (REAL-TIME FEED)</div>
+                <div class="card-title">STRATEGICKÁ ANALÝZA CELKOVÉ DISTRIBUCE</div>
                 <div style="height: 350px; position: relative;">
                     <canvas id="profiChart"></canvas>
                 </div>
@@ -167,7 +166,6 @@
             const submenu = btn.nextElementSibling;
             const isOpen = submenu.classList.contains('open');
             
-            // Zavřít ostatní
             document.querySelectorAll('.submenu').forEach(s => s.classList.remove('open'));
             document.querySelectorAll('.category-trigger').forEach(t => t.classList.remove('active'));
             
@@ -201,8 +199,8 @@
             const { data: userData } = await _supabase.from('vydej_kokainu').select('pocet_vydano').eq('user_id', discordId);
             if (userData) {
                 const total = userData.reduce((sum, r) => sum + (parseInt(r.pocet_vydano) || 0), 0);
-                document.getElementById('my-vydano').innerText = total + " KS";
-                document.getElementById('my-dluh').innerText = total + " KS";
+                document.getElementById('my-vydano').innerText = total.toLocaleString() + " KS";
+                document.getElementById('my-dluh').innerText = total.toLocaleString() + " KS";
             }
 
             if (rolesArray.some(r => [ROLES.VEDENI, ROLES.MAESTRO, ROLES.MARINA].includes(r))) {
@@ -241,8 +239,8 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#444' } },
-                        x: { grid: { display: false }, ticks: { color: '#444' } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
+                        x: { grid: { display: false }, ticks: { color: '#666' } }
                     },
                     plugins: { legend: { display: false } }
                 }
