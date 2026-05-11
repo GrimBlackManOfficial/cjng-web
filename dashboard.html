@@ -46,24 +46,35 @@
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
 
         /* Main Content */
-        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); transition: all 0.4s; }
+        main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at top right, #1a0202 0%, #020202 60%); transition: all 0.4s; display: flex; flex-direction: column; }
         
-        /* Welcome FAQ Section */
-        .welcome-section { max-width: 800px; margin: 0 auto; animation: fadeIn 1s ease-out; }
-        .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2em; margin-bottom: 20px; border-bottom: 2px solid var(--red); padding-bottom: 10px; text-shadow: 0 0 10px var(--red-glow); }
-        .status-line { font-family: 'Rajdhani'; color: #00ff41; font-weight: bold; margin-bottom: 30px; letter-spacing: 2px; }
-        .faq-item { background: rgba(255,0,0,0.03); border: 1px solid rgba(255,0,0,0.1); padding: 20px; margin-bottom: 15px; border-left: 4px solid var(--red); }
-        .faq-q { color: var(--red); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-family: 'Orbitron'; font-size: 0.9em; }
-        .faq-a { color: #ccc; line-height: 1.6; font-size: 1.1em; }
+        /* Satelitní Network Sekce */
+        .welcome-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 1.5s ease-out; }
+        .welcome-header-wrapper { text-align: center; z-index: 10; position: absolute; top: 0; }
+        .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2.2em; letter-spacing: 10px; text-shadow: 0 0 20px var(--red-glow); margin-bottom: 5px; }
+        .status-line { font-family: 'Rajdhani'; color: #00ff41; font-weight: bold; letter-spacing: 4px; font-size: 0.8em; text-transform: uppercase; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Globe Container */
+        .globe-container { position: relative; width: 400px; height: 400px; transform-style: preserve-3d; perspective: 1000px; margin-top: 40px; }
+        .globe { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,0,0,0.2); box-shadow: inset 0 0 50px rgba(255,0,0,0.3), 0 0 30px rgba(255,0,0,0.1); animation: rotateGlobe 20s linear infinite; }
+        .globe::before, .globe::after { content: ''; position: absolute; top: 50%; left: 50%; width: 100%; height: 100%; border-radius: 50%; border: 1px solid rgba(255,0,0,0.1); transform: translate(-50%, -50%) rotateX(90deg); }
+        .globe::after { transform: translate(-50%, -50%) rotateY(90deg); }
 
+        .satellite-orbit { position: absolute; width: 140%; height: 140%; top: -20%; left: -20%; border: 1px border-radius: 50%; border: 1px dashed rgba(255,0,0,0.1); animation: rotateOrbit 15s linear infinite; transform-style: preserve-3d; }
+        .satellite { position: absolute; width: 8px; height: 8px; background: #fff; border-radius: 50%; box-shadow: 0 0 15px #fff, 0 0 5px var(--red); top: 50%; left: 0; }
+        .signal-beam { position: absolute; top: 50%; left: 50%; width: 2px; height: 200px; background: linear-gradient(to top, var(--red), transparent); transform-origin: top; opacity: 0; animation: ping 3s infinite; }
+
+        @keyframes rotateGlobe { from { transform: rotateY(0deg) rotateX(10deg); } to { transform: rotateY(360deg) rotateX(10deg); } }
+        @keyframes rotateOrbit { from { transform: rotateY(0deg) rotateZ(20deg); } to { transform: rotateY(360deg) rotateZ(20deg); } }
+        @keyframes ping { 0% { opacity: 0; height: 0; } 50% { opacity: 0.6; height: 180px; } 100% { opacity: 0; height: 220px; } }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+        /* Zbytek layoutu */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
         .stat { font-family: 'Orbitron'; font-size: 2.2em; }
         
-        /* Dossier & Chat */
         #dossier-section { display: none; margin-top: 10px; }
         .dossier-header { font-family: 'Rajdhani'; font-weight: 700; color: var(--red); letter-spacing: 3px; margin-bottom: 25px; text-transform: uppercase; font-size: 1.8em; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .dossier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
@@ -88,21 +99,13 @@
         .logout:hover { color: var(--red); background: rgba(255,0,0,0.05); }
         .chart-wrapper { height: 350px; position: relative; width: 100%; }
 
-        /* RESPONSIVE DESIGN (MOBIL) */
         @media (max-width: 768px) {
             nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
-            nav.collapsed { transform: translateX(-100%); }
             nav:not(.collapsed) { transform: translateX(0); }
-            
-            main { padding: 60px 15px 20px 15px; }
-            .grid { grid-template-columns: 1fr; }
-            .dossier-grid { grid-template-columns: 1fr; }
-            .logs-chat-container { grid-template-columns: 1fr; grid-column: span 1; }
-            .card maestro-only vedeni-only { grid-column: span 1; }
-            #chart-card { grid-column: span 1; }
-            .stat { font-size: 1.8em; }
-            .brand { font-size: 1.8em; margin-bottom: 20px; }
-            .welcome-header { font-size: 1.5em; }
+            main { padding: 60px 15px 20px 15px; overflow-y: auto; }
+            .globe-container { width: 250px; height: 250px; }
+            .welcome-header { font-size: 1.2em; }
+            .grid, .dossier-grid, .logs-chat-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -139,27 +142,25 @@
 
     <main>
         <div id="welcome-view" class="welcome-section">
-            <div class="welcome-header">CJNG TERMINÁL // HLAVNÍ UZEL</div>
-            <div class="status-line">PŘIHLÁŠENÍ ÚSPĚŠNÉ... ŠIFROVÁNÍ KONCE-KONCE AKTIVNÍ...</div>
+            <div class="welcome-header-wrapper">
+                <div class="welcome-header">CJNG NETWORK</div>
+                <div class="status-line">SATELITNÍ SPOJENÍ AKTIVNÍ // ŠIFROVÁNÍ AZTEC-6</div>
+            </div>
             
-            <div class="faq-item">
-                <div class="faq-q">K čemu slouží tento terminál?</div>
-                <div class="faq-a">Toto je tvůj přímý kanál k hierarchii kartelu CJNG. Zde spravuješ své zásilky, sleduješ dluhy vůči vedení a komunikuješ přes šifrovaný interkom.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-q">Jak nahlásím odebrané zboží?</div>
-                <div class="faq-a">Veškeré výdeje jsou evidovány automaticky vedením kartelu. Tvou povinností je sledovat sekci "Dossier", kde vidíš potvrzené transakce v reálném čase.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-q">Co znamená stav "Operační dluh"?</div>
-                <div class="faq-a">Představuje aktuální množství zboží, které ti bylo svěřeno k distribuci. Jakmile dluh splatíš odevzdáním financí vedení, bude tvůj stav aktualizován.</div>
-            </div>
-
-            <div class="faq-item">
-                <div class="faq-q">Bezpečnostní upozornění</div>
-                <div class="faq-a">Tento terminál je sledován. Jakýkoliv pokus o neautorizovaný přístup nebo únik dat bude trestán podle stanov kartelu. Po ukončení práce se vždy odhlaste.</div>
+            <div class="globe-container">
+                <div class="globe"></div>
+                <div class="satellite-orbit" style="animation-duration: 10s;">
+                    <div class="satellite"></div>
+                    <div class="signal-beam" style="animation-delay: 0s;"></div>
+                </div>
+                <div class="satellite-orbit" style="animation-duration: 15s; transform: rotateX(45deg);">
+                    <div class="satellite" style="left: 30%;"></div>
+                    <div class="signal-beam" style="animation-delay: 1s;"></div>
+                </div>
+                <div class="satellite-orbit" style="animation-duration: 20s; transform: rotateX(-45deg);">
+                    <div class="satellite" style="left: 70%;"></div>
+                    <div class="signal-beam" style="animation-delay: 2s;"></div>
+                </div>
             </div>
         </div>
 
@@ -201,7 +202,6 @@
     </main>
 
     <script>
-        // --- AUDIO ENGINE ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playFX(freq, type, duration, vol, sweep = false) {
             try {
@@ -215,15 +215,11 @@
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 osc.start(); osc.stop(audioCtx.currentTime + duration);
-            } catch(e) { console.log("Audio block"); }
+            } catch(e) {}
         }
 
         const SFX = {
-            login: () => {
-                playFX(400, 'sawtooth', 0.5, 0.05);
-                setTimeout(() => playFX(600, 'sawtooth', 0.3, 0.05), 150);
-                setTimeout(() => playFX(800, 'sawtooth', 0.8, 0.05), 300);
-            },
+            login: () => { playFX(400, 'sawtooth', 0.5, 0.05); setTimeout(() => playFX(800, 'sawtooth', 0.8, 0.05), 300); },
             click: () => playFX(600, 'sine', 0.05, 0.03),
             nav: () => playFX(200, 'square', 0.1, 0.02),
             msg: () => playFX(1000, 'sine', 0.2, 0.05),
@@ -285,7 +281,6 @@
             if (!ctx) return;
             const stats = {};
             rawData.forEach(r => { const d = new Date(r.datum).toLocaleDateString(); stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0); });
-            
             if (chartInstance) chartInstance.destroy();
             chartInstance = new Chart(ctx, {
                 type: 'line',
@@ -313,7 +308,6 @@
                 document.getElementById('my-vydano').innerText = total + " KS";
                 document.getElementById('my-dluh').innerText = total + " KS";
                 document.getElementById('d-splneno').innerText = total + " KS";
-                
                 const lBox = document.getElementById('log-content');
                 lBox.innerHTML = '';
                 data.forEach(e => {
@@ -366,24 +360,13 @@
             b.innerHTML = `<span class="role-badge">${l}</span>`;
         }
 
-        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
-            SFX.log();
-            fetchMessages();
-        }).subscribe();
-        
-        _supabase.channel('room2').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => {
-            SFX.log();
-            fetchData();
-        }).subscribe();
+        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => { SFX.log(); fetchMessages(); }).subscribe();
+        _supabase.channel('room2').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => { SFX.log(); fetchData(); }).subscribe();
 
-        // Boot Sequence
         window.onload = () => {
             setupPermissions();
             fetchData();
-            if(document.getElementById('sidebar').classList.contains('collapsed')) {
-                document.getElementById('openBtn').style.display = 'block';
-            }
-            // Spustit welcome zvuk
+            if(document.getElementById('sidebar').classList.contains('collapsed')) document.getElementById('openBtn').style.display = 'block';
             SFX.login();
         };
 
