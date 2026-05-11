@@ -35,6 +35,21 @@
         </div>
     </div>
     <script>
+        // Audio Engine
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(freq, type, duration, vol) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
         const lines = [
             "> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...",
             "> STATUS: <span class='status-ok'>ZABEZPEČENO</span>",
@@ -56,6 +71,14 @@
                 div.className = 'line';
                 div.innerHTML = lines[index++];
                 terminalBody.appendChild(div);
+                
+                // Zvuk psaní
+                if (index === 6) {
+                    playSound(150, 'square', 0.5, 0.1); // Varovný zvuk
+                } else {
+                    playSound(600 + (Math.random() * 200), 'sine', 0.05, 0.05); // Standardní blip
+                }
+
                 let delay = Math.random() * (300 - 100) + 100;
                 if (index === 6) delay = 800;
                 setTimeout(addLine, delay);
@@ -69,10 +92,11 @@
             setTimeout(() => {
                 terminalBody.style.display = 'none';
                 loginModule.style.display = 'block';
+                // Zvuk sestavení modulu
+                playSound(200, 'sawtooth', 0.8, 0.05);
                 setTimeout(() => { 
                     loginModule.classList.add('assemble-anim'); 
                     loginModule.style.opacity = '1'; 
-                    // Automatické spuštění autorizace po animaci
                     setTimeout(autoAuth, 800);
                 }, 50);
             }, 800);
@@ -82,11 +106,15 @@
             authBtn.innerHTML = "PROPOJOVÁNÍ...";
             authBtn.style.background = "var(--red)";
             authBtn.style.color = "#000";
+            // Finální potvrzovací zvuk
+            playSound(800, 'sine', 0.4, 0.1);
             setTimeout(() => {
                 window.location.href = '/api/auth/login';
             }, 500);
         }
 
+        // Prohlížeče blokují zvuk bez interakce, tento handler to odemkne při prvním pohybu/kliku
+        window.onclick = () => { if(audioCtx.state === 'suspended') audioCtx.resume(); };
         window.onload = addLine;
     </script>
 </body>
