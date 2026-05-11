@@ -35,13 +35,16 @@
         </div>
     </div>
     <script>
-        // Audio Engine
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSound(freq, type, duration, vol) {
+        
+        function playSound(freq, type, duration, vol, sweep = false) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = type;
             osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            if (sweep) {
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + duration);
+            }
             gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
             osc.connect(gain);
@@ -51,15 +54,20 @@
         }
 
         const lines = [
-            "> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...",
-            "> STATUS: <span class='status-ok'>ZABEZPEČENO</span>",
-            "> PŘEMOSTĚNÍ VLÁDNÍHO FIREWALLU... OK",
-            "> NAČÍTÁM PROTOKOL 'CARTEL-NET'...",
+            "> NAVAZUJI SPOJENÍ S GLOBÁLNÍ SÍTÍ...",
+            "> STATUS: <span class='status-ok'>PŘIPOJENO</span>",
+            "> PROLAZÍM PROXY SERVERY: MEX, COL, PAN... OK",
+            "> AKTIVUJI KRYPTOGRAFICKÝ KLÍČ 'AZTEC-6'...",
+            "> ANALYZUJI DATABÁZI ZAMĚSTNANCŮ...",
+            "> <span class='status-critical'>VAROVÁNÍ: SLEDOVÁNÍ POLICIÍ DETEKOVÁNO</span>",
+            "> NASAZUJI ANTI-TRACKING PROTOKOL...",
+            "> ODESÍLÁM PAKETY PŘES SATELITNÍ MOST...",
+            "> STATUS: <span class='status-ok'>ANONYMITA ZAJIŠTĚNA</span>",
             "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...",
-            "> <span class='status-critical'>VAROVÁNÍ: NEOPRÁVNĚNÝ PŘÍSTUP BUDE POTRESTÁN</span>",
-            "> ČISTÍM DIGITÁLNÍ STOPU...",
-            "> PŘÍSTUP POVOLEN. AUTOMATICKÁ IDENTIFIKACE."
+            "> GENERUJI PŘÍSTUPOVÝ TOKEN...",
+            "> PŘÍSTUP POVOLEN. IDENTIFIKUJI UŽIVATELE."
         ];
+        
         const terminalBody = document.getElementById('terminal-body');
         const loginModule = document.getElementById('login-module');
         const authBtn = document.getElementById('auth-btn');
@@ -72,32 +80,37 @@
                 div.innerHTML = lines[index++];
                 terminalBody.appendChild(div);
                 
-                // Zvuk psaní
-                if (index === 6) {
-                    playSound(150, 'square', 0.5, 0.1); // Varovný zvuk
+                // Zvukové variace podle obsahu
+                if (div.innerText.includes("VAROVÁNÍ")) {
+                    playSound(100, 'square', 0.6, 0.15); // Alarm
+                } else if (div.innerText.includes("PŘÍSTUP POVOLEN")) {
+                    playSound(800, 'sine', 0.2, 0.1);
+                    setTimeout(() => playSound(1000, 'sine', 0.2, 0.1), 100); // Dvojité pípnutí
                 } else {
-                    playSound(600 + (Math.random() * 200), 'sine', 0.05, 0.05); // Standardní blip
+                    playSound(400 + (Math.random() * 300), 'sine', 0.06, 0.04); // Data blip
                 }
 
-                let delay = Math.random() * (300 - 100) + 100;
-                if (index === 6) delay = 800;
+                let delay = Math.random() * (400 - 150) + 150;
+                if (index === 6 || index === 10) delay = 1000; // Pauza u varování a dešifrování
                 setTimeout(addLine, delay);
             } else {
-                setTimeout(transitionToLogin, 600);
+                setTimeout(transitionToLogin, 800);
             }
         }
 
         function transitionToLogin() {
             terminalBody.classList.add('fade-out');
+            // Hluboký zvuk odchodu terminálu
+            playSound(60, 'sine', 1.2, 0.1);
             setTimeout(() => {
                 terminalBody.style.display = 'none';
                 loginModule.style.display = 'block';
-                // Zvuk sestavení modulu
-                playSound(200, 'sawtooth', 0.8, 0.05);
+                // Digitální zvuk sestavení
+                playSound(150, 'sawtooth', 0.8, 0.05, true);
                 setTimeout(() => { 
                     loginModule.classList.add('assemble-anim'); 
                     loginModule.style.opacity = '1'; 
-                    setTimeout(autoAuth, 800);
+                    setTimeout(autoAuth, 1200);
                 }, 50);
             }, 800);
         }
@@ -106,16 +119,25 @@
             authBtn.innerHTML = "PROPOJOVÁNÍ...";
             authBtn.style.background = "var(--red)";
             authBtn.style.color = "#000";
-            // Finální potvrzovací zvuk
-            playSound(800, 'sine', 0.4, 0.1);
+            // Zvuk finální autorizace
+            playSound(440, 'triangle', 0.5, 0.1);
             setTimeout(() => {
                 window.location.href = '/api/auth/login';
-            }, 500);
+            }, 800);
         }
 
-        // Prohlížeče blokují zvuk bez interakce, tento handler to odemkne při prvním pohybu/kliku
-        window.onclick = () => { if(audioCtx.state === 'suspended') audioCtx.resume(); };
-        window.onload = addLine;
+        window.onclick = () => { 
+            if(audioCtx.state === 'suspended') {
+                audioCtx.resume();
+                // Hluboké hučení na pozadí při startu po kliku
+                playSound(40, 'sine', 2.0, 0.05);
+            }
+        };
+        
+        window.onload = () => {
+            // První řádek se spustí hned, zvuky až po prvním kliku uživatele kamkoliv
+            addLine();
+        };
     </script>
 </body>
 </html>
