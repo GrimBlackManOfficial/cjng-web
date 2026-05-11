@@ -6,206 +6,53 @@
     <title>SÍŤ CJNG | AUTHENTICATION</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --red: #ff0000;
-            --red-glow: rgba(255, 0, 0, 0.6);
-            --bg: #050000;
-        }
-
-        body { 
-            background: var(--bg); 
-            color: #fff; 
-            font-family: 'Rajdhani', sans-serif; 
-            overflow: hidden; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-        }
-
-        /* Scanline efekt */
-        body::after {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
-            background-size: 100% 4px, 3px 100%;
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        /* Kontejner pro terminál */
-        #main-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        #terminal-body {
-            width: 100%;
-            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .line { 
-            margin-bottom: 8px; 
-            opacity: 0; 
-            transform: translateX(-10px); 
-            animation: fadeIn 0.2s forwards; 
-            font-size: 1em;
-            letter-spacing: 2px;
-            color: #aaa;
-            text-transform: uppercase;
-        }
-
-        @keyframes fadeIn { 
-            to { opacity: 1; transform: translateX(0); } 
-        }
-
-        /* Moderní Login Box (skrytý na začátku) */
-        #login-module {
-            display: none;
-            opacity: 0;
-            transform: scale(0.8) translateY(20px);
-            background: rgba(15, 0, 0, 0.9);
-            border: 1px solid var(--red);
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 0 50px rgba(255, 0, 0, 0.2);
-            backdrop-filter: blur(15px);
-            z-index: 50;
-            position: absolute;
-        }
-
-        /* Animace "skládání z dat" */
-        .assemble-anim {
-            animation: assemble 0.6s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes assemble {
-            0% { opacity: 0; transform: scale(1.5); filter: blur(20px) hue-rotate(90deg); }
-            100% { opacity: 1; transform: scale(1); filter: blur(0) hue-rotate(0deg); }
-        }
-
-        .status-ok { color: #00ff41; font-weight: bold; }
-        .status-critical { color: var(--red); text-shadow: 0 0 5px var(--red); }
-
-        .btn-auth {
-            background: none;
-            border: 1px solid var(--red);
-            color: #fff;
-            padding: 15px 40px;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.9em;
-            letter-spacing: 4px;
-            cursor: pointer;
-            transition: 0.4s;
-            margin-top: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-auth:hover {
-            background: var(--red);
-            color: #000;
-            box-shadow: 0 0 30px var(--red);
-        }
-
-        .module-title {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--red);
-            font-size: 1.4em;
-            margin-bottom: 10px;
-            letter-spacing: 5px;
-        }
-
-        .module-subtitle {
-            font-size: 0.7em;
-            color: #666;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-        }
-
-        /* Skrytí terminálu */
-        .fade-out {
-            opacity: 0 !important;
-            transform: scale(1.1) !important;
-            filter: blur(10px);
-        }
+        :root { --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.6); --bg: #050000; }
+        body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; z-index: 100; pointer-events: none; }
+        #main-wrapper { position: relative; width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
+        #terminal-body { width: 100%; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+        .line { margin-bottom: 8px; opacity: 0; transform: translateX(-10px); animation: fadeIn 0.2s forwards; font-size: 1em; letter-spacing: 2px; color: #aaa; text-transform: uppercase; }
+        @keyframes fadeIn { to { opacity: 1; transform: translateX(0); } }
+        #login-module { display: none; opacity: 0; transform: scale(0.8) translateY(20px); background: rgba(15, 0, 0, 0.9); border: 1px solid var(--red); padding: 40px; text-align: center; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2); backdrop-filter: blur(15px); z-index: 50; position: absolute; }
+        .assemble-anim { animation: assemble 0.6s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes assemble { 0% { opacity: 0; transform: scale(1.5); filter: blur(20px) hue-rotate(90deg); } 100% { opacity: 1; transform: scale(1); filter: blur(0) hue-rotate(0deg); } }
+        .btn-auth { background: none; border: 1px solid var(--red); color: #fff; padding: 15px 40px; font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 4px; cursor: pointer; transition: 0.4s; margin-top: 20px; }
+        .btn-auth:hover { background: var(--red); color: #000; box-shadow: 0 0 30px var(--red); }
+        .module-title { font-family: 'Orbitron', sans-serif; color: var(--red); font-size: 1.4em; margin-bottom: 10px; letter-spacing: 5px; }
+        .fade-out { opacity: 0 !important; transform: scale(1.1) !important; filter: blur(10px); }
     </style>
 </head>
 <body>
-
     <div id="main-wrapper">
         <div id="terminal-body"></div>
-
         <div id="login-module">
             <div class="module-title">CJNG SÍŤ</div>
-            <div class="module-subtitle">VYŽADOVÁNA BIOMETRICKÁ AUTORIZACE</div>
-            <div style="width: 50px; height: 2px; background: var(--red); margin: 0 auto 25px;"></div>
-            <button class="btn-auth" onclick="startAuth()">VSTOUPIT DO SYSTÉMU</button>
+            <button class="btn-auth" onclick="window.location.href='/api/auth/login'">VSTOUPIT DO SYSTÉMU</button>
         </div>
     </div>
-
     <script>
-        const lines = [
-            "> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...",
-            "> STATUS: <span class='status-ok'>ZABEZPEČENO</span>",
-            "> PŘEMOSTĚNÍ VLÁDNÍHO FIREWALLU... OK",
-            "> NAČÍTÁM PROTOKOL 'CARTEL-NET'...",
-            "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...",
-            "> <span class='status-critical'>VAROVÁNÍ: NEOPRÁVNĚNÝ PŘÍSTUP BUDE POTRESTÁN</span>",
-            "> ČISTÍM DIGITÁLNÍ STOPU...",
-            "> PŘÍSTUP POVOLEN. ČEKÁM NA IDENTIFIKACI."
-        ];
-
+        const lines = ["> INICIALIZUJI ŠIFROVANÉ SPOJENÍ...", "> PŘEMOSTĚNÍ VLÁDNÍHO FIREWALLU... OK", "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...", "> PŘÍSTUP POVOLEN. ČEKÁM NA IDENTIFIKACI."];
         const terminalBody = document.getElementById('terminal-body');
         const loginModule = document.getElementById('login-module');
         let index = 0;
-
         function addLine() {
             if (index < lines.length) {
                 const div = document.createElement('div');
                 div.className = 'line';
-                div.innerHTML = lines[index];
+                div.innerHTML = lines[index++];
                 terminalBody.appendChild(div);
-                index++;
-                
-                let delay = Math.random() * (300 - 100) + 100;
-                if (index === 6) delay = 800; // Dramatická pauza před koncem
-
-                setTimeout(addLine, delay);
+                setTimeout(addLine, 200);
             } else {
-                setTimeout(transitionToLogin, 600);
+                setTimeout(() => {
+                    terminalBody.classList.add('fade-out');
+                    setTimeout(() => {
+                        terminalBody.style.display = 'none';
+                        loginModule.style.display = 'block';
+                        setTimeout(() => { loginModule.classList.add('assemble-anim'); loginModule.style.opacity = '1'; }, 50);
+                    }, 800);
+                }, 600);
             }
         }
-
-        function transitionToLogin() {
-            // Terminál zmizí
-            terminalBody.classList.add('fade-out');
-            
-            setTimeout(() => {
-                terminalBody.style.display = 'none';
-                // Objeví se login box s efektem "poskládání"
-                loginModule.style.display = 'block';
-                setTimeout(() => {
-                    loginModule.classList.add('assemble-anim');
-                    loginModule.style.opacity = '1';
-                }, 50);
-            }, 800);
-        }
-
-        function startAuth() {
-            const btn = document.querySelector('.btn-auth');
-            btn.innerHTML = "PROPOJOVÁNÍ...";
-            btn.style.borderColor = "#666";
-            window.location.href = '/api/auth/login';
-        }
-
         window.onload = addLine;
     </script>
 </body>
