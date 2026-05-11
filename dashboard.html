@@ -19,7 +19,6 @@
         nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; }
         .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
         
-        /* Box s rotujícím okrajem */
         .user-info { padding: 20px; margin-bottom: 30px; background: rgba(0, 0, 0, 0.8); position: relative; border: 1px solid var(--border); overflow: hidden; }
         .user-info::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--red)); animation: rotate-border 4s linear infinite; z-index: 0; }
         .user-info::after { content: ""; position: absolute; inset: 2px; background: #000; z-index: 1; }
@@ -62,7 +61,7 @@
         .dossier-label { font-size: 0.7em; color: #555; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px; }
         .dossier-value { font-family: 'Orbitron'; font-size: 1.3em; color: #fff; }
 
-        /* Operační Log a Komunikace */
+        /* Logs & Real-time Chat */
         .logs-chat-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; grid-column: span 3; }
         
         .system-logs { background: #000; border: 1px solid var(--border); height: 350px; display: flex; flex-direction: column; }
@@ -73,9 +72,8 @@
         .log-entry i { color: #fff; font-style: normal; }
 
         .intercom-panel { background: rgba(15,15,15,0.95); border: 1px solid var(--border); display: flex; flex-direction: column; height: 350px; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
         
-        /* Bubliny chatu */
         .bubble { max-width: 80%; padding: 10px 15px; border-radius: 5px; font-size: 0.9em; position: relative; line-height: 1.4; }
         .bubble.admin { align-self: flex-start; background: rgba(255,0,0,0.15); border: 1px solid var(--red); color: #fff; }
         .bubble.user { align-self: flex-end; background: #222; border: 1px solid #444; color: #ccc; }
@@ -149,19 +147,14 @@
                 <div class="logs-chat-container">
                     <div class="system-logs">
                         <div class="log-header">OPERAČNÍ LOG // HISTORIE PŘÍKAZŮ</div>
-                        <div id="log-content" class="log-content">
-                            <div class="log-entry"><i>[SYSTÉM]</i> Inicializace logů...</div>
-                        </div>
+                        <div id="log-content" class="log-content"></div>
                     </div>
                     <div class="intercom-panel">
-                        <div class="log-header">SECURE-LINE // VEDENÍ</div>
-                        <div class="chat-messages" id="chat-box">
-                            <div class="bubble admin"><div class="bubble-meta">Vedení // HQ</div>Vítejte v šifrovaném kanálu. Komunikace je monitorována.</div>
-                            <div class="bubble user"><div class="bubble-meta">Vy // Operativec</div>Rozumím, spojení je stabilní.</div>
-                        </div>
+                        <div class="log-header">SECURE-LINE // VEDENÍ (REAL-TIME)</div>
+                        <div class="chat-messages" id="chat-box"></div>
                         <div class="chat-input-area">
-                            <input type="text" class="chat-input" placeholder="Napište zprávu...">
-                            <button class="chat-send">ODESLAT</button>
+                            <input type="text" id="message-input" class="chat-input" placeholder="Napište zprávu...">
+                            <button class="chat-send" onclick="sendMessage()">ODESLAT</button>
                         </div>
                     </div>
                 </div>
@@ -176,11 +169,11 @@
         let globalChart = null;
         const ROLES = { VEDENI: "1468388299642241281", MAESTRO: "1429877779918491789" };
         const urlParams = new URLSearchParams(window.location.search);
-        const name = urlParams.get('user') || "OPERATIVEC";
+        const userName = urlParams.get('user') || "OPERATIVEC";
         const rolesArray = (urlParams.get('roles') || "").split(',');
         const discordId = urlParams.get('id');
 
-        document.getElementById('display-name').innerText = name.toUpperCase();
+        document.getElementById('display-name').innerText = userName.toUpperCase();
 
         function toggleSubmenu(btn) {
             const submenu = btn.nextElementSibling;
@@ -220,35 +213,53 @@
                 data.forEach(entry => {
                     const div = document.createElement('div');
                     div.className = 'log-entry';
-                    div.innerHTML = `<i>[${new Date(entry.datum).toLocaleDateString('cs-CZ')}]</i> Vedení <b>SCHVÁLILO</b> výdej <i>${entry.pocet_vydano} KS</i> kokainu.`;
+                    div.innerHTML = `<i>[${new Date(entry.datum).toLocaleDateString('cs-CZ')}]</i> Vedení <b>SCHVÁLILO</b> výdej <i>${entry.pocet_vydano} KS</i>.`;
                     logBox.appendChild(div);
                 });
             }
-            if (rolesArray.some(r => [ROLES.VEDENI, ROLES.MAESTRO].includes(r))) {
-                const { data: chartData } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
-                if (chartData) renderChart(chartData);
+            fetchMessages();
+        }
+
+        async function fetchMessages() {
+            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: true }).limit(50);
+            if (data) {
+                const chatBox = document.getElementById('chat-box');
+                chatBox.innerHTML = '';
+                data.forEach(msg => appendMessage(msg));
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
 
-        function renderChart(rawData) {
-            const ctx = document.getElementById('profiChart').getContext('2d');
-            const stats = {};
-            rawData.forEach(r => { const d = new Date(r.datum).toLocaleDateString('cs-CZ'); stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0); });
-            if (globalChart) globalChart.destroy();
-            globalChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(stats),
-                    datasets: [{ label: 'DISTRIBUCE', data: Object.values(stats), borderColor: '#ff0000', backgroundColor: 'rgba(255, 0, 0, 0.1)', fill: true, tension: 0.4, borderWidth: 3 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } }, x: { display: false } }, plugins: { legend: { display: false } } }
-            });
+        function appendMessage(msg) {
+            const chatBox = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            const isAdmin = msg.is_admin === true;
+            div.className = `bubble ${isAdmin ? 'admin' : 'user'}`;
+            div.innerHTML = `<div class="bubble-meta">${msg.user_name}</div>${msg.text}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        _supabase.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => fetchData()).subscribe();
+        async function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+            const isAdmin = rolesArray.includes(ROLES.VEDENI) || rolesArray.includes(ROLES.MAESTRO);
+            const { error } = await _supabase.from('messages').insert([{ user_id: discordId, user_name: userName, text: text, is_admin: isAdmin }]);
+            if (!error) input.value = '';
+        }
+
+        // Real-time odběr změn (Zprávy i Výdeje)
+        _supabase.channel('global-updates')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => appendMessage(payload.new))
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => fetchData())
+            .subscribe();
 
         setupPermissions();
         fetchData();
+        
+        // Enter pro odeslání zprávy
+        document.getElementById('message-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
     </script>
 </body>
 </html>
