@@ -12,6 +12,7 @@
             --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
             --bg: #020202; --card-bg: rgba(15, 15, 15, 0.8);
             --border: rgba(255, 0, 0, 0.25);
+            --green: #00ff41;
         }
         body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
@@ -43,56 +44,42 @@
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
 
         /* Main Content */
-        main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; }
+        main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; position: relative; }
         
-        /* CJNG GLOBAL VISUALS */
+        /* HACKING VISUALS */
         .welcome-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 1.5s ease-out; }
         
+        /* Připojeno indicator */
+        .conn-status { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; font-family: 'Orbitron'; font-size: 0.7em; color: var(--green); letter-spacing: 2px; }
+        .blink-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
         .header-ui { position: absolute; top: 0; text-align: center; width: 100%; padding-top: 20px; }
         .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2.5em; letter-spacing: 15px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
-        .status-line { font-family: 'Rajdhani'; color: #00ff41; font-weight: bold; letter-spacing: 5px; font-size: 0.9em; margin-top: 10px; opacity: 0.8; }
+        
+        /* Logo a Hacking kruhy */
+        .logo-wrapper { position: relative; width: 400px; height: 400px; display: flex; align-items: center; justify-content: center; }
+        .cjng-logo { width: 250px; height: 250px; background: url('TVOJE_URL_LOGA') center/contain no-repeat; filter: drop-shadow(0 0 20px var(--red)); z-index: 10; animation: logoFloat 4s ease-in-out infinite; }
+        @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        .hacking-circle { position: absolute; border: 1px solid var(--border); border-radius: 50%; animation: rotate 20s linear infinite; }
+        .c1 { width: 350px; height: 350px; border-style: dashed; opacity: 0.4; }
+        .c2 { width: 420px; height: 420px; border: 1px double var(--red); opacity: 0.2; animation-direction: reverse; }
+        
+        /* Poletující texty */
+        .h-text { position: absolute; font-family: 'Orbitron'; font-size: 0.6em; color: var(--red); opacity: 0.5; white-space: nowrap; }
+        .t1 { top: 10%; left: -20%; animation: moveText 10s linear infinite; }
+        .t2 { bottom: 20%; right: -20%; animation: moveText 12s linear infinite reverse; }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes moveText { from { transform: translateX(-50px); } to { transform: translateX(50px); } }
 
         /* Vyskakovací okénka */
         .ui-popup { position: absolute; background: rgba(0,0,0,0.8); border: 1px solid var(--red); padding: 10px; font-size: 0.7em; font-family: 'Orbitron'; color: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 50; width: 150px; }
         .ui-popup.active { opacity: 1; animation: slidePopup 4s forwards; }
         @keyframes slidePopup { 0% { transform: translateY(20px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
 
-        /* Globe & Network Visual */
-        .globe-wrapper { position: relative; width: 500px; height: 500px; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
-        
-        .earth-glow { position: absolute; width: 320px; height: 320px; border-radius: 50%; background: radial-gradient(circle, rgba(255,0,0,0.2) 0%, transparent 70%); filter: blur(20px); }
-
-        .globe-main { 
-            width: 300px; height: 300px; border-radius: 50%; 
-            border: 1px solid var(--red); position: relative; 
-            animation: rotateGlobe 30s linear infinite; transform-style: preserve-3d; 
-            background: url('https://i.imgur.com/vH9Jpnd.png'); /* Průhledná textura kontinentů */
-            background-size: cover; box-shadow: inset 0 0 50px rgba(255,0,0,0.5);
-        }
-
-        /* Satelity a Orbity */
-        .orbit { position: absolute; border: 1px solid rgba(255,0,0,0.1); border-radius: 50%; transform-style: preserve-3d; }
-        .orbit-1 { width: 450px; height: 450px; animation: rotateOrbit 12s linear infinite; }
-        .orbit-2 { width: 400px; height: 400px; animation: rotateOrbit 18s linear infinite reverse; transform: rotateX(60deg); }
-        .orbit-3 { width: 480px; height: 480px; animation: rotateOrbit 25s linear infinite; transform: rotateX(-45deg); }
-
-        .satellite { 
-            position: absolute; width: 10px; height: 10px; background: #fff; 
-            box-shadow: 0 0 10px #fff, 0 0 20px var(--red); border-radius: 2px;
-            top: 50%; left: -5px; 
-        }
-        .data-beam { 
-            position: absolute; top: 50%; left: 0; width: 220px; height: 1px; 
-            background: linear-gradient(90deg, var(--red), transparent); 
-            transform-origin: left; animation: pulseBeam 2s infinite; 
-        }
-
-        @keyframes rotateGlobe { from { transform: rotateY(0deg); } to { transform: rotateY(360deg); } }
-        @keyframes rotateOrbit { from { transform: rotateZ(0deg); } to { transform: rotateZ(360deg); } }
-        @keyframes pulseBeam { 0% { opacity: 0; width: 0; } 50% { opacity: 0.5; width: 220px; } 100% { opacity: 0; width: 250px; } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Zbytek layoutu zachován */
+        /* Zbytek layoutu */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
@@ -117,17 +104,12 @@
         .chat-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 10px; font-family: 'Rajdhani'; }
         .chat-send { background: var(--red); color: #fff; border: none; padding: 0 20px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.7em; }
 
-        .admin-only, .maestro-only, .vedeni-only { display: none; }
-        .logout { padding: 15px; color: #666; text-align: center; cursor: pointer; font-size: 0.9em; letter-spacing: 3px; border-top: 1px solid var(--border); transition: 0.3s; font-family: 'Rajdhani'; font-weight: 700; text-transform: uppercase; }
-        .logout:hover { color: var(--red); background: rgba(255,0,0,0.05); }
-        .chart-wrapper { height: 350px; position: relative; width: 100%; }
-
         @media (max-width: 768px) {
             nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
             nav:not(.collapsed) { transform: translateX(0); }
             main { padding: 20px 10px; overflow-y: auto; }
-            .welcome-header { font-size: 1.5em; letter-spacing: 5px; }
-            .globe-wrapper { width: 300px; height: 300px; transform: scale(0.6); }
+            .logo-wrapper { transform: scale(0.7); }
+            .conn-status { right: 10px; top: 10px; }
             .grid, .dossier-grid, .logs-chat-container { grid-template-columns: 1fr; }
         }
     </style>
@@ -165,28 +147,25 @@
 
     <main>
         <div id="welcome-view" class="welcome-section">
+            <div class="conn-status">
+                <div class="blink-dot"></div>
+                CONNECTED // ENCRYPTED
+            </div>
+            
             <div class="header-ui">
                 <h1 class="welcome-header">CJNG GLOBAL</h1>
-                <div class="status-line">SAT-LINK: ACTIVE // ENCRYPT: AZTEC-6</div>
+                <div style="font-family: 'Orbitron'; color: #444; font-size: 0.6em; letter-spacing: 5px;">ACCESS GRANTED // BYPASSING FIREWALL...</div>
             </div>
 
             <div id="popups-container"></div>
 
-            <div class="globe-wrapper">
-                <div class="earth-glow"></div>
-                <div class="orbit orbit-1">
-                    <div class="satellite"></div>
-                    <div class="data-beam"></div>
-                </div>
-                <div class="orbit orbit-2">
-                    <div class="satellite"></div>
-                    <div class="data-beam"></div>
-                </div>
-                <div class="orbit orbit-3">
-                    <div class="satellite"></div>
-                    <div class="data-beam"></div>
-                </div>
-                <div class="globe-main"></div>
+            <div class="logo-wrapper">
+                <div class="hacking-circle c1"></div>
+                <div class="hacking-circle c2"></div>
+                <div class="cjng-logo"></div>
+                
+                <div class="h-text t1">PING 14ms // MS_TRACKING: ON</div>
+                <div class="h-text t2">IP_REDIRECT: 192.168.0.1 // PROXY: MASKED</div>
             </div>
         </div>
 
@@ -266,8 +245,7 @@
 
         document.getElementById('display-name').innerText = uName.toUpperCase();
 
-        // LOGIKA PRO VYSKAKOVACÍ OKÉNKA
-        const popupMessages = ["ENC_PACKET_RECEIVED", "UP-LINK_STABLE", "GEO-SYNC_OK", "PING: 24ms", "AZTEC_HANDSHAKE", "DATA_STREAM_ON", "NODE_ACTIVE"];
+        const popupMessages = ["ENC_PACKET_RECEIVED", "UP-LINK_STABLE", "GEO-SYNC_OK", "PING: 14ms", "REDIRECT_ACTIVE", "DATA_ENCRYPTED", "MS_CONNECTED"];
         function createPopup() {
             if (document.getElementById('welcome-view').style.display === 'none') return;
             const container = document.getElementById('popups-container');
