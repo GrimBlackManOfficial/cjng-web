@@ -1,14 +1,41 @@
-<div class="view-header">VEDENÍ OPERACÍ // ADMINISTRACE</div>
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+<div class="view-header">VEDENÍ // ÚČETNÍ KNIHA & FINANCE</div>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
     <div class="card">
-        <h3>REGISTROVAT ZAMĚSTNANCE</h3>
-        <p style="font-size: 12px; color: #888;">Zadejte Discord ID pro vytvoření přístupu.</p>
-        <input type="text" id="reg-discord-id" placeholder="Discord ID" style="width:100%; background:#000; border:1px solid var(--red); color:#fff; padding:10px; margin: 10px 0;">
-        <input type="text" id="reg-name" placeholder="Jméno a Příjmení (IC)" style="width:100%; background:#000; border:1px solid var(--red); color:#fff; padding:10px; margin-bottom: 10px;">
-        <button onclick="registerMember()" style="width:100%; background:var(--red); color:#000; border:none; padding:10px; font-weight:bold; cursor:pointer;">VYTVOŘIT SLOŽKU</button>
+        <h3>PROVÉST VÝPLATU</h3>
+        <select id="employee-select" style="width:100%; background:#000; border:1px solid var(--red); color:#fff; padding:10px; margin-bottom:10px;">
+            <option>Juan Escobar</option>
+            <option>Carlos Mendez</option>
+            <option>Mateo Silva</option>
+        </select>
+        <input type="number" id="pay-amount" placeholder="Částka v $" style="width:100%; background:#000; border:1px solid var(--red); color:#fff; padding:10px; margin-bottom:10px;">
+        <button onclick="processPayment()" style="width:100%;">ODESLAT PLATBU</button>
     </div>
+
     <div class="card">
-        <h3>FINANČNÍ ANALYTIKA KARTELU</h3>
+        <h3>FINANČNÍ TOKY ORGANIZACE</h3>
         <canvas id="orgFinChart"></canvas>
     </div>
+</div>
+
+<div class="card" style="margin-top: 20px;">
+    <h3>POSLEDNÍ TRANSAKCE</h3>
+    <table style="width:100%; border-collapse: collapse; font-family: 'Ubuntu Mono';">
+        <thead>
+            <tr style="border-bottom: 1px solid var(--red); color: var(--red); text-align: left;">
+                <th style="padding: 10px;">DATUM</th>
+                <th style="padding: 10px;">SUBJEKT</th>
+                <th style="padding: 10px;">TYP</th>
+                <th style="padding: 10px;">ČÁSTKA</th>
+            </tr>
+        </thead>
+        <tbody id="accounting-body">
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(255,0,0,0.1);">14.05.2026</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(255,0,0,0.1);">Juan Escobar</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(255,0,0,0.1);">VÝPLATA</td>
+                <td style="padding: 10px; border-bottom: 1px solid rgba(255,0,0,0.1); color: var(--red); font-weight: bold;">-$1,500</td>
+            </tr>
+        </tbody>
+    </table>
 </div>
