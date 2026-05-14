@@ -1,0 +1,15 @@
+<h1 class="view-header">Vedení Organizace</h1>
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="card">
+        <h3>Vyplácení Zaměstnanců</h3>
+        <select id="employee-select" style="width:100%; background:#000; color:#fff; border:1px solid var(--red); padding:10px;">
+            <option value="all">Všichni zaměstnanci</option>
+        </select>
+        <input type="number" id="pay-amount" placeholder="Částka $" style="width:100%; background:#000; color:#fff; border:1px solid var(--red); padding:10px; margin: 10px 0;">
+        <button onclick="processPayment()">Provést Platbu</button>
+    </div>
+    <div class="card">
+        <h3>Finanční Analytika</h3>
+        <canvas id="orgFinChart"></canvas>
+    </div>
+</div>
