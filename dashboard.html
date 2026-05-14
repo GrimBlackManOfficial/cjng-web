@@ -6,7 +6,6 @@
     <title>CJNG | Operační Systém</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Změna fontů pro plnou podporu češtiny -->
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -18,655 +17,218 @@
         }
         body { background: var(--bg); color: #fff; font-family: 'Exo 2', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Terminal Welcome Overlay */
         #terminal-overlay {
             position: fixed; inset: 0; background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             font-family: 'Ubuntu Mono', monospace; color: var(--red);
         }
-        .term-box { border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9); box-shadow: 0 0 30px var(--red-glow); text-align: left; min-width: 450px; position: relative; }
-        .term-header { font-size: 0.8em; margin-bottom: 20px; color: #666; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 5px; }
+        .term-box { border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9); box-shadow: 0 0 30px var(--red-glow); text-align: left; min-width: 500px; }
         
-        /* Sidebar - Opravené vysouvání */
-        nav { 
-            width: 280px; background: #000; border-right: 1px solid var(--border); 
-            display: flex; flex-direction: column; padding: 30px 15px; 
-            box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 500; 
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
-            position: absolute; height: 100%; left: 0;
-        }
+        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; transition: transform 0.4s; position: absolute; height: 100%; left: 0; z-index: 500; }
         nav.collapsed { transform: translateX(-100%); }
-        .brand { font-family: 'Exo 2'; font-weight: 700; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
-        .sidebar-toggle { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-family: 'Exo 2'; font-weight: bold; z-index: 110; font-size: 1.2em; }
-        .open-btn { position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; font-family: 'Exo 2'; font-size: 0.8em; z-index: 90; display: block; box-shadow: 0 0 10px var(--red-glow); }
-
-        /* Jméno s točivým efektem */
-        .user-info { padding: 20px; margin-bottom: 30px; background: rgba(0, 0, 0, 0.8); position: relative; border: 1px solid var(--border); overflow: hidden; }
-        .user-info::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--red)); animation: rotate-border 4s linear infinite; z-index: 0; }
-        .user-info::after { content: ""; position: absolute; inset: 2px; background: #000; z-index: 1; }
-        @keyframes rotate-border { 100% { transform: rotate(360deg); } }
-        .user-content { position: relative; z-index: 2; }
-        #display-name { font-weight: 700; font-size: 1.1em; margin-bottom: 10px; color: #fff; letter-spacing: 1px; }
-        .role-badge { font-weight: 700; font-size: 0.75em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
-
-        .menu-container { flex: 1; overflow-y: auto; }
-        .menu-category { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .category-trigger { width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; text-align: left; font-family: 'Exo 2'; font-weight: 700; font-size: 0.9em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
-        .category-trigger:hover { color: var(--red); background: rgba(255,0,0,0.03); }
-        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.02); }
-        .submenu.open { max-height: 300px; }
-        .nav-link { color: #666; text-decoration: none; display: block; padding: 10px 25px; font-size: 0.9em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
-        .nav-link:hover { color: #fff; background: rgba(255,0,0,0.05); padding-left: 30px; }
-        .logout { padding: 15px; color: #444; cursor: pointer; font-size: 0.8em; text-align: center; border-top: 1px solid var(--border); }
-        .logout:hover { color: var(--red); }
-
-        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; position: relative; }
         
-        .welcome-section { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; padding: 50px 0; }
-        .conn-status { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; font-family: 'Ubuntu Mono'; font-size: 0.75em; color: var(--green); letter-spacing: 2px; }
-        .blink-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .user-info { padding: 20px; margin-bottom: 30px; border: 1px solid var(--border); position: relative; background: #000; text-align: center; }
+        .role-badge { color: var(--red); font-weight: bold; font-size: 0.8em; border: 1px solid var(--red); padding: 2px 5px; margin-top: 5px; display: inline-block; }
 
-        .header-ui { position: absolute; top: 0; text-align: center; width: 100%; padding-top: 20px; }
-        .welcome-header { font-family: 'Exo 2'; color: var(--red); font-size: 2.5em; letter-spacing: 15px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
+        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); margin-left: 280px; transition: margin 0.4s; }
+        body.nav-collapsed main { margin-left: 0; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         
-        /* Logo se zaregistrovaným linkem */
-        .logo-wrapper { position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center; margin-top: 20px; }
-        .cjng-logo { width: 250px; height: 250px; background: url('https://r2.fivemanage.com/wOMQm0cEVI73Ppitz2tQP/Ch3dZmRrLL.png') center/contain no-repeat; filter: drop-shadow(0 0 20px var(--red)); z-index: 10; animation: logoFloat 4s ease-in-out infinite; }
-        @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        input, select, button { background: #000; border: 1px solid var(--red); color: #fff; padding: 8px; font-family: 'Ubuntu Mono'; }
+        button { cursor: pointer; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
+        button:hover { background: var(--red); color: #000; }
 
-        .hacking-circle { position: absolute; border: 1px solid var(--border); border-radius: 50%; animation: rotate 20s linear infinite; }
-        .c1 { width: 300px; height: 300px; border-style: dashed; opacity: 0.4; }
-        .c2 { width: 350px; height: 350px; border: 1px double var(--red); opacity: 0.2; animation-direction: reverse; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        /* Satelity efekty */
-        .satellite-node {
-            position: absolute;
-            font-family: 'Ubuntu Mono';
-            color: var(--red);
-            font-size: 0.6em;
-            text-shadow: 0 0 5px var(--red);
-            pointer-events: none;
-            white-space: nowrap;
-        }
-        .sat-line {
-            position: absolute;
-            height: 1px;
-            background: linear-gradient(90deg, var(--red), transparent);
-            transform-origin: left center;
-            opacity: 0.4;
-        }
-
-        /* Nové styly pro karty a grafy */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 25px; backdrop-filter: blur(10px); position: relative; display: flex; flex-direction: column; }
-        .card-title { font-weight: 700; font-size: 0.85em; color: #aaa; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 5px; }
-        .stat-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-        .stat-label { font-size: 0.9em; color: #888; }
-        .stat-value { font-family: 'Ubuntu Mono'; font-weight: 700; font-size: 1.8em; color: #fff; }
-        .stat-quota { font-size: 1em; color: #555; }
+        .view-header { color: var(--red); font-size: 1.5em; border-bottom: 1px solid var(--red); margin-bottom: 20px; padding-bottom: 5px; }
         
-        .progress-container { background: rgba(255,255,255,0.05); height: 10px; border-radius: 5px; overflow: hidden; margin-top: 5px; position: relative; }
-        .progress-bar { height: 100%; background: var(--red); box-shadow: 0 0 10px var(--red-glow); width: 0%; transition: width 0.5s ease; }
-        .progress-text { font-size: 0.75em; color: #aaa; text-align: right; margin-top: 3px; font-family: 'Ubuntu Mono'; }
-
-        .strike-container { display: flex; gap: 10px; margin-top: 10px; justify-content: center; }
-        .strike-dot { width: 30px; height: 30px; border: 2px solid #333; border-radius: 50%; background: rgba(0,0,0,0.5); transition: 0.3s; position: relative;}
-        .strike-dot.active { border-color: var(--red); background: var(--red); box-shadow: 0 0 15px var(--red); }
-        .strike-dot.active::after { content: 'X'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #000; font-weight: 700; font-family: 'Ubuntu Mono'; }
-
-        #dossier-section, #dashboard-view { display: none; width: 100%; }
-        .view-header { font-weight: 700; color: var(--red); letter-spacing: 3px; margin-bottom: 25px; text-transform: uppercase; font-size: 1.8em; border-bottom: 1px solid var(--border); padding-bottom: 10px; text-shadow: 0 0 10px var(--red-glow); }
-        
-        .chart-container { position: relative; height: 200px; width: 100%; margin-top: auto; }
-        .big-chart-container { position: relative; height: 400px; width: 100%; }
-
-        .no-access { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #555; border: 2px dashed #333; padding: 20px; margin-top: 10px; text-align: center; }
-        .no-access i { font-size: 2em; margin-bottom: 10px; }
-
-        .exempt-info { display: flex; align-items: center; justify-content: center; color: var(--green); border: 2px solid var(--green); background: rgba(0,255,65,0.05); padding: 15px; margin-bottom: 20px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 0 10px rgba(0,255,65,0.2); }
-
-        /* Logy */
-        .logs-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-        .log-panel { background: #000; border: 1px solid var(--border); height: 250px; display: flex; flex-direction: column; }
-        .log-header { padding: 10px; background: rgba(255,0,0,0.1); font-weight: 700; font-size: 0.8em; letter-spacing: 2px; color: var(--red); border-bottom: 1px solid var(--border); text-transform: uppercase;}
-        .log-content { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Ubuntu Mono'; font-size: 0.85em; color: #aaa; line-height: 1.4; }
-        .log-entry { border-bottom: 1px solid rgba(255,255,255,0.03); padding: 3px 0; }
-        .log-timestamp { color: #555; }
-        .log-money { color: var(--green); font-weight: 700; }
-        .log-negative { color: var(--red); }
-
-        @media (max-width: 768px) {
-            nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
-            nav:not(.collapsed) { transform: translateX(0); }
-            main { padding: 20px 10px; }
-            .welcome-header { font-size: 1.8em; letter-spacing: 5px; }
-            .logo-wrapper { width: 200px; height: 200px; }
-            .cjng-logo { width: 180px; height: 180px; }
-            .c1 { width: 220px; height: 220px; }
-            .c2 { width: 250px; height: 250px; }
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-family: 'Ubuntu Mono'; }
+        th, td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+        th { color: var(--red); }
+        .money-plus { color: var(--green); }
+        .money-minus { color: var(--red); }
     </style>
 </head>
-<body>
+<body class="">
 
-    <!-- Terminal Login Animation -->
+    <audio id="fx-type" src="https://www.soundjay.com/communication/typewriter-key-1.mp3"></audio>
+    <audio id="fx-beep" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
+    <audio id="fx-success" src="https://www.soundjay.com/buttons/button-20.mp3"></audio>
+
     <div id="terminal-overlay">
         <div class="term-box">
-            <div class="term-header">CJNG_NETWORK_OS [Verze 4.0.12]</div>
             <div id="term-text"></div>
         </div>
     </div>
 
-    <button class="open-btn" id="openBtn" style="position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; z-index: 90; display: block;" onclick="toggleSidebar()">☰ MENU</button>
-
-    <nav id="sidebar" class="collapsed">
-        <button style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-size: 1.5em;" onclick="toggleSidebar()">✕</button>
-        <div class="brand">CJNG</div>
+    <nav id="sidebar">
+        <div class="brand" style="color:var(--red); text-align:center; font-size: 2em; font-weight:bold; margin-bottom:20px;">CJNG</div>
         <div class="user-info">
-            <div class="user-content">
-                <div id="display-name">NAČÍTÁNÍ...</div>
-                <div id="display-badge"></div>
-            </div>
+            <div id="display-name" style="font-weight:bold;">NAČÍTÁNÍ...</div>
+            <div id="display-badge" class="role-badge">ROLE</div>
         </div>
-
-        <div class="menu-container">
-            <div class="menu-category">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL <i>▼</i></button>
-                <div class="submenu open">
-                    <a href="#" class="nav-link" onclick="handleNav('dossier')">Vlastní složka (Dossier)</a>
-                </div>
-            </div>
-            <div class="menu-category maestro-only vedeni-only" style="display:none;">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">VEDENÍ <i>▼</i></button>
-                <div class="submenu open">
-                    <a href="#" class="nav-link" onclick="handleNav('dashboard')">Přehled operací</a>
-                </div>
-            </div>
+        <button onclick="handleNav('welcome')">DOMŮ</button><br>
+        <button onclick="handleNav('dossier')">DOSSIER</button><br>
+        <div class="vedeni-only">
+            <button onclick="handleNav('management')">VEDENÍ / VÝPLATY</button>
         </div>
-        <div class="logout" style="padding: 15px; color: #444; cursor: pointer; font-size: 0.8em; text-align: center; border-top: 1px solid var(--border);" onclick="location.href='/'">ODHLÁSIT SE</div>
     </nav>
 
     <main>
-        <!-- Sekce uvítání (původní) -->
-        <div id="welcome-view" class="welcome-section">
-            <div class="conn-status">
-                <div class="blink-dot"></div>
-                PŘIPOJENO // ŠIFROVÁNÍ AKTIVNÍ
-            </div>
-            
-            <div style="text-align: center; width: 100%; margin-bottom: 30px;">
-                <h1 class="welcome-header">CJNG GLOBAL</h1>
-                <div style="color: #444; font-size: 0.7em; letter-spacing: 5px; margin-top: 10px;">PŘÍSTUP POVOLEN // FIREWALL BYPASSED</div>
-            </div>
+        <div id="view-welcome">
+            <h1 class="view-header">VÍTEJTE V SYSTÉMU CJNG</h1>
+            <p>Váš přístup byl ověřen. Šifrování AES-256 aktivní.</p>
+        </div>
 
-            <div id="popups-container"></div>
-
-            <div id="sat-network-container" style="position: absolute; inset: 0; pointer-events: none;"></div>
-
-            <div class="logo-wrapper">
-                <div class="hacking-circle c1"></div>
-                <div class="hacking-circle c2"></div>
-                <div class="cjng-logo"></div>
+        <div id="view-dossier" style="display:none;">
+            <h1 class="view-header">PERSONÁLNÍ DOSSIER</h1>
+            <div class="card">
+                <h3>HISTORIE VAŠICH VÝPLAT</h3>
+                <canvas id="userEarningsChart"></canvas>
             </div>
         </div>
 
-        <!-- PŘEHLED OPERACÍ (VEDENÍ) -->
-        <div id="dashboard-view">
-            <div class="view-header">Přehled operací // Administrace</div>
+        <div id="view-management" style="display:none;">
+            <h1 class="view-header">VEDENÍ ORGANIZACE</h1>
             
             <div class="grid">
                 <div class="card">
-                    <div class="card-title">Celková Analytika Kartelu</div>
-                    <div class="big-chart-container">
-                        <canvas id="mainRoleDistributionChart"></canvas>
-                    </div>
+                    <h3>VYPLÁCENÍ ZAMĚSTNANCŮ</h3>
+                    <select id="employee-select">
+                        <option value="all">Všichni zaměstnanci</option>
+                        <option value="1">Ethan Harrow</option>
+                        <option value="2">Grim Black</option>
+                    </select>
+                    <input type="number" id="pay-amount" placeholder="Částka $">
+                    <button onclick="processPayment()">PROVÉST PLATBU</button>
                 </div>
-                <div class="card" style="flex: 0 0 300px;">
-                    <div class="card-title">Stav Kartelu</div>
-                    <div class="stat-row">
-                        <span class="stat-label">Aktivní operativci</span>
-                        <span class="stat-value" style="color: var(--green);">42</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Čeká na Strike OSN</span>
-                        <span class="stat-value" style="color: var(--yellow);">3</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-label">Navrhnuto na likvidaci</span>
-                        <span class="stat-value" style="color: var(--red);">1</span>
-                    </div>
-                     <div class="stat-row" style="margin-top: auto; border-top: 1px solid #222; padding-top: 10px;">
-                        <span class="stat-label">Celkový obrat (týden)</span>
-                        <span class="stat-value log-money">$3.5M</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- VLASTNÍ SLOŽKA (ZAMĚSTNANEC) -->
-        <div id="dossier-section">
-            <div class="view-header">Personální Dossier // Zaměstnanec</div>
-            
-            <!-- Info pro Vedení -->
-            <div class="vedeni-only exempt-info" style="display:none;">
-                ⚠️ Jste členem Vedení. Máte výjimku z plnění kvót.
-            </div>
-
-            <div class="grid">
-                <!-- Karta Výdělku -->
                 <div class="card">
-                    <div class="card-title">Finanční Přehled</div>
-                    <div class="stat-row">
-                        <span class="stat-label">Aktuální výdělek (týden)</span>
-                        <span id="user-earnings" class="stat-value log-money">$125,500</span>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="earningsChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Karta Strike -->
-                <div class="card" style="align-items: center; justify-content: center;">
-                    <div class="card-title">STRIKE OSN // Status</div>
-                    <div class="stat-value" style="font-size: 3em; color: var(--yellow);">UKÁZNĚNÝ</div>
-                    <div class="strike-container" id="strike-display">
-                        <div class="strike-dot"></div>
-                        <div class="strike-dot"></div>
-                        <div class="strike-dot"></div>
-                    </div>
-                    <div style="font-size: 0.7em; color: #555; margin-top: 10px; text-align: center;">
-                        Při zaplnění všech 3 indikátorů dochází k okamžité likvidaci subjektu.
-                    </div>
+                    <h3>FINANČNÍ ANALYTIKA</h3>
+                    <canvas id="orgFinChart"></canvas>
                 </div>
             </div>
 
-            <!-- Sekce Kvót -->
-            <div class="card_no_border" style="margin-bottom: 20px;">
-                <div class="view-header" style="font-size: 1.4em; border-color: #222;">Operační Kvóty (Týdenní)</div>
-                
-                <div class="grid">
-                    <!-- Sběr (Všichni kromě Vedení) -->
-                    <div class="card quota-card" id="quota-sber" style="display:none;">
-                        <div class="card-title">Kvóta: Sběr</div>
-                        <div class="stat-row">
-                            <span class="stat-value"><span id="sber-current">350</span> <span class="stat-quota">/ 500 KS</span></span>
-                            <span class="progress-text">70%</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-bar" id="sber-bar" style="width: 70%;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Prodej (Všichni kromě Vedení) -->
-                    <div class="card quota-card" id="quota-prodej" style="display:none;">
-                        <div class="card-title">Kvóta: Prodej</div>
-                        <div class="stat-row">
-                            <span class="stat-value"><span id="prodej-current">110</span> <span class="stat-quota">/ 100 KS</span></span>
-                            <span class="progress-text" style="color: var(--green);">SPLNĚNO</span>
-                        </div>
-                        <div class="progress-container">
-                            <div class="progress-bar" id="prodej-bar" style="width: 100%; background: var(--green);"></div>
-                        </div>
-                    </div>
-
-                    <!-- Výroba (Pouze Maestro) -->
-                    <div class="card quota-card" id="quota-vyroba" style="display:none;">
-                        <div class="card-title">Kvóta: Výroba</div>
-                        
-                        <!-- Obsah pro Maestro -->
-                        <div class="maestro-content" style="display:none;">
-                            <div class="stat-row">
-                                <span class="stat-value"><span id="vyroba-current">150</span> <span class="stat-quota">/ 1000 KS</span></span>
-                                <span class="progress-text">15%</span>
-                            </div>
-                            <div class="progress-container">
-                                <div class="progress-bar" id="vyroba-bar" style="width: 15%;"></div>
-                            </div>
-                        </div>
-
-                        <!-- Obsah pro ostatní Zaměstnance -->
-                        <div class="worker-content no-access" style="display:none;">
-                            <i>🔒</i>
-                            <div>Nemáte oprávnění k výrobě.<br>Tato sekce je přístupná pouze pro <span style="color: var(--yellow)">Maestro</span>.</div>
-                        </div>
-                    </div>
-                </div>
+            <div class="card">
+                <h3>ÚČETNÍ KNIHA (HISTORIE)</h3>
+                <table id="accounting-table">
+                    <thead>
+                        <tr>
+                            <th>DATUM</th>
+                            <th>SUBJEKT</th>
+                            <th>TYP</th>
+                            <th>ČÁSTKA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="accounting-body">
+                        </tbody>
+                </table>
             </div>
-
-            <!-- Sekce Logů -->
-            <div class="logs-container">
-                <div class="log-panel">
-                    <div class="log-header">Historie Výplat // Šifrováno</div>
-                    <div class="log-content" id="pay-logs">
-                        <!-- Ukázková data -->
-                        <div class="log-entry"><span class="log-timestamp">[15/05 14:02]</span> Připsána výplata: <span class="log-money">+$125,500</span> (Provize 100%)</div>
-                        <div class="log-entry"><span class="log-timestamp">[08/05 09:15]</span> Připsána výplata: <span class="log-money">+$98,200</span> (Provize 100%)</div>
-                        <div class="log-entry"><span class="log-timestamp">[01/05 11:30]</span> Připsána výplata: <span class="log-money">+$105,000</span> (Provize 100%)</div>
-                        <div class="log-entry"><span class="log-timestamp">[24/04 16:45]</span> Připsána výplata: <span class="log-money">+$55,000</span> (Snížená provize - nesplněná kvóta)</div>
-                    </div>
-                </div>
-                <div class="log-panel">
-                    <div class="log-header">Status Dovolených // OSN</div>
-                    <div class="log-content" id="leave-logs">
-                        <!-- Ukázková data -->
-                        <div class="log-entry"><span class="log-timestamp">[Tento týden]</span> Žádná aktivní dovolená. Subjekt je plně k dispozici.</div>
-                        <div class="log-entry"><span class="log-timestamp">[10/04 - 12/04]</span> Schválená dovolená (Zdravotní důvody). Úprava kvót o -30%.</div>
-                        <div class="log-entry log-negative"><span class="log-timestamp">[01/04]</span> Žádost o dovolenou ZAMÍTNUTA (Vysoká operační potřeba).</div>
-                    </div>
-                </div>
-            </div>
-
         </div>
     </main>
 
     <script>
-        // --- Hardcoded Konstanty (Kvóty) ---
-        const QUOTAS = {
-            sber: 500,
-            prodej: 100,
-            vyroba: 1000
-        };
-
-        // --- Ukázková Data pro Grafy ---
-        const MOCK_DATA = {
-            earnings: [105000, 98200, 125500, 0], // Historie výplat za poslední 4 týdny
-            cartel_distribution: {
-                sber: [5000, 5200, 4800, 5500, 5100, 6000, 5800], // Denní sběr kartelu (týden)
-                prodej: [1000, 900, 1100, 1200, 950, 1300, 1250],
-                vyroba: [8000, 8500, 7900, 9000, 8200, 9500, 9100]
-            },
-            dates: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
-        };
-
-        // --- Supabase Konektivita (Hardcoded klíče zůstaly) ---
-        const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
-        const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
-        const _supabase = supabase.createClient(SB_URL, SB_KEY);
-        
-        // --- State Management ---
         const urlParams = new URLSearchParams(window.location.search);
-        const uName = urlParams.get('user') || "OPERATIVEC";
-        const rArr = (urlParams.get('roles') || "").split(',');
-        const uId = urlParams.get('id');
-        const ROLES_IDS = { VEDENI: "1468388299642241281", MAESTRO: "1429877779918491789" };
+        const uName = urlParams.get('user') || "Neznámý Operativec";
+        const uRole = urlParams.get('role') || "Rekrut";
 
-        // Pole pro ukládání instancí grafů, aby se daly zničit při změně pohledu
-        let chartInstances = {};
+        const fxType = document.getElementById('fx-type');
+        const fxBeep = document.getElementById('fx-beep');
+        const fxSuccess = document.getElementById('fx-success');
 
-        // --- Pomocné funkce ---
-        function isVedeni() { return rArr.includes(ROLES_IDS.VEDENI); }
-        function isMaestro() { return rArr.includes(ROLES_IDS.MAESTRO); }
-
-        // --- UI Funkce ---
-        function toggleSidebar() {
-            const nav = document.getElementById('sidebar');
-            const openBtn = document.getElementById('openBtn');
-            nav.classList.toggle('collapsed');
-            openBtn.style.display = nav.classList.contains('collapsed') ? 'block' : 'none';
+        function playFX(sound) {
+            sound.currentTime = 0;
+            sound.play().catch(()=>{});
         }
 
-        function toggleSubmenu(btn) {
-            const sub = btn.nextElementSibling;
-            sub.classList.toggle('open');
+        // --- ANIMACE UVÍTÁNÍ ---
+        const termLines = [
+            "> INITIALIZING SYSTEM...",
+            "> BYPASSING FIREWALL...",
+            "> CHECKING ENCRYPTED FILES...",
+            "> ACCESS GRANTED.",
+            "> --------------------------",
+            `> Welcome: Vítejte uživateli ${uName}`,
+            `> Role: ${uRole}`,
+            "> --------------------------",
+            "> LOADING INTERFACE..."
+        ];
+
+        let lineIdx = 0;
+        function typeTerm() {
+            if (lineIdx < termLines.length) {
+                const p = document.createElement('p');
+                p.textContent = termLines[lineIdx];
+                document.getElementById('term-text').appendChild(p);
+                playFX(fxType);
+                lineIdx++;
+                setTimeout(typeTerm, 600);
+            } else {
+                setTimeout(() => {
+                    playFX(fxSuccess);
+                    document.getElementById('terminal-overlay').style.display = 'none';
+                    document.getElementById('display-name').textContent = uName;
+                    document.getElementById('display-badge').textContent = uRole;
+                }, 1000);
+            }
+        }
+        window.onload = typeTerm;
+
+        // --- NAVIGACE ---
+        function handleNav(view) {
+            playFX(fxBeep);
+            document.getElementById('view-welcome').style.display = 'none';
+            document.getElementById('view-dossier').style.display = 'none';
+            document.getElementById('view-management').style.display = 'none';
+            document.getElementById('view-' + view).style.display = 'block';
+            if(view === 'management') initOrgCharts();
+            if(view === 'dossier') initUserCharts();
         }
 
-        // --- Funkce pro inicializaci grafů ---
-        function destroyCharts() {
-            Object.values(chartInstances).forEach(chart => chart.destroy());
-            chartInstances = {};
-        }
-
-        // Globální nastavení pro Chart.js (tmavý režim)
-        Chart.defaults.color = '#888';
-        Chart.defaults.font.family = "'Exo 2', sans-serif";
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(10, 10, 10, 0.9)';
-        Chart.defaults.plugins.tooltip.borderColor = 'rgba(255, 0, 0, 0.5)';
-        Chart.defaults.plugins.tooltip.borderWidth = 1;
-        Chart.defaults.plugins.tooltip.titleFont = { weight: 'bold' };
-
-        // Graf výdělků (Vlastní složka)
-        function initEarningsChart() {
-            const ctx = document.getElementById('earningsChart').getContext('2d');
-            if (chartInstances.earnings) chartInstances.earnings.destroy();
-
-            chartInstances.earnings = new Chart(ctx, {
+        // --- GRAFY & LOGIKA ---
+        let orgChart;
+        function initOrgCharts() {
+            const ctx = document.getElementById('orgFinChart').getContext('2d');
+            if(orgChart) orgChart.destroy();
+            orgChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['T-3', 'T-2', 'T-1', 'Aktuální'],
-                    datasets: [{
-                        label: 'Výdělek ($)',
-                        data: MOCK_DATA.earnings,
-                        borderColor: '#00ff41',
-                        backgroundColor: 'rgba(0, 255, 65, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.3,
-                        pointBackgroundColor: '#00ff41',
-                        pointBorderColor: '#000',
-                        pointBorderWidth: 2,
-                        pointRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, grid: { display: false } },
-                        x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-                    }
-                }
-            });
-        }
-
-        // Hlavní analytický graf (Vedení)
-        function initMainAdminChart() {
-            const ctx = document.getElementById('mainRoleDistributionChart').getContext('2d');
-            if (chartInstances.mainAdmin) chartInstances.mainAdmin.destroy();
-
-            chartInstances.mainAdmin = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: MOCK_DATA.dates,
+                    labels: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
                     datasets: [
-                        {
-                            label: 'Sběr (KS)',
-                            data: MOCK_DATA.cartel_distribution.sber,
-                            backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                            borderColor: '#fff',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Prodej (KS)',
-                            data: MOCK_DATA.cartel_distribution.prodej,
-                            backgroundColor: 'rgba(255, 0, 0, 0.1)',
-                            borderColor: '#ff0000',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Výroba (KS)',
-                            data: MOCK_DATA.cartel_distribution.vyroba,
-                            backgroundColor: 'rgba(255, 0, 0, 0.3)',
-                            borderColor: '#ff0000',
-                            borderWidth: 1,
-                            hidden: true // Výroba schovaná v základu pro přehlednost
-                        }
+                        { label: 'Výdaje (Výplaty)', data: [10, 25, 15, 30, 45, 20, 50], borderColor: '#ff0000', fill: false },
+                        { label: 'Výdělek Org.', data: [50, 80, 60, 90, 120, 110, 150], borderColor: '#00ff41', fill: false }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom',
-                            labels: { boxWidth: 12, padding: 20, font: { size: 11 } }
-                        }
-                    },
-                    scales: {
-                        y: { 
-                            stacked: false,
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { font: { family: 'Ubuntu Mono', size: 10 } }
-                        },
-                        x: { 
-                            stacked: false,
-                            grid: { display: false },
-                            ticks: { font: { size: 11 } }
-                        }
-                    }
+                options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
+            });
+        }
+
+        function initUserCharts() {
+            const ctx = document.getElementById('userEarningsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Týden 1', 'Týden 2', 'Týden 3', 'Týden 4'],
+                    datasets: [{ label: 'Tvoje Výplata $', data: [1200, 1500, 1100, 1800], backgroundColor: '#ff0000' }]
                 }
             });
         }
 
-        // --- Hlavní Navigační Funkce ---
-        function handleNav(view) {
-            destroyCharts(); // Zničit staré grafy
-            
-            document.getElementById('welcome-view').style.display = 'none';
-            document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('dossier-section').style.display = 'none';
-            
-            if (view === 'dashboard') {
-                document.getElementById('dashboard-view').style.display = 'block';
-                setTimeout(initMainAdminChart, 100); // Inicializace s mírným zpožděním pro správné vykreslení
-            } else if (view === 'dossier') {
-                document.getElementById('dossier-section').style.display = 'block';
-                setupDossierView();
-                setTimeout(initEarningsChart, 100);
-            }
-            
-            if (window.innerWidth <= 768) toggleSidebar();
+        function processPayment() {
+            const emp = document.getElementById('employee-select').selectedOptions[0].text;
+            const amt = document.getElementById('pay-amount').value;
+            if(!amt) return alert("Zadej částku!");
+
+            playFX(fxSuccess);
+            const body = document.getElementById('accounting-body');
+            const row = `<tr>
+                <td>${new Date().toLocaleDateString()}</td>
+                <td>${emp}</td>
+                <td>VÝPLATA</td>
+                <td class="money-minus">-$${amt}</td>
+            </tr>`;
+            body.innerHTML = row + body.innerHTML;
+            alert(`Platba pro ${emp} ve výši $${amt} byla odeslána.`);
         }
-
-        // --- Logika pro Dossier (Kvóty a Strike) ---
-        function setupDossierView() {
-            const strikeDisplay = document.getElementById('strike-display').children;
-            const userStrikes = 1; // MOCK DATA: Subjekt má 1 strike
-
-            // Nastavení Strike vizuálu
-            for (let i = 0; i < strikeDisplay.length; i++) {
-                if (i < userStrikes) {
-                    strikeDisplay[i].classList.add('active');
-                } else {
-                    strikeDisplay[i].classList.remove('active');
-                }
-            }
-
-            // Nastavení viditelnosti kvót podle role
-            const exemptInfo = document.querySelector('.exempt-info');
-            const quotaSber = document.getElementById('quota-sber');
-            const quotaProdej = document.getElementById('quota-prodej');
-            const quotaVyroba = document.getElementById('quota-vyroba');
-
-            // Reset
-            exemptInfo.style.display = 'none';
-            quotaSber.style.display = 'none';
-            quotaProdej.style.display = 'none';
-            quotaVyroba.style.display = 'none';
-
-            if (isVedeni()) {
-                exemptInfo.style.display = 'flex';
-            } else {
-                // Sběr a prodej vidí všichni operativci
-                quotaSber.style.display = 'flex';
-                quotaProdej.style.display = 'flex';
-                quotaVyroba.style.display = 'flex'; // Karta výroby je vidět, ale obsah se liší
-
-                if (isMaestro()) {
-                    document.querySelector('.maestro-content').style.display = 'block';
-                    document.querySelector('.worker-content').style.display = 'none';
-                } else {
-                    document.querySelector('.maestro-content').style.display = 'none';
-                    document.querySelector('.worker-content').style.display = 'flex';
-                }
-            }
-        }
-
-        // --- Původní Satelitní Síť Animace ---
-        function spawnSatellite() {
-            if(document.getElementById('welcome-view').style.display === 'none') return;
-            
-            const container = document.getElementById('sat-network-container');
-            const sat = document.createElement('div');
-            sat.className = 'satellite-node';
-            
-            const angle = Math.random() * Math.PI * 2;
-            const radius = 100 + Math.random() * 100;
-            const centerX = window.innerWidth / 2;
-            const centerY = window.innerHeight / 2;
-            
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius;
-            
-            sat.style.left = x + 'px';
-            sat.style.top = y + 'px';
-            sat.innerHTML = `<span style="color:#fff">●</span> SAT_${(Math.random()*999).toFixed(0)} [${(Math.random()*100).toFixed(1)}dB]`;
-            
-            const line = document.createElement('div');
-            line.className = 'sat-line';
-            line.style.left = centerX + 'px';
-            line.style.top = centerY + 'px';
-            line.style.width = radius + 'px';
-            line.style.transform = `rotate(${angle}rad)`;
-            
-            container.appendChild(sat);
-            container.appendChild(line);
-            
-            setTimeout(() => {
-                sat.style.transition = "opacity 1s";
-                line.style.transition = "opacity 1s";
-                sat.style.opacity = "0";
-                line.style.opacity = "0";
-                setTimeout(() => { sat.remove(); line.remove(); }, 1000);
-            }, 3000);
-        }
-
-        // --- Původní startovací sekvence ---
-        async function startSequence() {
-            const term = document.getElementById('term-text');
-            const overlay = document.getElementById('terminal-overlay');
-            
-            const lines = [
-                "> BOOTING CJNG_OS...",
-                "> CONNECTING TO SATELLITE NETWORK...",
-                `> AUTHENTICATED: ${uName.toUpperCase()}`,
-                "> ACCESS GRANTED."
-            ];
-            for(let line of lines) {
-                const d = document.createElement('div');
-                d.innerHTML = line;
-                term.appendChild(d);
-                await new Promise(r => setTimeout(r, 400));
-            }
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.remove(), 1000);
-                
-                // Spustit satelity po náběhu
-                setInterval(spawnSatellite, 1500);
-            }, 1000);
-        }
-
-        // --- Vstupní bod ---
-        window.onload = () => {
-            // Nastavení jména a role v sidebar
-            document.getElementById('display-name').innerText = uName.toUpperCase();
-            
-            let label = "OPERATIVEC";
-            if (isVedeni()) label = "VEDENÍ KARTELU";
-            else if (isMaestro()) label = "MAESTRO";
-            document.getElementById('display-badge').innerHTML = `<span class="role-badge">${label}</span>`;
-            
-            // Zobrazení administrace pro vedení/maestro
-            if (isVedeni() || isMaestro()) {
-                document.querySelectorAll('.vedeni-only, .maestro-only').forEach(e => e.style.display = 'block');
-            }
-            
-            // Spustit intro
-            startSequence();
-        };
     </script>
 </body>
 </html>
