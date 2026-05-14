@@ -1,15 +1,24 @@
-<h1 class="view-header">Vedení Organizace</h1>
-<div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div class="card">
-        <h3>Vyplácení Zaměstnanců</h3>
-        <select id="employee-select" style="width:100%; background:#000; color:#fff; border:1px solid var(--red); padding:10px;">
-            <option value="all">Všichni zaměstnanci</option>
-        </select>
-        <input type="number" id="pay-amount" placeholder="Částka $" style="width:100%; background:#000; color:#fff; border:1px solid var(--red); padding:10px; margin: 10px 0;">
-        <button onclick="processPayment()">Provést Platbu</button>
+<h1 class="view-header">Vedení Operací // Administrace</h1>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div class="card registration-form">
+        <h3>REGISTROVAT NOVÉHO ČLENA</h3>
+        <p style="font-size: 12px; color: #888;">Vytvoří přístup a osobní složku na základě Discord ID.</p>
+        
+        <label>DISCORD ID (Číselný kód):</label>
+        <input type="text" id="reg-discord-id" placeholder="např. 123456789012345678">
+        
+        <label>JMÉNO A PŘÍJMENÍ (IC):</label>
+        <input type="text" id="reg-name" placeholder="např. Juan Escobar">
+        
+        <button onclick="registerMember()">VYTVOŘIT SLOŽKU</button>
     </div>
+
     <div class="card">
-        <h3>Finanční Analytika</h3>
-        <canvas id="orgFinChart"></canvas>
+        <h3>PŘÍSTUP K DOSSIERŮM</h3>
+        <p>Seznam aktivních zaměstnanců:</p>
+        <div id="employee-list">
+            <button class="nav-btn" style="font-size: 12px;">ZOBRAZIT VŠECHNY SLOŽKY</button>
+        </div>
     </div>
 </div>
