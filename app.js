@@ -3,8 +3,8 @@ const uName = urlParams.get('user') || "Neznámý Operativec";
 const uRoles = (urlParams.get('roles') || "").split(',');
 
 // ID tvých rolí z Discordu (uprav podle sebe)
-const ROLE_VEDENI = "123456789"; // Příklad ID role pro Vedení
-const ROLE_MAESTRO = "987654321"; // Příklad ID role pro Maestro
+const ROLE_VEDENI = "1468388299642241281"; // Příklad ID role pro Vedení
+const ROLE_MAESTRO = "1429877779918491789"; // Příklad ID role pro Maestro
 
 function getRoleLabel() {
     if (uRoles.includes(ROLE_VEDENI)) return "VEDENÍ KARTELU";
