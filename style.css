@@ -1,45 +1,63 @@
+/* ... tvůj původní základ ... */
 :root { 
     --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
     --bg: #020202; --card-bg: rgba(15, 15, 15, 0.8);
     --border: rgba(255, 0, 0, 0.25);
-    --green: #00ff41;
-    --yellow: #ffff00;
-}
-body { background: var(--bg); color: #fff; font-family: 'Exo 2', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-#terminal-overlay {
-    position: fixed; inset: 0; background: #000; z-index: 9999;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Ubuntu Mono', monospace; color: var(--red);
-    transition: opacity 1s ease-out;
-}
-.term-box {
-    border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9);
-    box-shadow: 0 0 30px var(--red-glow); text-align: left; min-width: 500px;
 }
 
-nav {
-    width: 280px; background: #000; border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; padding: 30px 15px;
-    position: relative; z-index: 500;
+/* Styl pro kategorie v menu */
+.nav-category {
+    margin-bottom: 10px;
 }
-.brand { color: var(--red); font-size: 2em; font-weight: bold; text-align: center; letter-spacing: 5px; margin-bottom: 30px; }
-.user-info { padding: 15px; border: 1px solid var(--border); margin-bottom: 25px; text-align: center; }
-.role-badge { color: var(--red); font-weight: bold; font-size: 0.8em; border: 1px solid var(--red); padding: 2px 8px; margin-top: 5px; display: inline-block; }
+
+.category-title {
+    color: #888;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.category-title::before {
+    content: "";
+    width: 4px;
+    height: 4px;
+    background: var(--red);
+    display: inline-block;
+}
 
 .nav-btn {
-    background: transparent; border: 1px solid transparent; color: #fff;
-    padding: 12px; text-align: left; cursor: pointer; text-transform: uppercase;
-    font-weight: bold; transition: 0.3s; margin-bottom: 5px;
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #ccc;
+    padding: 12px 25px;
+    text-align: left;
+    cursor: pointer;
+    font-family: 'Exo 2';
+    font-weight: 400;
+    font-size: 0.9rem;
+    transition: 0.3s;
+    display: block;
+    border-left: 2px solid transparent;
 }
-.nav-btn:hover { background: rgba(255,0,0,0.1); border-left: 3px solid var(--red); }
-.nav-btn.active { background: var(--red); color: #000; }
 
-main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); }
+.nav-btn:hover {
+    color: var(--red);
+    background: rgba(255, 0, 0, 0.05);
+    border-left: 2px solid var(--red);
+}
 
-.view-header { color: var(--red); font-size: 1.5em; border-bottom: 1px solid var(--red); margin-bottom: 25px; padding-bottom: 10px; font-weight: bold; }
-.card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
+.nav-btn.active {
+    color: #fff;
+    background: rgba(255, 0, 0, 0.1);
+    border-left: 2px solid var(--red);
+    font-weight: 700;
+    text-shadow: 0 0 5px var(--red-glow);
+}
 
-/* Satelitní animace z tvého kódu */
-.satellite { position: absolute; width: 2px; height: 2px; background: var(--red); pointer-events: none; opacity: 0.5; box-shadow: 0 0 5px var(--red); }
-@keyframes satelliteMove { from { transform: translate(0,0); opacity: 0.5; } to { transform: translate(var(--tx), var(--ty)); opacity: 0; } }
+/* Ostatní tvoje styly (satelity, karty atd.) nechej beze změny pod tímto */
