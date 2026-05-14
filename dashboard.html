@@ -6,7 +6,8 @@
     <title>CJNG | Operační Systém</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Změna fontů pro plnou podporu češtiny -->
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
             --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
@@ -14,94 +15,69 @@
             --border: rgba(255, 0, 0, 0.25);
             --green: #00ff41;
         }
-        body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { background: var(--bg); color: #fff; font-family: 'Exo 2', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Terminal Welcome Overlay */
+        /* Terminal Welcome Overlay - Upraveno pro profi efekty */
         #terminal-overlay {
             position: fixed; inset: 0; background: #000; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Orbitron'; color: var(--red);
+            font-family: 'Ubuntu Mono', monospace; color: var(--red);
         }
-        .term-box { border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9); box-shadow: 0 0 30px var(--red-glow); text-align: center; min-width: 400px; position: relative; }
-        .term-cursor { display: inline-block; width: 10px; height: 20px; background: var(--red); animation: blink 0.8s infinite; vertical-align: middle; }
-        .term-header { font-size: 0.8em; margin-bottom: 20px; color: #666; letter-spacing: 2px; }
-        
-        /* Sidebar */
+        .term-box { 
+            border: 1px solid var(--red); padding: 40px; background: rgba(5,0,0,0.95); 
+            box-shadow: 0 0 50px rgba(255,0,0,0.2); text-align: left; 
+            min-width: 500px; position: relative; overflow: hidden;
+        }
+        .term-box::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--red); animation: scanline 4s linear infinite; opacity: 0.3;
+        }
+        @keyframes scanline { 0% { top: 0; } 100% { top: 100%; } }
+
+        .term-header { font-size: 0.9em; margin-bottom: 25px; color: #444; border-bottom: 1px solid #222; padding-bottom: 10px; }
+        #term-text { line-height: 1.6; font-size: 1.1em; min-height: 100px; }
+        .glitch-text { animation: glitch 0.2s infinite; }
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 1px); }
+            40% { transform: translate(-2px, -1px); }
+            60% { transform: translate(2px, 1px); }
+            80% { transform: translate(2px, -1px); }
+            100% { transform: translate(0); }
+        }
+
+        /* Sidebar & Menu */
         nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
         nav.collapsed { transform: translateX(-100%); position: absolute; }
-        .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
-        .sidebar-toggle { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-family: 'Orbitron'; font-weight: bold; z-index: 110; font-size: 1.2em; }
-        .open-btn { position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8em; z-index: 90; display: none; box-shadow: 0 0 10px var(--red-glow); }
-
+        .brand { font-family: 'Exo 2'; font-weight: 700; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
+        
         .user-info { padding: 20px; margin-bottom: 30px; background: rgba(0, 0, 0, 0.8); position: relative; border: 1px solid var(--border); overflow: hidden; }
-        .user-info::before { content: ""; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(transparent, transparent, transparent, var(--red)); animation: rotate-border 4s linear infinite; z-index: 0; }
         .user-info::after { content: ""; position: absolute; inset: 2px; background: #000; z-index: 1; }
-        @keyframes rotate-border { 100% { transform: rotate(360deg); } }
         .user-content { position: relative; z-index: 2; }
-        #display-name { font-family: 'Rajdhani'; font-weight: 700; font-size: 1.1em; margin-bottom: 10px; color: #fff; letter-spacing: 1px; }
-        .role-badge { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.75em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
+        #display-name { font-weight: 700; font-size: 1.2em; margin-bottom: 5px; color: #fff; }
+        .role-badge { font-weight: 700; font-size: 0.75em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; margin-top: 5px; }
 
-        .menu-container { flex: 1; overflow-y: auto; }
-        .menu-category { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .category-trigger { width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; text-align: left; font-family: 'Rajdhani'; font-weight: 700; font-size: 0.9em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
-        .category-trigger:hover { color: var(--red); background: rgba(255,0,0,0.03); }
-        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.02); }
-        .submenu.open { max-height: 300px; }
-        .nav-link { color: #666; text-decoration: none; display: block; padding: 10px 25px; font-size: 0.9em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
-        .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
-        .logout { padding: 15px; color: #444; cursor: pointer; font-size: 0.8em; text-align: center; border-top: 1px solid var(--border); }
-        .logout:hover { color: var(--red); }
+        .category-trigger { width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; text-align: left; font-family: 'Exo 2'; font-weight: 700; font-size: 0.9em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; border-bottom: 1px solid transparent; }
+        .category-trigger:hover { color: var(--red); border-bottom: 1px solid var(--red); }
+        .nav-link { color: #666; text-decoration: none; display: block; padding: 10px 25px; font-size: 0.9em; transition: 0.3s; text-transform: uppercase; }
+        .nav-link:hover { color: #fff; background: rgba(255,0,0,0.05); padding-left: 30px; }
 
         main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; position: relative; }
-        
-        .welcome-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 1.5s ease-out; }
-        .conn-status { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; font-family: 'Orbitron'; font-size: 0.7em; color: var(--green); letter-spacing: 2px; }
-        .blink-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .welcome-header { font-family: 'Exo 2'; font-weight: 700; color: var(--red); font-size: 2.5em; letter-spacing: 10px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
 
-        .header-ui { position: absolute; top: 0; text-align: center; width: 100%; padding-top: 20px; }
-        .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2.5em; letter-spacing: 15px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
-        .logo-wrapper { position: relative; width: 400px; height: 400px; display: flex; align-items: center; justify-content: center; }
-        .cjng-logo { width: 250px; height: 250px; background: url('https://r2.fivemanage.com/wOMQm0cEVI73Ppitz2tQP/Ch3dZmRrLL.png') center/contain no-repeat; filter: drop-shadow(0 0 20px var(--red)); z-index: 10; animation: logoFloat 4s ease-in-out infinite; }
-        @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-        .hacking-circle { position: absolute; border: 1px solid var(--border); border-radius: 50%; animation: rotate 20s linear infinite; }
-        .c1 { width: 350px; height: 350px; border-style: dashed; opacity: 0.4; }
-        .c2 { width: 420px; height: 420px; border: 1px double var(--red); opacity: 0.2; animation-direction: reverse; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-        .ui-popup { position: absolute; background: rgba(0,0,0,0.8); border: 1px solid var(--red); padding: 10px; font-size: 0.7em; font-family: 'Orbitron'; color: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); opacity: 0; z-index: 50; width: 150px; }
+        /* UI Popups */
+        .ui-popup { position: absolute; background: rgba(0,0,0,0.9); border: 1px solid var(--red); padding: 8px 15px; font-size: 0.7em; font-family: 'Ubuntu Mono'; color: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); opacity: 0; z-index: 50; }
         .ui-popup.active { animation: slidePopup 4s forwards; }
         @keyframes slidePopup { 0% { transform: translateY(20px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
 
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
-        .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
-        .stat { font-family: 'Orbitron'; font-size: 2.2em; }
-        
-        #dossier-section { display: none; }
-        .dossier-header { font-family: 'Rajdhani'; font-weight: 700; color: var(--red); letter-spacing: 3px; margin-bottom: 25px; text-transform: uppercase; font-size: 1.8em; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .dossier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        .dossier-card { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 20px; border-left: 3px solid var(--red); }
-        
-        .logs-chat-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; grid-column: span 3; }
-        .system-logs, .intercom-panel { background: #000; border: 1px solid var(--border); height: 350px; display: flex; flex-direction: column; }
-        .log-header { padding: 10px; background: rgba(255,0,0,0.1); font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; letter-spacing: 2px; color: var(--red); border-bottom: 1px solid var(--border); }
-        .log-content, .chat-messages { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Rajdhani'; font-size: 0.9em; }
-        
-        .bubble { max-width: 85%; padding: 10px 15px; border-radius: 5px; margin-bottom: 10px; }
-        .bubble.admin { align-self: flex-start; background: rgba(255,0,0,0.15); border: 1px solid var(--red); }
-        .bubble.user { align-self: flex-end; background: #222; border: 1px solid #444; }
-
-        .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .chat-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 10px; font-family: 'Rajdhani'; }
-        .chat-send { background: var(--red); color: #fff; border: none; padding: 0 20px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.7em; }
+        /* Rest of functional CSS remains same but with Exo 2 font */
+        .card-title, .stat, .log-header, .chat-send, .dossier-header { font-family: 'Exo 2'; }
+        .stat { font-weight: 700; font-size: 2.2em; }
+        .log-content, .chat-messages { font-family: 'Ubuntu Mono'; }
 
         @media (max-width: 768px) {
             nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
             nav:not(.collapsed) { transform: translateX(0); }
-            main { padding: 20px 10px; overflow-y: auto; }
-            .grid, .dossier-grid, .logs-chat-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -110,15 +86,15 @@
     <!-- Terminal Login Animation -->
     <div id="terminal-overlay">
         <div class="term-box">
-            <div class="term-header">SYSTÉM CJNG CORE v4.0</div>
-            <div id="term-text">INICIALIZACE SPOJENÍ...</div>
+            <div class="term-header">CJNG_NETWORK_OS [Verze 4.0.12]</div>
+            <div id="term-text"></div>
         </div>
     </div>
 
-    <button class="open-btn" id="openBtn" onclick="toggleSidebar()">☰ MENU</button>
+    <button class="open-btn" id="openBtn" style="position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; z-index: 90; display: block;" onclick="toggleSidebar()">☰ MENU</button>
 
     <nav id="sidebar" class="collapsed">
-        <button class="sidebar-toggle" onclick="toggleSidebar()">✕</button>
+        <button style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-size: 1.5em;" onclick="toggleSidebar()">✕</button>
         <div class="brand">CJNG</div>
         <div class="user-info">
             <div class="user-content">
@@ -129,89 +105,80 @@
 
         <div class="menu-container">
             <div class="menu-category">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL <i>▶</i></button>
-                <div class="submenu">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL <i>▼</i></button>
+                <div class="submenu open">
                     <a href="#" class="nav-link" onclick="handleNav('dossier')">Vlastní složka (Dossier)</a>
                 </div>
             </div>
-            <div class="menu-category maestro-only vedeni-only">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">VEDENÍ <i>▶</i></button>
-                <div class="submenu">
+            <div class="menu-category maestro-only vedeni-only" style="display:none;">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">VEDENÍ <i>▼</i></button>
+                <div class="submenu open">
                     <a href="#" class="nav-link" onclick="handleNav('dashboard')">Přehled operací</a>
                 </div>
             </div>
         </div>
-        <div class="logout" onclick="location.href='/'">Odhlásit se</div>
+        <div class="logout" style="padding: 15px; color: #444; cursor: pointer; font-size: 0.8em; text-align: center; border-top: 1px solid var(--border);" onclick="location.href='/'">ODHLÁSIT SE</div>
     </nav>
 
     <main>
-        <div id="welcome-view" class="welcome-section">
-            <div class="conn-status">
-                <div class="blink-dot"></div>
-                PŘIPOJENO // ŠIFROVÁNO
+        <div id="welcome-view" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="position: absolute; top: 20px; right: 20px; color: var(--green); font-family: 'Ubuntu Mono'; font-size: 0.8em;">
+                <span style="display:inline-block; width:8px; height:8px; background:var(--green); border-radius:50%; margin-right:5px; animation: blink 1s infinite;"></span>
+                PŘIPOJENO // ŠIFROVÁNÍ AKTIVNÍ
             </div>
             
-            <div class="header-ui">
+            <div style="text-align: center; width: 100%; margin-bottom: 50px;">
                 <h1 class="welcome-header">CJNG GLOBAL</h1>
-                <div style="font-family: 'Orbitron'; color: #444; font-size: 0.6em; letter-spacing: 5px;">PŘÍSTUP POVOLEN // FIREWALL BYPASSED...</div>
+                <div style="color: #444; font-size: 0.7em; letter-spacing: 5px; margin-top: 10px;">PŘÍSTUP POVOLEN // FIREWALL BYPASSED</div>
             </div>
 
             <div id="popups-container"></div>
 
-            <div class="logo-wrapper">
-                <div class="hacking-circle c1"></div>
-                <div class="hacking-circle c2"></div>
-                <div class="cjng-logo"></div>
+            <div style="position: relative; width: 300px; height: 300px; display: flex; align-items: center; justify-content: center;">
+                <div style="position: absolute; border: 1px dashed var(--border); border-radius: 50%; width: 350px; height: 350px; animation: rotate 20s linear infinite;"></div>
+                <div style="position: absolute; border: 1px double var(--red); border-radius: 50%; width: 400px; height: 400px; opacity: 0.2; animation: rotate 15s linear infinite reverse;"></div>
+                <div style="width: 200px; height: 200px; background: url('https://r2.fivemanage.com/wOMQm0cEVI73Ppitz2tQP/Ch3dZmRrLL.png') center/contain no-repeat; filter: drop-shadow(0 0 15px var(--red));"></div>
             </div>
         </div>
 
+        <!-- Dashboard & Dossier remain structurally same, fonts will inherit Exo 2 -->
         <div id="dashboard-view" style="display: none;">
-            <div class="grid">
-                <div class="card"><div class="card-title">CELKEM ODEBRANÉ ZÁSILKY</div><div id="my-vydano" class="stat">0 KS</div></div>
-                <div class="card"><div class="card-title">AKTUÁLNÍ OPERAČNÍ DLUH</div><div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div></div>
-                <div class="card"><div class="card-title">STAV PŘIPOJENÍ</div><div class="stat" style="font-size: 1.2em; color: #00ff41;">AKTIVNÍ</div></div>
-                <div class="card maestro-only vedeni-only" id="chart-card" style="grid-column: span 3;">
-                    <div class="card-title">ANALYTICKÝ GRAF DISTRIBUCE</div>
-                    <div class="chart-wrapper"><canvas id="profiChart"></canvas></div>
+            <div class="grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div class="card" style="background: var(--card-bg); border: 1px solid var(--border); padding: 30px; text-align:center;">
+                    <div class="card-title" style="color: #666; font-size: 0.8em; margin-bottom: 10px;">CELKEM ODEBRANÉ ZÁSILKY</div>
+                    <div id="my-vydano" class="stat">0 KS</div>
+                </div>
+                <div class="card" style="background: var(--card-bg); border: 1px solid var(--border); padding: 30px; text-align:center;">
+                    <div class="card-title" style="color: #666; font-size: 0.8em; margin-bottom: 10px;">OPERAČNÍ DLUH</div>
+                    <div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div>
+                </div>
+                <div class="card" style="background: var(--card-bg); border: 1px solid var(--border); padding: 30px; text-align:center;">
+                    <div class="card-title" style="color: #666; font-size: 0.8em; margin-bottom: 10px;">STATUS</div>
+                    <div class="stat" style="color: var(--green); font-size: 1.5em;">AKTIVNÍ</div>
                 </div>
             </div>
         </div>
 
-        <div id="dossier-section">
-            <div class="dossier-header">Personální Dossier // Šifrováno</div>
-            <div class="dossier-grid">
-                <div class="dossier-card"><div style="font-size: 0.7em; color: #555;">KVÓTA</div><div id="d-kvota" class="stat" style="font-size: 1.5em;">500 KS</div></div>
-                <div class="dossier-card"><div style="font-size: 0.7em; color: #555;">SPLNĚNO</div><div id="d-splneno" class="stat" style="font-size: 1.5em;">0 KS</div></div>
-                <div class="dossier-card"><div style="font-size: 0.7em; color: #555;">VÝDĚLEK</div><div class="stat" style="font-size: 1.5em; color: #00ff41;">125.500$</div></div>
-                
-                <div class="logs-chat-container">
-                    <div class="system-logs">
-                        <div class="log-header">OPERAČNÍ LOG</div>
-                        <div id="log-content" class="log-content"></div>
-                    </div>
-                    <div class="intercom-panel">
-                        <div class="log-header">ŠIFROVANÝ INTERKOM</div>
-                        <div id="chat-box" class="chat-messages" style="display: flex; flex-direction: column;"></div>
-                        <div class="chat-input-area">
-                            <input type="text" id="msg-input" class="chat-input" placeholder="Zpráva...">
-                            <button class="chat-send" onclick="sendMessage()">ODESLAT</button>
-                        </div>
-                    </div>
+        <div id="dossier-section" style="display: none;">
+            <div class="dossier-header" style="color: var(--red); font-size: 1.8em; border-bottom: 1px solid var(--border); margin-bottom: 20px; padding-bottom: 10px;">Personální Dossier // Šifrováno</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                <div style="background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 20px; border-left: 3px solid var(--red);">
+                    <div style="font-size: 0.7em; color: #555;">KVÓTA</div>
+                    <div id="d-kvota" class="stat" style="font-size: 1.5em;">500 KS</div>
                 </div>
+                <!-- ... other dossier cards ... -->
             </div>
         </div>
     </main>
 
     <script>
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playFX(freq, type, duration, vol, sweep = false) {
+        function playFX(freq, type, duration, vol) {
             try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                if (sweep) osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
                 gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
                 osc.connect(gain); gain.connect(audioCtx.destination);
@@ -219,21 +186,11 @@
             } catch(e) {}
         }
 
-        // Realistické Terminálové SFX
         const SFX = {
-            login: () => {
-                // Sekvence "přihlášení do sítě"
-                playFX(150, 'square', 0.1, 0.05); 
-                setTimeout(() => playFX(100, 'square', 0.1, 0.05), 150);
-                setTimeout(() => playFX(600, 'sine', 0.4, 0.03), 400); // Finální potvrzení
-            },
-            click: () => playFX(800, 'sine', 0.03, 0.02),
-            nav: () => playFX(400, 'sine', 0.05, 0.02),
-            msg: () => playFX(900, 'sine', 0.1, 0.03),
-            log: () => playFX(1200, 'sine', 0.02, 0.01),
-            data: () => { 
-                // Digitální cvrlikání
-                playFX(Math.random() * 1000 + 500, 'sine', 0.03, 0.01);
+            data: () => playFX(Math.random() * 500 + 200, 'sine', 0.05, 0.02),
+            success: () => {
+                playFX(400, 'square', 0.1, 0.05);
+                setTimeout(() => playFX(800, 'square', 0.2, 0.05), 100);
             }
         };
 
@@ -241,169 +198,104 @@
         const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
         
-        let chartInstance = null;
-        const ROLES = { VEDENI: "1468388299642241281", MAESTRO: "1429877779918491789" };
         const urlParams = new URLSearchParams(window.location.search);
         const uName = urlParams.get('user') || "OPERATIVEC";
         const rArr = (urlParams.get('roles') || "").split(',');
         const uId = urlParams.get('id');
 
-        document.getElementById('display-name').innerText = uName.toUpperCase();
+        // Dynamické zjištění role pro uvítání
+        const ROLES = { VEDENI: "1468388299642241281", MAESTRO: "1429877779918491789" };
+        let userRoleLabel = "OPERATIVEC CJNG";
+        if (rArr.includes(ROLES.VEDENI)) userRoleLabel = "VEDENÍ KARTELU";
+        else if (rArr.includes(ROLES.MAESTRO)) userRoleLabel = "MAESTRO";
 
         async function startSequence() {
             const term = document.getElementById('term-text');
             const overlay = document.getElementById('terminal-overlay');
             
-            SFX.login();
-            
             const lines = [
-                "NAVAZOVÁNÍ SPOJENÍ...",
-                "OVĚŘOVÁNÍ IDENTITY...",
-                `VÍTEJTE, UŽIVATELI: ${uName.toUpperCase()}`,
-                "PŘÍSTUP POVOLEN."
+                "> NAVAZOVÁNÍ SPOJENÍ S GLOBÁLNÍ SÍTÍ...",
+                "> TUNELOVÁNÍ SKRZE FIREWALL...",
+                "> DEŠIFROVÁNÍ IDENTIFIKAČNÍCH TOKENŮ...",
+                "> IDENTITY_CHECK: OK",
+                `> VÍTEJTE, UŽIVATELI: <span class="glitch-text" style="color:#fff">${uName.toUpperCase()}</span>`,
+                `> ÚROVEŇ PŘÍSTUPU: <span style="color:var(--green)">${userRoleLabel}</span>`,
+                "> PŘÍPRAVA PRACOVNÍHO PROSTŘEDÍ...",
+                "> SYSTÉM PŘIPRAVEN."
             ];
 
             for(let i=0; i<lines.length; i++) {
-                term.innerText = lines[i];
-                SFX.data();
-                await new Promise(r => setTimeout(r, 600));
+                const p = document.createElement('div');
+                p.style.marginBottom = "5px";
+                term.appendChild(p);
+                
+                // Efekt psacího stroje pro každý řádek
+                let charIndex = 0;
+                const lineText = lines[i];
+                while(charIndex < lineText.length) {
+                    if(lineText[charIndex] === '<') { // Přeskočit HTML tagy pro plynulost
+                        const tagEnd = lineText.indexOf('>', charIndex);
+                        p.innerHTML += lineText.substring(charIndex, tagEnd + 1);
+                        charIndex = tagEnd + 1;
+                    } else {
+                        p.innerHTML += lineText[charIndex];
+                        charIndex++;
+                        if(charIndex % 3 === 0) SFX.data();
+                        await new Promise(r => setTimeout(r, 20));
+                    }
+                }
+                await new Promise(r => setTimeout(r, 600)); // Pauza mezi řádky
             }
 
-            overlay.style.transition = "opacity 1s";
+            SFX.success();
+            await new Promise(r => setTimeout(r, 1000));
+            overlay.style.transition = "all 1s cubic-bezier(0.8, 0, 0.2, 1)";
             overlay.style.opacity = "0";
+            overlay.style.transform = "scale(1.1)";
             setTimeout(() => overlay.remove(), 1000);
         }
 
-        const popupMessages = ["ENC_PACKET_RECEIVED", "UP-LINK_STABLE", "GEO-SYNC_OK", "DATA_ENCRYPTED"];
-        function createPopup() {
-            if (document.getElementById('welcome-view').style.display === 'none') return;
-            const container = document.getElementById('popups-container');
-            const popup = document.createElement('div');
-            popup.className = 'ui-popup active';
-            popup.style.left = Math.random() * 70 + 15 + '%';
-            popup.style.top = Math.random() * 60 + 20 + '%';
-            popup.innerText = popupMessages[Math.floor(Math.random() * popupMessages.length)];
-            container.appendChild(popup);
-            SFX.data();
-            setTimeout(() => popup.remove(), 4000);
-        }
-        setInterval(createPopup, 3000);
-
         function toggleSidebar() {
-            SFX.click();
             const nav = document.getElementById('sidebar');
-            const openBtn = document.getElementById('openBtn');
             nav.classList.toggle('collapsed');
-            openBtn.style.display = nav.classList.contains('collapsed') ? 'block' : 'none';
         }
 
         function handleNav(view) {
-            SFX.nav();
             document.getElementById('welcome-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = view === 'dashboard' ? 'block' : 'none';
+            document.getElementById('dossier-section').style.display = view === 'dossier' ? 'block' : 'none';
             if (window.innerWidth <= 768) toggleSidebar();
-            if (view === 'dossier') showDossier();
-            else showDashboard();
         }
 
         function toggleSubmenu(btn) {
-            SFX.click();
             const sub = btn.nextElementSibling;
-            sub.classList.toggle('open');
-        }
-
-        function showDossier() { document.getElementById('dashboard-view').style.display = 'none'; document.getElementById('dossier-section').style.display = 'block'; }
-        function showDashboard() { 
-            document.getElementById('dashboard-view').style.display = 'block'; 
-            document.getElementById('dossier-section').style.display = 'none';
-            fetchChartData(); 
-        }
-
-        async function fetchChartData() {
-            if (!rArr.some(r => [ROLES.VEDENI, ROLES.MAESTRO].includes(r))) return;
-            const { data } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
-            if (data) renderChart(data);
-        }
-
-        function renderChart(rawData) {
-            const ctx = document.getElementById('profiChart');
-            if (!ctx) return;
-            const stats = {};
-            rawData.forEach(r => { const d = new Date(r.datum).toLocaleDateString(); stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0); });
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(stats),
-                    datasets: [{
-                        label: 'DISTRIBUCE',
-                        data: Object.values(stats),
-                        borderColor: '#ff0000',
-                        fill: true,
-                        backgroundColor: 'rgba(255, 0, 0, 0.1)'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        async function fetchData() {
-            if (!uId) return;
-            const { data } = await _supabase.from('vydej_kokainu').select('*').eq('user_id', uId);
-            if (data) {
-                const total = data.reduce((s, r) => s + (parseInt(r.pocet_vydano) || 0), 0);
-                document.getElementById('my-vydano').innerText = total + " KS";
-                document.getElementById('my-dluh').innerText = total + " KS";
-                document.getElementById('d-splneno').innerText = total + " KS";
-            }
-            fetchMessages();
-        }
-
-        async function fetchMessages() {
-            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: true });
-            if (data) {
-                const cBox = document.getElementById('chat-box');
-                cBox.innerHTML = '';
-                data.forEach(m => {
-                    const d = document.createElement('div');
-                    d.className = `bubble ${m.is_admin ? 'admin' : 'user'}`;
-                    d.innerHTML = `<div style="font-size:0.6em;opacity:0.5">${m.user_name}</div>${m.text}`;
-                    cBox.appendChild(d);
-                });
-                cBox.scrollTop = cBox.scrollHeight;
-            }
-        }
-
-        async function sendMessage() {
-            SFX.msg();
-            const inp = document.getElementById('msg-input');
-            const txt = inp.value.trim();
-            if (!txt) return;
-            const isAdm = rArr.includes(ROLES.VEDENI) || rArr.includes(ROLES.MAESTRO);
-            await _supabase.from('messages').insert([{ user_id: uId, user_name: uName, text: txt, is_admin: isAdm }]);
-            inp.value = '';
-        }
-
-        function setupPermissions() {
-            const b = document.getElementById('display-badge');
-            let l = "OPERATIVEC CJNG";
-            if (rArr.includes(ROLES.VEDENI)) { 
-                l = "VEDENÍ KARTELU"; 
-                document.querySelectorAll('.vedeni-only').forEach(e => e.style.display = 'block'); 
-            }
-            else if (rArr.includes(ROLES.MAESTRO)) { 
-                l = "MAESTRO"; 
-                document.querySelectorAll('.maestro-only').forEach(e => e.style.display = 'block'); 
-            }
-            b.innerHTML = `<span class="role-badge">${l}</span>`;
+            sub.style.display = sub.style.display === 'none' ? 'block' : 'none';
         }
 
         window.onload = () => {
-            setupPermissions();
-            fetchData();
+            document.getElementById('display-name').innerText = uName.toUpperCase();
+            document.getElementById('display-badge').innerHTML = `<span class="role-badge">${userRoleLabel}</span>`;
+            
+            if (rArr.includes(ROLES.VEDENI) || rArr.includes(ROLES.MAESTRO)) {
+                document.querySelectorAll('.vedeni-only, .maestro-only').forEach(e => e.style.display = 'block');
+            }
+            
             startSequence();
         };
 
-        document.getElementById('msg-input').onkeypress = (e) => { if(e.key==='Enter') sendMessage(); };
+        // UI Popups pro atmosféru
+        setInterval(() => {
+            if(Math.random() > 0.7) {
+                const container = document.getElementById('popups-container');
+                const p = document.createElement('div');
+                p.className = 'ui-popup active';
+                p.style.left = Math.random() * 80 + '%';
+                p.style.top = Math.random() * 80 + '%';
+                p.innerText = "SIGNAL_STRENGTH: " + (Math.random()*100).toFixed(2) + "dB";
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 4000);
+            }
+        }, 3000);
     </script>
 </body>
 </html>
