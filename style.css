@@ -1,50 +1,45 @@
-/* Přidej toto k tvému stávajícímu style.css */
+:root { 
+    --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
+    --bg: #020202; --card-bg: rgba(15, 15, 15, 0.8);
+    --border: rgba(255, 0, 0, 0.25);
+    --green: #00ff41;
+    --yellow: #ffff00;
+}
+body { background: var(--bg); color: #fff; font-family: 'Exo 2', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+#terminal-overlay {
+    position: fixed; inset: 0; background: #000; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Ubuntu Mono', monospace; color: var(--red);
+    transition: opacity 1s ease-out;
+}
+.term-box {
+    border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9);
+    box-shadow: 0 0 30px var(--red-glow); text-align: left; min-width: 500px;
+}
+
+nav {
+    width: 280px; background: #000; border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 30px 15px;
+    position: relative; z-index: 500;
+}
+.brand { color: var(--red); font-size: 2em; font-weight: bold; text-align: center; letter-spacing: 5px; margin-bottom: 30px; }
+.user-info { padding: 15px; border: 1px solid var(--border); margin-bottom: 25px; text-align: center; }
+.role-badge { color: var(--red); font-weight: bold; font-size: 0.8em; border: 1px solid var(--red); padding: 2px 8px; margin-top: 5px; display: inline-block; }
+
 .nav-btn {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    margin: 5px 0;
-    border-left: 3px solid transparent;
-    background: linear-gradient(90deg, rgba(255,0,0,0.05) 0%, transparent 100%);
-    text-align: left;
-    transition: 0.2s;
+    background: transparent; border: 1px solid transparent; color: #fff;
+    padding: 12px; text-align: left; cursor: pointer; text-transform: uppercase;
+    font-weight: bold; transition: 0.3s; margin-bottom: 5px;
 }
+.nav-btn:hover { background: rgba(255,0,0,0.1); border-left: 3px solid var(--red); }
+.nav-btn.active { background: var(--red); color: #000; }
 
-.nav-btn:hover {
-    border-left: 3px solid var(--red);
-    background: linear-gradient(90deg, rgba(255,0,0,0.15) 0%, transparent 100%);
-}
+main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); }
 
-.nav-btn.active {
-    border-left: 3px solid var(--red);
-    background: var(--red);
-    color: #000;
-}
+.view-header { color: var(--red); font-size: 1.5em; border-bottom: 1px solid var(--red); margin-bottom: 25px; padding-bottom: 10px; font-weight: bold; }
+.card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
 
-.role-badge {
-    background: rgba(255, 0, 0, 0.1);
-    color: var(--red);
-    border: 1px solid var(--red);
-    padding: 2px 8px;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-top: 5px;
-    display: inline-block;
-}
-
-.registration-form input {
-    width: 100%;
-    background: #000;
-    border: 1px solid var(--border);
-    color: #fff;
-    padding: 12px;
-    margin: 10px 0;
-}
-
-.registration-form input:focus {
-    border-color: var(--red);
-    outline: none;
-    box-shadow: 0 0 5px var(--red-glow);
-}
+/* Satelitní animace z tvého kódu */
+.satellite { position: absolute; width: 2px; height: 2px; background: var(--red); pointer-events: none; opacity: 0.5; box-shadow: 0 0 5px var(--red); }
+@keyframes satelliteMove { from { transform: translate(0,0); opacity: 0.5; } to { transform: translate(var(--tx), var(--ty)); opacity: 0; } }
