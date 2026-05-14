@@ -16,12 +16,20 @@
         }
         body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
+        /* Terminal Welcome Overlay */
+        #terminal-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'Orbitron'; color: var(--red);
+        }
+        .term-box { border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9); box-shadow: 0 0 30px var(--red-glow); text-align: center; min-width: 400px; position: relative; }
+        .term-cursor { display: inline-block; width: 10px; height: 20px; background: var(--red); animation: blink 0.8s infinite; vertical-align: middle; }
+        .term-header { font-size: 0.8em; margin-bottom: 20px; color: #666; letter-spacing: 2px; }
+        
         /* Sidebar */
         nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
         nav.collapsed { transform: translateX(-100%); position: absolute; }
-        
         .brand { font-family: 'Orbitron'; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
-        
         .sidebar-toggle { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-family: 'Orbitron'; font-weight: bold; z-index: 110; font-size: 1.2em; }
         .open-btn { position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; font-family: 'Orbitron'; font-size: 0.8em; z-index: 90; display: none; box-shadow: 0 0 10px var(--red-glow); }
 
@@ -30,7 +38,6 @@
         .user-info::after { content: ""; position: absolute; inset: 2px; background: #000; z-index: 1; }
         @keyframes rotate-border { 100% { transform: rotate(360deg); } }
         .user-content { position: relative; z-index: 2; }
-        
         #display-name { font-family: 'Rajdhani'; font-weight: 700; font-size: 1.1em; margin-bottom: 10px; color: #fff; letter-spacing: 1px; }
         .role-badge { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.75em; padding: 4px 10px; border: 1px solid var(--red); color: var(--red); text-transform: uppercase; display: inline-block; letter-spacing: 1px; }
 
@@ -42,50 +49,37 @@
         .submenu.open { max-height: 300px; }
         .nav-link { color: #666; text-decoration: none; display: block; padding: 10px 25px; font-size: 0.9em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
+        .logout { padding: 15px; color: #444; cursor: pointer; font-size: 0.8em; text-align: center; border-top: 1px solid var(--border); }
+        .logout:hover { color: var(--red); }
 
-        /* Main Content */
         main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; position: relative; }
         
-        /* HACKING VISUALS */
         .welcome-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; animation: fadeIn 1.5s ease-out; }
-        
-        /* Připojeno indicator */
         .conn-status { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; font-family: 'Orbitron'; font-size: 0.7em; color: var(--green); letter-spacing: 2px; }
         .blink-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); animation: blink 1s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
         .header-ui { position: absolute; top: 0; text-align: center; width: 100%; padding-top: 20px; }
         .welcome-header { font-family: 'Orbitron'; color: var(--red); font-size: 2.5em; letter-spacing: 15px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
-        
-        /* Logo a Hacking kruhy */
         .logo-wrapper { position: relative; width: 400px; height: 400px; display: flex; align-items: center; justify-content: center; }
-        .cjng-logo { width: 250px; height: 250px; background: url('TVOJE_URL_LOGA') center/contain no-repeat; filter: drop-shadow(0 0 20px var(--red)); z-index: 10; animation: logoFloat 4s ease-in-out infinite; }
+        .cjng-logo { width: 250px; height: 250px; background: url('https://r2.fivemanage.com/wOMQm0cEVI73Ppitz2tQP/Ch3dZmRrLL.png') center/contain no-repeat; filter: drop-shadow(0 0 20px var(--red)); z-index: 10; animation: logoFloat 4s ease-in-out infinite; }
         @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
         .hacking-circle { position: absolute; border: 1px solid var(--border); border-radius: 50%; animation: rotate 20s linear infinite; }
         .c1 { width: 350px; height: 350px; border-style: dashed; opacity: 0.4; }
         .c2 { width: 420px; height: 420px; border: 1px double var(--red); opacity: 0.2; animation-direction: reverse; }
-        
-        /* Poletující texty */
-        .h-text { position: absolute; font-family: 'Orbitron'; font-size: 0.6em; color: var(--red); opacity: 0.5; white-space: nowrap; }
-        .t1 { top: 10%; left: -20%; animation: moveText 10s linear infinite; }
-        .t2 { bottom: 20%; right: -20%; animation: moveText 12s linear infinite reverse; }
-
         @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes moveText { from { transform: translateX(-50px); } to { transform: translateX(50px); } }
 
-        /* Vyskakovací okénka */
-        .ui-popup { position: absolute; background: rgba(0,0,0,0.8); border: 1px solid var(--red); padding: 10px; font-size: 0.7em; font-family: 'Orbitron'; color: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 50; width: 150px; }
-        .ui-popup.active { opacity: 1; animation: slidePopup 4s forwards; }
+        .ui-popup { position: absolute; background: rgba(0,0,0,0.8); border: 1px solid var(--red); padding: 10px; font-size: 0.7em; font-family: 'Orbitron'; color: var(--red); box-shadow: 0 0 15px rgba(255,0,0,0.2); opacity: 0; z-index: 50; width: 150px; }
+        .ui-popup.active { animation: slidePopup 4s forwards; }
         @keyframes slidePopup { 0% { transform: translateY(20px); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-40px); opacity: 0; } }
 
-        /* Zbytek layoutu */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
         .card-title { font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
         .stat { font-family: 'Orbitron'; font-size: 2.2em; }
         
-        #dossier-section { display: none; margin-top: 10px; }
+        #dossier-section { display: none; }
         .dossier-header { font-family: 'Rajdhani'; font-weight: 700; color: var(--red); letter-spacing: 3px; margin-bottom: 25px; text-transform: uppercase; font-size: 1.8em; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         .dossier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
         .dossier-card { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 20px; border-left: 3px solid var(--red); }
@@ -95,10 +89,9 @@
         .log-header { padding: 10px; background: rgba(255,0,0,0.1); font-family: 'Rajdhani'; font-weight: 700; font-size: 0.8em; letter-spacing: 2px; color: var(--red); border-bottom: 1px solid var(--border); }
         .log-content, .chat-messages { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Rajdhani'; font-size: 0.9em; }
         
-        .bubble { max-width: 85%; padding: 10px 15px; border-radius: 5px; margin-bottom: 10px; line-height: 1.4; }
-        .bubble.admin { align-self: flex-start; background: rgba(255,0,0,0.15); border: 1px solid var(--red); color: #fff; }
-        .bubble.user { align-self: flex-end; background: #222; border: 1px solid #444; color: #ccc; }
-        .bubble-meta { font-size: 0.6em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.6; }
+        .bubble { max-width: 85%; padding: 10px 15px; border-radius: 5px; margin-bottom: 10px; }
+        .bubble.admin { align-self: flex-start; background: rgba(255,0,0,0.15); border: 1px solid var(--red); }
+        .bubble.user { align-self: flex-end; background: #222; border: 1px solid #444; }
 
         .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
         .chat-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 10px; font-family: 'Rajdhani'; }
@@ -108,13 +101,19 @@
             nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
             nav:not(.collapsed) { transform: translateX(0); }
             main { padding: 20px 10px; overflow-y: auto; }
-            .logo-wrapper { transform: scale(0.7); }
-            .conn-status { right: 10px; top: 10px; }
             .grid, .dossier-grid, .logs-chat-container { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+
+    <!-- Terminal Login Animation -->
+    <div id="terminal-overlay">
+        <div class="term-box">
+            <div class="term-header">SYSTÉM CJNG CORE v4.0</div>
+            <div id="term-text">INICIALIZACE SPOJENÍ...</div>
+        </div>
+    </div>
 
     <button class="open-btn" id="openBtn" onclick="toggleSidebar()">☰ MENU</button>
 
@@ -149,12 +148,12 @@
         <div id="welcome-view" class="welcome-section">
             <div class="conn-status">
                 <div class="blink-dot"></div>
-                CONNECTED // ENCRYPTED
+                PŘIPOJENO // ŠIFROVÁNO
             </div>
             
             <div class="header-ui">
                 <h1 class="welcome-header">CJNG GLOBAL</h1>
-                <div style="font-family: 'Orbitron'; color: #444; font-size: 0.6em; letter-spacing: 5px;">ACCESS GRANTED // BYPASSING FIREWALL...</div>
+                <div style="font-family: 'Orbitron'; color: #444; font-size: 0.6em; letter-spacing: 5px;">PŘÍSTUP POVOLEN // FIREWALL BYPASSED...</div>
             </div>
 
             <div id="popups-container"></div>
@@ -163,9 +162,6 @@
                 <div class="hacking-circle c1"></div>
                 <div class="hacking-circle c2"></div>
                 <div class="cjng-logo"></div>
-                
-                <div class="h-text t1">PING 14ms // MS_TRACKING: ON</div>
-                <div class="h-text t2">IP_REDIRECT: 192.168.0.1 // PROXY: MASKED</div>
             </div>
         </div>
 
@@ -215,7 +211,7 @@
                 const gain = audioCtx.createGain();
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                if (sweep) osc.frequency.exponentialRampToValueAtTime(freq * 0.1, audioCtx.currentTime + duration);
+                if (sweep) osc.frequency.exponentialRampToValueAtTime(10, audioCtx.currentTime + duration);
                 gain.gain.setValueAtTime(vol, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
                 osc.connect(gain); gain.connect(audioCtx.destination);
@@ -223,13 +219,22 @@
             } catch(e) {}
         }
 
+        // Realistické Terminálové SFX
         const SFX = {
-            login: () => { playFX(400, 'sawtooth', 0.5, 0.05); setTimeout(() => playFX(800, 'sawtooth', 0.8, 0.05), 300); },
-            click: () => playFX(600, 'sine', 0.05, 0.03),
-            nav: () => playFX(200, 'square', 0.1, 0.02),
-            msg: () => playFX(1000, 'sine', 0.2, 0.05),
-            log: () => playFX(1500, 'sine', 0.02, 0.01),
-            data: () => playFX(1200, 'sine', 0.05, 0.02)
+            login: () => {
+                // Sekvence "přihlášení do sítě"
+                playFX(150, 'square', 0.1, 0.05); 
+                setTimeout(() => playFX(100, 'square', 0.1, 0.05), 150);
+                setTimeout(() => playFX(600, 'sine', 0.4, 0.03), 400); // Finální potvrzení
+            },
+            click: () => playFX(800, 'sine', 0.03, 0.02),
+            nav: () => playFX(400, 'sine', 0.05, 0.02),
+            msg: () => playFX(900, 'sine', 0.1, 0.03),
+            log: () => playFX(1200, 'sine', 0.02, 0.01),
+            data: () => { 
+                // Digitální cvrlikání
+                playFX(Math.random() * 1000 + 500, 'sine', 0.03, 0.01);
+            }
         };
 
         const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
@@ -245,7 +250,31 @@
 
         document.getElementById('display-name').innerText = uName.toUpperCase();
 
-        const popupMessages = ["ENC_PACKET_RECEIVED", "UP-LINK_STABLE", "GEO-SYNC_OK", "PING: 14ms", "REDIRECT_ACTIVE", "DATA_ENCRYPTED", "MS_CONNECTED"];
+        async function startSequence() {
+            const term = document.getElementById('term-text');
+            const overlay = document.getElementById('terminal-overlay');
+            
+            SFX.login();
+            
+            const lines = [
+                "NAVAZOVÁNÍ SPOJENÍ...",
+                "OVĚŘOVÁNÍ IDENTITY...",
+                `VÍTEJTE, UŽIVATELI: ${uName.toUpperCase()}`,
+                "PŘÍSTUP POVOLEN."
+            ];
+
+            for(let i=0; i<lines.length; i++) {
+                term.innerText = lines[i];
+                SFX.data();
+                await new Promise(r => setTimeout(r, 600));
+            }
+
+            overlay.style.transition = "opacity 1s";
+            overlay.style.opacity = "0";
+            setTimeout(() => overlay.remove(), 1000);
+        }
+
+        const popupMessages = ["ENC_PACKET_RECEIVED", "UP-LINK_STABLE", "GEO-SYNC_OK", "DATA_ENCRYPTED"];
         function createPopup() {
             if (document.getElementById('welcome-view').style.display === 'none') return;
             const container = document.getElementById('popups-container');
@@ -279,9 +308,7 @@
         function toggleSubmenu(btn) {
             SFX.click();
             const sub = btn.nextElementSibling;
-            const open = sub.classList.contains('open');
-            document.querySelectorAll('.submenu').forEach(s => s.classList.remove('open'));
-            if (!open) sub.classList.add('open');
+            sub.classList.toggle('open');
         }
 
         function showDossier() { document.getElementById('dashboard-view').style.display = 'none'; document.getElementById('dossier-section').style.display = 'block'; }
@@ -311,35 +338,24 @@
                         label: 'DISTRIBUCE',
                         data: Object.values(stats),
                         borderColor: '#ff0000',
-                        borderWidth: 3,
-                        tension: 0.4,
                         fill: true,
                         backgroundColor: 'rgba(255, 0, 0, 0.1)'
                     }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } }, x: { ticks: { color: '#666' } } } }
+                options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
         async function fetchData() {
             if (!uId) return;
-            const { data } = await _supabase.from('vydej_kokainu').select('*').eq('user_id', uId).order('datum', {ascending: false});
+            const { data } = await _supabase.from('vydej_kokainu').select('*').eq('user_id', uId);
             if (data) {
                 const total = data.reduce((s, r) => s + (parseInt(r.pocet_vydano) || 0), 0);
                 document.getElementById('my-vydano').innerText = total + " KS";
                 document.getElementById('my-dluh').innerText = total + " KS";
                 document.getElementById('d-splneno').innerText = total + " KS";
-                const lBox = document.getElementById('log-content');
-                lBox.innerHTML = '';
-                data.forEach(e => {
-                    const d = document.createElement('div');
-                    d.style.cssText = "border-bottom: 1px solid rgba(255,255,255,0.05); padding: 5px 0; color: #888;";
-                    d.innerHTML = `<i>[${new Date(e.datum).toLocaleDateString()}]</i> Vedení <b>POTVRDILO</b> výdej <i>${e.pocet_vydano} KS</i>.`;
-                    lBox.appendChild(d);
-                });
             }
             fetchMessages();
-            fetchChartData();
         }
 
         async function fetchMessages() {
@@ -350,7 +366,7 @@
                 data.forEach(m => {
                     const d = document.createElement('div');
                     d.className = `bubble ${m.is_admin ? 'admin' : 'user'}`;
-                    d.innerHTML = `<div class="bubble-meta">${m.user_name}</div>${m.text}`;
+                    d.innerHTML = `<div style="font-size:0.6em;opacity:0.5">${m.user_name}</div>${m.text}`;
                     cBox.appendChild(d);
                 });
                 cBox.scrollTop = cBox.scrollHeight;
@@ -381,14 +397,10 @@
             b.innerHTML = `<span class="role-badge">${l}</span>`;
         }
 
-        _supabase.channel('room1').on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => { SFX.log(); fetchMessages(); }).subscribe();
-        _supabase.channel('room2').on('postgres_changes', { event: '*', schema: 'public', table: 'vydej_kokainu' }, () => { SFX.log(); fetchData(); }).subscribe();
-
         window.onload = () => {
             setupPermissions();
             fetchData();
-            if(document.getElementById('sidebar').classList.contains('collapsed')) document.getElementById('openBtn').style.display = 'block';
-            SFX.login();
+            startSequence();
         };
 
         document.getElementById('msg-input').onkeypress = (e) => { if(e.key==='Enter') sendMessage(); };
