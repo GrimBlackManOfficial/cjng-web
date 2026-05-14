@@ -1,0 +1,20 @@
+<div class="view-header">VEDENÍ // REGISTRACE ČLENŮ</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+    <h3 style="color: var(--red); border-bottom: 1px solid var(--border); padding-bottom: 10px;">VYTVOŘIT NOVÝ PŘÍSTUP</h3>
+    <p style="font-size: 13px; color: #aaa; margin-bottom: 20px;">Zadejte údaje pro registraci do databáze kartelu. Systém automaticky vytvoří složku na základě Discord ID.</p>
+    
+    <div style="margin-bottom: 15px;">
+        <label style="display:block; color: var(--red); font-size: 12px; margin-bottom: 5px;">DISCORD ID (ČÍSELNÝ KÓD)</label>
+        <input type="text" id="reg-discord-id" placeholder="např. 1258169184592072715" style="width:100%; background:#000; border:1px solid var(--red); color:#fff; padding:12px; font-family: 'Ubuntu Mono';">
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <label style="display:block; color: var(--red); font-size: 12px; margin-bottom: 5px;">JMÉNO A PŘÍJMENÍ (IC)</label>
+        <input type="text" id="reg-name" placeholder="např. Carlos Mendez" style="width:100%; background:#000; border:1px solid var(--red); color:#fff; padding:12px; font-family: 'Exo 2';">
+    </div>
+
+    <button onclick="registerMember()" style="width:100%; background: var(--red); color: #000; border: none; padding: 15px; font-weight: bold; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;">
+        POTVRDIT REGISTRACI A VYTVOŘIT SLOŽKU
+    </button>
+</div>
