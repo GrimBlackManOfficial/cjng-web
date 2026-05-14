@@ -1,66 +1,57 @@
-// app.js
 const urlParams = new URLSearchParams(window.location.search);
-const uName = urlParams.get('user') || "Neznámý";
+const uName = urlParams.get('user') || "Neznámý Operativec";
 const uRoles = (urlParams.get('roles') || "").split(',');
 
-// Funkce pro načítání modulů
-async function loadModule(moduleName) {
+// ID tvých rolí z Discordu (uprav podle sebe)
+const ROLE_VEDENI = "123456789"; // Příklad ID role pro Vedení
+const ROLE_MAESTRO = "987654321"; // Příklad ID role pro Maestro
+
+function getRoleLabel() {
+    if (uRoles.includes(ROLE_VEDENI)) return "VEDENÍ KARTELU";
+    if (uRoles.includes(ROLE_MAESTRO)) return "MAESTRO";
+    return "OPERATIVEC";
+}
+
+async function loadModule(moduleName, btn) {
+    // Aktivní tlačítko
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    if(btn) btn.classList.add('active');
+
     const mainView = document.getElementById('main-view');
     const response = await fetch(`${moduleName}.html`);
     const html = await response.text();
     mainView.innerHTML = html;
 
-    // Inicializace grafů po načtení
     if(moduleName === 'dossier') initUserCharts();
-    if(moduleName === 'management') initOrgCharts();
 }
 
-function initUserCharts() {
-    const ctx = document.getElementById('userEarningsChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Týden 1', 'Týden 2', 'Týden 3', 'Týden 4'],
-            datasets: [{ label: 'Výplata $', data: [1200, 1500, 1100, 1800], backgroundColor: '#ff0000' }]
-        }
-    });
-}
+// FUNKCE PRO REGISTRACI DO SUPABASE
+async function registerMember() {
+    const discordId = document.getElementById('reg-discord-id').value;
+    const fullName = document.getElementById('reg-name').value;
 
-function initOrgCharts() {
-    const ctx = document.getElementById('orgFinChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
-            datasets: [
-                { label: 'Výdaje', data: [10, 25, 15, 30, 45], borderColor: '#f00' },
-                { label: 'Výdělky', data: [50, 80, 60, 90, 120], borderColor: '#0f0' }
-            ]
-        }
-    });
-}
+    if(!discordId || !fullName) return alert("Vyplň všechna pole!");
 
-// Intro Animace
-async function startIntro() {
-    const term = document.getElementById('term-content');
-    const lines = ["> CONNECTING...", "> ACCESS GRANTED.", `> WELCOME: ${uName.toUpperCase()}`];
-    for(let line of lines) {
-        let d = document.createElement('div');
-        d.innerHTML = line;
-        term.appendChild(d);
-        await new Promise(r => setTimeout(r, 500));
+    const { data, error } = await supabase
+        .from('zamestnanci') // Název tvé tabulky v Supabase
+        .insert([{ user_id: discordId, jmeno_prijmeni: fullName }]);
+
+    if (error) {
+        alert("Chyba při registraci: " + error.message);
+    } else {
+        alert("Operativec zaregistrován. Složka vytvořena.");
+        loadModule('management');
     }
-    setTimeout(() => {
-        document.getElementById('terminal-overlay').style.opacity = '0';
-        setTimeout(() => document.getElementById('terminal-overlay').remove(), 1000);
-        loadModule('dossier'); // Načte základní stránku
-    }, 1000);
 }
 
-// Nastavení Sidebar a start
 window.onload = () => {
     document.getElementById('display-name').innerText = uName.toUpperCase();
-    // Tady by byla tvá logika pro kontrolu rolí
-    document.querySelectorAll('.vedeni-only').forEach(e => e.style.display = 'block'); 
+    document.getElementById('display-badge').innerHTML = `<span class="role-badge">${getRoleLabel()}</span>`;
+    
+    // Zobrazení tlačítek podle role
+    if (uRoles.includes(ROLE_VEDENI) || uRoles.includes(ROLE_MAESTRO)) {
+        document.querySelectorAll('.vedeni-only').forEach(e => e.style.display = 'flex');
+    }
+    
     startIntro();
 };
