@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <title>CJNG | Dashboard</title>
+    <title>CJNG | OS</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -14,14 +14,14 @@
     </div>
 
     <nav>
-        <div class="brand" style="color:var(--red); text-align:center; font-size: 2em; font-weight:bold; margin-bottom:20px;">CJNG</div>
+        <div class="brand">CJNG</div>
         <div class="user-info">
-            <div id="display-name" style="font-weight:bold;">NAČÍTÁNÍ...</div>
+            <div id="display-name">NAČÍTÁNÍ...</div>
             <div id="display-badge"></div>
         </div>
-        <button onclick="loadModule('dossier')">Osobní Dossier</button>
-        <button class="vedeni-only" onclick="loadModule('management')" style="display:none;">Vedení</button>
-        <button class="maestro-only" onclick="loadModule('ledger')" style="display:none;">Účetní Kniha</button>
+        <button class="nav-btn active" onclick="loadModule('dossier', this)">Osobní Dossier</button>
+        <button class="nav-btn vedeni-only" style="display:none;" onclick="loadModule('management', this)">Vedení</button>
+        <button class="nav-btn maestro-only" style="display:none;" onclick="loadModule('ledger', this)">Účetní Kniha</button>
     </nav>
 
     <main id="main-view"></main>
