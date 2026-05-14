@@ -13,15 +13,24 @@
         <div class="term-box" id="term-content"></div>
     </div>
 
-    <nav>
+    <nav id="sidebar">
         <div class="brand">CJNG</div>
+        
         <div class="user-info">
             <div id="display-name">NAČÍTÁNÍ...</div>
             <div id="display-badge"></div>
         </div>
-        <button class="nav-btn active" onclick="loadModule('dossier', this)">Osobní Dossier</button>
-        <button class="nav-btn vedeni-only" style="display:none;" onclick="loadModule('management', this)">Vedení</button>
-        <button class="nav-btn maestro-only" style="display:none;" onclick="loadModule('ledger', this)">Účetní Kniha</button>
+
+        <div class="nav-category">
+            <div class="category-title">Operace</div>
+            <button class="nav-btn" onclick="loadModule('dossier', this)">Osobní Složka</button>
+        </div>
+
+        <div class="nav-category vedeni-only" style="display:none;">
+            <div class="category-title">Vedení Organizace</div>
+            <button class="nav-btn" onclick="loadModule('register', this)">Registrovat Zaměstnance</button>
+            <button class="nav-btn" onclick="loadModule('management', this)">Účetní Kniha / Vyplácení</button>
+        </div>
     </nav>
 
     <main id="main-view"></main>
