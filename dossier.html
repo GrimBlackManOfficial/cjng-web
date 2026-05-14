@@ -1,5 +1,27 @@
-<div class="view-header">PERSONÁLNÍ DOSSIER // OPERATIVEC</div>
-<div class="card">
-    <h3>HISTORIE TVÝCH VÝPLAT</h3>
-    <canvas id="userEarningsChart"></canvas>
+<div class="view-header">OPERACE // OSOBNÍ SLOŽKA</div>
+
+<div class="grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+    <div class="card">
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div style="width: 100px; height: 120px; border: 1px solid var(--red); background: rgba(255,0,0,0.1); display: flex; align-items: center; justify-content: center; font-size: 40px;">👤</div>
+            <div>
+                <h2 id="dossier-name" style="margin: 0; color: var(--red);">NAČÍTÁNÍ...</h2>
+                <p style="color: #888; margin: 5px 0;">STATUS: <span style="color: var(--green);">AKTIVNÍ</span></p>
+                <p style="color: #888; margin: 5px 0;">PŘÍSTUP: OPERATIVEC</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>HISTORIE TVÝCH VÝPLAT ($)</h3>
+        <div style="height: 300px;">
+            <canvas id="userEarningsChart"></canvas>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Předání jména do dossieru z URL parametrů
+    const dParams = new URLSearchParams(window.location.search);
+    document.getElementById('dossier-name').innerText = (dParams.get('user') || "OPERATIVEC").toUpperCase();
+</script>
