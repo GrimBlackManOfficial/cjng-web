@@ -6,7 +6,6 @@
     <title>CJNG | Operační Systém</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Fonty s plnou podporou češtiny -->
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { 
@@ -26,12 +25,17 @@
         .term-box { border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9); box-shadow: 0 0 30px var(--red-glow); text-align: left; min-width: 450px; position: relative; }
         .term-header { font-size: 0.8em; margin-bottom: 20px; color: #666; letter-spacing: 2px; border-bottom: 1px solid #222; padding-bottom: 5px; }
         
-        /* Sidebar */
-        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 100; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; }
-        nav.collapsed { transform: translateX(-100%); position: absolute; }
+        /* Sidebar - Opraveno vysouvání */
+        nav { 
+            width: 280px; background: #000; border-right: 1px solid var(--border); 
+            display: flex; flex-direction: column; padding: 30px 15px; 
+            box-shadow: 10px 0 30px rgba(0,0,0,0.8); z-index: 2000; 
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: fixed; height: 100%; left: 0; top: 0;
+        }
+        nav.collapsed { transform: translateX(-280px); }
         .brand { font-family: 'Exo 2'; font-weight: 700; font-size: 2.2em; color: var(--red); text-align: center; letter-spacing: 5px; margin-bottom: 40px; text-shadow: 0 0 10px var(--red-glow); }
-        .sidebar-toggle { position: absolute; right: 10px; top: 10px; background: none; border: none; color: var(--red); cursor: pointer; font-family: 'Exo 2'; font-weight: bold; z-index: 110; font-size: 1.2em; }
-        .open-btn { position: fixed; left: 15px; top: 15px; background: #000; border: 1px solid var(--red); color: var(--red); padding: 8px 12px; cursor: pointer; font-family: 'Exo 2'; font-size: 0.8em; z-index: 90; display: none; box-shadow: 0 0 10px var(--red-glow); }
+        .sidebar-toggle { position: absolute; right: -45px; top: 20px; background: #000; border: 1px solid var(--border); color: var(--red); cursor: pointer; padding: 10px; font-weight: bold; font-size: 1.2em; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
 
         /* Jméno s točivým efektem */
         .user-info { padding: 20px; margin-bottom: 30px; background: rgba(0, 0, 0, 0.8); position: relative; border: 1px solid var(--border); overflow: hidden; }
@@ -45,61 +49,57 @@
         .menu-container { flex: 1; overflow-y: auto; }
         .menu-category { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .category-trigger { width: 100%; background: none; border: none; color: #aaa; padding: 12px 10px; text-align: left; font-family: 'Exo 2'; font-weight: 700; font-size: 0.9em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; letter-spacing: 1px; text-transform: uppercase; }
-        .category-trigger:hover { color: var(--red); background: rgba(255,0,0,0.03); }
-        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(255,255,255,0.02); }
+        .submenu { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; background: rgba(255,255,255,0.02); }
         .submenu.open { max-height: 300px; }
-        .nav-link { color: #666; text-decoration: none; display: block; padding: 10px 25px; font-size: 0.9em; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; }
+        .nav-link { color: #666; text-decoration: none; display: block; padding: 10px 25px; font-size: 0.9em; transition: 0.3s; text-transform: uppercase; }
         .nav-link:hover { color: #fff; background: rgba(255,255,255,0.05); padding-left: 30px; }
         .logout { padding: 15px; color: #444; cursor: pointer; font-size: 0.8em; text-align: center; border-top: 1px solid var(--border); }
-        .logout:hover { color: var(--red); }
 
-        main { flex: 1; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; position: relative; }
+        main { flex: 1; margin-left: 0; padding: 40px; overflow: hidden; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); display: flex; flex-direction: column; position: relative; transition: margin 0.4s; }
         
         .welcome-section { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
-        .conn-status { position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px; font-family: 'Ubuntu Mono'; font-size: 0.75em; color: var(--green); letter-spacing: 2px; }
-        .blink-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); animation: blink 1s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
-        .header-ui { position: absolute; top: 0; text-align: center; width: 100%; padding-top: 20px; }
-        .welcome-header { font-family: 'Exo 2'; color: var(--red); font-size: 2.5em; letter-spacing: 15px; text-shadow: 0 0 20px var(--red-glow); margin: 0; }
         
-        /* Logo se zaregistrovaným linkem */
-        .logo-wrapper { position: relative; width: 400px; height: 400px; display: flex; align-items: center; justify-content: center; }
-        .cjng-logo { width: 300px; height: 300px; background: url('https://r2.fivemanage.com/wOMQm0cEVI73Ppitz2tQP/Ch3dZmRrLL.png') center/contain no-repeat; filter: drop-shadow(0 0 20px var(--red)); z-index: 10; animation: logoFloat 4s ease-in-out infinite; }
-        @keyframes logoFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        /* Hacking Satellites Vizualizace */
+        #sat-network { position: absolute; inset: 0; pointer-events: none; }
+        .satellite { position: absolute; font-family: 'Ubuntu Mono'; color: var(--red); font-size: 10px; text-shadow: 0 0 5px var(--red); white-space: nowrap; }
+        .sat-node { width: 4px; height: 4px; background: #fff; box-shadow: 0 0 10px #fff; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .sat-line { position: absolute; height: 1px; background: linear-gradient(90deg, var(--red), transparent); transform-origin: left center; opacity: 0.3; animation: linePulse 2s infinite; }
+        @keyframes linePulse { 0%, 100% { opacity: 0.1; transform: scaleX(1); } 50% { opacity: 0.5; transform: scaleX(1.05); } }
 
-        .hacking-circle { position: absolute; border: 1px solid var(--border); border-radius: 50%; animation: rotate 20s linear infinite; }
-        .c1 { width: 350px; height: 350px; border-style: dashed; opacity: 0.4; }
-        .c2 { width: 420px; height: 420px; border: 1px double var(--red); opacity: 0.2; animation-direction: reverse; }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .logo-wrapper { position: relative; width: 450px; height: 450px; display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .cjng-logo { 
+            width: 300px; height: 300px; 
+            background: url('https://r2.fivemanage.com/wOMQm0cEVI73Ppitz2tQP/Ch3dZmRrLL.png') center/contain no-repeat; 
+            filter: drop-shadow(0 0 30px var(--red)); z-index: 10; 
+            animation: logoFloat 4s ease-in-out infinite; 
+        }
+        @keyframes logoFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-15px) scale(1.02); } }
 
+        /* Dashboard & Stats Styles */
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); position: relative; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 30px; backdrop-filter: blur(10px); }
         .card-title { font-weight: 700; font-size: 0.8em; color: #666; letter-spacing: 2px; margin-bottom: 15px; text-transform: uppercase; }
         .stat { font-family: 'Ubuntu Mono'; font-weight: 700; font-size: 2.2em; }
         
-        #dossier-section { display: none; }
-        .dossier-header { font-weight: 700; color: var(--red); letter-spacing: 3px; margin-bottom: 25px; text-transform: uppercase; font-size: 1.8em; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-        .dossier-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-        .dossier-card { background: rgba(10,10,10,0.9); border: 1px solid var(--border); padding: 20px; border-left: 3px solid var(--red); }
+        #dossier-section { display: none; width: 100%; max-width: 1200px; margin: 0 auto; z-index: 50; position: relative;}
+        .dossier-header { font-weight: 700; color: var(--red); letter-spacing: 3px; margin-bottom: 25px; text-transform: uppercase; font-size: 1.8em; border-bottom: 1px solid var(--border); }
+        .dossier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
         
         .logs-chat-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; grid-column: span 3; }
         .system-logs, .intercom-panel { background: #000; border: 1px solid var(--border); height: 350px; display: flex; flex-direction: column; }
-        .log-header { padding: 10px; background: rgba(255,0,0,0.1); font-weight: 700; font-size: 0.8em; letter-spacing: 2px; color: var(--red); border-bottom: 1px solid var(--border); }
+        .log-header { padding: 10px; background: rgba(255,0,0,0.1); font-weight: 700; color: var(--red); border-bottom: 1px solid var(--border); }
         .log-content, .chat-messages { flex: 1; overflow-y: auto; padding: 15px; font-family: 'Ubuntu Mono'; font-size: 0.9em; }
-        
+
         .bubble { max-width: 85%; padding: 10px 15px; border-radius: 5px; margin-bottom: 10px; }
         .bubble.admin { align-self: flex-start; background: rgba(255,0,0,0.15); border: 1px solid var(--red); }
         .bubble.user { align-self: flex-end; background: #222; border: 1px solid #444; }
 
         .chat-input-area { padding: 10px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .chat-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 10px; font-family: 'Exo 2'; }
-        .chat-send { background: var(--red); color: #fff; border: none; padding: 0 20px; cursor: pointer; font-weight: 700; font-size: 0.8em; }
+        .chat-input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 10px; }
+        .chat-send { background: var(--red); color: #fff; border: none; padding: 0 20px; cursor: pointer; font-weight: 700; }
 
         @media (max-width: 768px) {
-            nav { width: 100%; height: 100%; position: fixed; transform: translateX(-100%); }
-            nav:not(.collapsed) { transform: translateX(0); }
-            main { padding: 20px 10px; overflow-y: auto; }
+            nav { z-index: 3000; }
             .grid, .dossier-grid, .logs-chat-container { grid-template-columns: 1fr; }
         }
     </style>
@@ -113,10 +113,8 @@
         </div>
     </div>
 
-    <button class="open-btn" id="openBtn" onclick="toggleSidebar()">☰ MENU</button>
-
     <nav id="sidebar" class="collapsed">
-        <button class="sidebar-toggle" onclick="toggleSidebar()">✕</button>
+        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
         <div class="brand">CJNG</div>
         <div class="user-info">
             <div class="user-content">
@@ -127,13 +125,13 @@
 
         <div class="menu-container">
             <div class="menu-category">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL <i>▶</i></button>
+                <button class="category-trigger" onclick="toggleSubmenu(this)">OSOBNÍ TERMINÁL</button>
                 <div class="submenu">
-                    <a href="#" class="nav-link" onclick="handleNav('dossier')">Vlastní složka (Dossier)</a>
+                    <a href="#" class="nav-link" onclick="handleNav('dossier')">Vlastní složka</a>
                 </div>
             </div>
-            <div class="menu-category maestro-only vedeni-only">
-                <button class="category-trigger" onclick="toggleSubmenu(this)">VEDENÍ <i>▶</i></button>
+            <div class="menu-category maestro-only vedeni-only" style="display:none">
+                <button class="category-trigger" onclick="toggleSubmenu(this)">VEDENÍ</button>
                 <div class="submenu">
                     <a href="#" class="nav-link" onclick="handleNav('dashboard')">Přehled operací</a>
                 </div>
@@ -142,57 +140,48 @@
         <div class="logout" onclick="location.href='/'">Odhlásit se</div>
     </nav>
 
-    <main>
+    <main id="main-content">
         <div id="welcome-view" class="welcome-section">
-            <div class="conn-status">
-                <div class="blink-dot"></div>
-                PŘIPOJENO // ŠIFROVÁNO
-            </div>
+            <!-- Satelitní síť -->
+            <div id="sat-network"></div>
             
-            <div class="header-ui">
-                <h1 class="welcome-header">CJNG GLOBAL</h1>
-                <div style="color: #444; font-size: 0.7em; letter-spacing: 5px;">PŘÍSTUP POVOLEN // FIREWALL BYPASSED...</div>
-            </div>
-
-            <div id="popups-container"></div>
-
             <div class="logo-wrapper">
-                <div class="hacking-circle c1"></div>
-                <div class="hacking-circle c2"></div>
                 <div class="cjng-logo"></div>
             </div>
         </div>
 
+        <!-- Dashboard View -->
         <div id="dashboard-view" style="display: none;">
             <div class="grid">
-                <div class="card"><div class="card-title">CELKEM ODEBRANÉ ZÁSILKY</div><div id="my-vydano" class="stat">0 KS</div></div>
-                <div class="card"><div class="card-title">AKTUÁLNÍ OPERAČNÍ DLUH</div><div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div></div>
-                <div class="card"><div class="card-title">STAV PŘIPOJENÍ</div><div class="stat" style="font-size: 1.2em; color: #00ff41;">AKTIVNÍ</div></div>
-                <div class="card maestro-only vedeni-only" id="chart-card" style="grid-column: span 3;">
-                    <div class="card-title">ANALYTICKÝ GRAF DISTRIBUCE</div>
+                <div class="card"><div class="card-title">ODEBRANÉ ZÁSILKY</div><div id="my-vydano" class="stat">0 KS</div></div>
+                <div class="card"><div class="card-title">OPERAČNÍ DLUH</div><div id="my-dluh" class="stat" style="color: var(--red);">0 KS</div></div>
+                <div class="card"><div class="card-title">STATUS</div><div class="stat" style="color: var(--green);">ONLINE</div></div>
+                <div class="card maestro-only vedeni-only" style="grid-column: span 3; display:none">
+                    <div class="card-title">ANALYTIKA</div>
                     <div style="height: 300px;"><canvas id="profiChart"></canvas></div>
                 </div>
             </div>
         </div>
 
+        <!-- Dossier View -->
         <div id="dossier-section">
-            <div class="dossier-header">Personální Dossier // Šifrováno</div>
+            <div class="dossier-header">PERSONÁLNÍ DOSSIER</div>
             <div class="dossier-grid">
-                <div class="dossier-card"><div style="font-size: 0.7em; color: #555;">KVÓTA</div><div id="d-kvota" class="stat" style="font-size: 1.5em;">500 KS</div></div>
-                <div class="dossier-card"><div style="font-size: 0.7em; color: #555;">SPLNĚNO</div><div id="d-splneno" class="stat" style="font-size: 1.5em;">0 KS</div></div>
-                <div class="dossier-card"><div style="font-size: 0.7em; color: #555;">VÝDĚLEK</div><div class="stat" style="font-size: 1.5em; color: #00ff41;">125.500$</div></div>
+                <div class="dossier-card card"><div class="card-title">KVÓTA</div><div id="d-kvota" class="stat">500 KS</div></div>
+                <div class="dossier-card card"><div class="card-title">SPLNĚNO</div><div id="d-splneno" class="stat">0 KS</div></div>
+                <div class="dossier-card card"><div class="card-title">PROVIZE</div><div class="stat" style="color: var(--green);">125.500$</div></div>
                 
                 <div class="logs-chat-container">
                     <div class="system-logs">
-                        <div class="log-header">OPERAČNÍ LOG</div>
+                        <div class="log-header">LOG_CORE</div>
                         <div id="log-content" class="log-content"></div>
                     </div>
                     <div class="intercom-panel">
-                        <div class="log-header">ŠIFROVANÝ INTERKOM</div>
-                        <div id="chat-box" class="chat-messages" style="display: flex; flex-direction: column;"></div>
+                        <div class="log-header">INTERCOM (ENCRYPTED)</div>
+                        <div id="chat-box" class="chat-messages"></div>
                         <div class="chat-input-area">
-                            <input type="text" id="msg-input" class="chat-input" placeholder="Zpráva...">
-                            <button class="chat-send" onclick="sendMessage()">ODESLAT</button>
+                            <input type="text" id="msg-input" class="chat-input" placeholder="Zadej kód...">
+                            <button class="chat-send" onclick="sendMessage()">SEND</button>
                         </div>
                     </div>
                 </div>
@@ -201,186 +190,96 @@
     </main>
 
     <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playFX(freq, type, duration, vol) {
-            try {
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + duration);
-            } catch(e) {}
-        }
-
-        const SFX = {
-            data: () => playFX(Math.random() * 800 + 400, 'sine', 0.04, 0.02),
-            nav: () => playFX(400, 'sine', 0.05, 0.02),
-            msg: () => playFX(900, 'sine', 0.1, 0.03)
-        };
-
         const SB_URL = 'https://ybzprivahzjqpanvunli.supabase.co'; 
         const SB_KEY = 'sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5';
         const _supabase = supabase.createClient(SB_URL, SB_KEY);
         
-        let chartInstance = null;
         const urlParams = new URLSearchParams(window.location.search);
         const uName = urlParams.get('user') || "OPERATIVEC";
         const rArr = (urlParams.get('roles') || "").split(',');
         const uId = urlParams.get('id');
         const ROLES = { VEDENI: "1468388299642241281", MAESTRO: "1429877779918491789" };
 
-        let userRoleLabel = "OPERATIVEC CJNG";
-        if (rArr.includes(ROLES.VEDENI)) userRoleLabel = "VEDENÍ KARTELU";
-        else if (rArr.includes(ROLES.MAESTRO)) userRoleLabel = "MAESTRO";
+        // Satelitní Síť Animace
+        function createSatellites() {
+            const container = document.getElementById('sat-network');
+            const satCount = 8;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
 
-        async function startSequence() {
-            const term = document.getElementById('term-text');
-            const overlay = document.getElementById('terminal-overlay');
-            
-            const lines = [
-                "> NAVAZOVÁNÍ SPOJENÍ...",
-                "> OVĚŘOVÁNÍ ŠIFROVACÍCH KLÍČŮ...",
-                "> IDENTITY_CHECK: ÚSPĚŠNÝ",
-                `> VÍTEJTE, UŽIVATELI: <span style="color:#fff">${uName.toUpperCase()}</span>`,
-                `> ROLE: <span style="color:var(--green)">${userRoleLabel}</span>`,
-                "> DEŠIFROVÁNÍ DATABÁZE...",
-                "> PŘÍSTUP POVOLEN."
-            ];
+            for(let i=0; i<satCount; i++) {
+                const angle = (i / satCount) * Math.PI * 2;
+                const dist = 280 + Math.random() * 50;
+                const x = centerX + Math.cos(angle) * dist;
+                const y = centerY + Math.sin(angle) * dist;
 
-            for(let i=0; i<lines.length; i++) {
-                const p = document.createElement('div');
-                p.style.marginBottom = "8px";
-                term.appendChild(p);
-                
-                let charIndex = 0;
-                const lineText = lines[i];
-                while(charIndex < lineText.length) {
-                    if(lineText[charIndex] === '<') { 
-                        const tagEnd = lineText.indexOf('>', charIndex);
-                        p.innerHTML += lineText.substring(charIndex, tagEnd + 1);
-                        charIndex = tagEnd + 1;
-                    } else {
-                        p.innerHTML += lineText[charIndex];
-                        charIndex++;
-                        if(charIndex % 2 === 0) SFX.data();
-                        await new Promise(r => setTimeout(r, 25));
-                    }
-                }
-                await new Promise(r => setTimeout(r, 600));
+                // Satelit label
+                const sat = document.createElement('div');
+                sat.className = 'satellite';
+                sat.style.left = x + 'px';
+                sat.style.top = y + 'px';
+                sat.innerHTML = `<span class="sat-node"></span> SAT_${Math.floor(Math.random()*999)} [LINK_ACTIVE]`;
+                container.appendChild(sat);
+
+                // Čára k logu
+                const line = document.createElement('div');
+                line.className = 'sat-line';
+                line.style.left = centerX + 'px';
+                line.style.top = centerY + 'px';
+                line.style.width = dist + 'px';
+                line.style.transform = `rotate(${angle}rad)`;
+                container.appendChild(line);
             }
-
-            overlay.style.transition = "opacity 1s";
-            overlay.style.opacity = "0";
-            setTimeout(() => overlay.remove(), 1000);
-        }
-
-        async function fetchChartData() {
-            if (!rArr.some(r => [ROLES.VEDENI, ROLES.MAESTRO].includes(r))) return;
-            const { data } = await _supabase.from('vydej_kokainu').select('pocet_vydano, datum').order('datum', {ascending: true});
-            if (data) renderChart(data);
-        }
-
-        function renderChart(rawData) {
-            const ctx = document.getElementById('profiChart');
-            if (!ctx) return;
-            const stats = {};
-            rawData.forEach(r => { const d = new Date(r.datum).toLocaleDateString(); stats[d] = (stats[d] || 0) + (parseInt(r.pocet_vydano) || 0); });
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: Object.keys(stats),
-                    datasets: [{ label: 'DISTRIBUCE', data: Object.values(stats), borderColor: '#ff0000', fill: true, backgroundColor: 'rgba(255, 0, 0, 0.1)' }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        async function fetchData() {
-            if (!uId) return;
-            const { data } = await _supabase.from('vydej_kokainu').select('*').eq('user_id', uId);
-            if (data) {
-                const total = data.reduce((s, r) => s + (parseInt(r.pocet_vydano) || 0), 0);
-                document.getElementById('my-vydano').innerText = total + " KS";
-                document.getElementById('my-dluh').innerText = total + " KS";
-                document.getElementById('d-splneno').innerText = total + " KS";
-            }
-            fetchMessages();
-        }
-
-        async function fetchMessages() {
-            const { data } = await _supabase.from('messages').select('*').order('created_at', { ascending: true });
-            if (data) {
-                const cBox = document.getElementById('chat-box');
-                cBox.innerHTML = '';
-                data.forEach(m => {
-                    const d = document.createElement('div');
-                    d.className = `bubble ${m.is_admin ? 'admin' : 'user'}`;
-                    d.innerHTML = `<div style="font-size:0.6em;opacity:0.5">${m.user_name}</div>${m.text}`;
-                    cBox.appendChild(d);
-                });
-                cBox.scrollTop = cBox.scrollHeight;
-            }
-        }
-
-        async function sendMessage() {
-            SFX.msg();
-            const inp = document.getElementById('msg-input');
-            const txt = inp.value.trim();
-            if (!txt) return;
-            const isAdm = rArr.includes(ROLES.VEDENI) || rArr.includes(ROLES.MAESTRO);
-            await _supabase.from('messages').insert([{ user_id: uId, user_name: uName, text: txt, is_admin: isAdm }]);
-            inp.value = '';
-            fetchMessages();
         }
 
         function toggleSidebar() {
-            const nav = document.getElementById('sidebar');
-            const openBtn = document.getElementById('openBtn');
-            nav.classList.toggle('collapsed');
-            openBtn.style.display = nav.classList.contains('collapsed') ? 'block' : 'none';
-        }
-
-        function handleNav(view) {
-            SFX.nav();
-            document.getElementById('welcome-view').style.display = 'none';
-            document.getElementById('dashboard-view').style.display = view === 'dashboard' ? 'block' : 'none';
-            document.getElementById('dossier-section').style.display = view === 'dossier' ? 'block' : 'none';
-            if (view === 'dashboard') fetchChartData();
-            if (window.innerWidth <= 768) toggleSidebar();
+            document.getElementById('sidebar').classList.toggle('collapsed');
         }
 
         function toggleSubmenu(btn) {
-            const sub = btn.nextElementSibling;
-            sub.classList.toggle('open');
+            btn.nextElementSibling.classList.toggle('open');
+        }
+
+        function handleNav(view) {
+            document.getElementById('welcome-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = view === 'dashboard' ? 'block' : 'none';
+            document.getElementById('dossier-section').style.display = view === 'dossier' ? 'block' : 'none';
+            if (window.innerWidth <= 768) toggleSidebar();
+        }
+
+        async function startSequence() {
+            const term = document.getElementById('term-text');
+            const lines = [
+                "> BOOTING CJNG_OS...",
+                "> CONNECTING TO SATELLITE NETWORK...",
+                `> AUTHENTICATED: ${uName.toUpperCase()}`,
+                "> ACCESS GRANTED."
+            ];
+            for(let line of lines) {
+                const d = document.createElement('div');
+                d.innerHTML = line;
+                term.appendChild(d);
+                await new Promise(r => setTimeout(r, 400));
+            }
+            setTimeout(() => {
+                document.getElementById('terminal-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('terminal-overlay').remove(), 1000);
+                createSatellites();
+            }, 1000);
         }
 
         window.onload = () => {
             document.getElementById('display-name').innerText = uName.toUpperCase();
-            document.getElementById('display-badge').innerHTML = `<span class="role-badge">${userRoleLabel}</span>`;
+            let label = "OPERATIVEC";
+            if (rArr.includes(ROLES.VEDENI)) label = "VEDENÍ KARTELU";
+            if (rArr.includes(ROLES.MAESTRO)) label = "MAESTRO";
+            document.getElementById('display-badge').innerHTML = `<span class="role-badge">${label}</span>`;
+            
             if (rArr.includes(ROLES.VEDENI) || rArr.includes(ROLES.MAESTRO)) {
                 document.querySelectorAll('.vedeni-only').forEach(e => e.style.display = 'block');
             }
-            fetchData();
             startSequence();
         };
-
-        setInterval(() => {
-            if(document.getElementById('welcome-view').style.display !== 'none') {
-                const container = document.getElementById('popups-container');
-                const p = document.createElement('div');
-                p.className = 'ui-popup active';
-                p.style.left = Math.random() * 70 + 15 + '%';
-                p.style.top = Math.random() * 60 + 20 + '%';
-                p.innerText = "SIGNAL_STRENGTH: " + (Math.random()*100).toFixed(1) + "dB";
-                container.appendChild(p);
-                setTimeout(() => p.remove(), 4000);
-            }
-        }, 5000);
     </script>
 </body>
 </html>
