@@ -2,233 +2,30 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CJNG | Operační Systém</title>
+    <title>CJNG | Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        :root { 
-            --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.7);
-            --bg: #020202; --card-bg: rgba(15, 15, 15, 0.8);
-            --border: rgba(255, 0, 0, 0.25);
-            --green: #00ff41;
-            --yellow: #ffff00;
-        }
-        body { background: var(--bg); color: #fff; font-family: 'Exo 2', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        
-        #terminal-overlay {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-family: 'Ubuntu Mono', monospace; color: var(--red);
-        }
-        .term-box { border: 1px solid var(--red); padding: 40px; background: rgba(10,0,0,0.9); box-shadow: 0 0 30px var(--red-glow); text-align: left; min-width: 500px; }
-        
-        nav { width: 280px; background: #000; border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 15px; transition: transform 0.4s; position: absolute; height: 100%; left: 0; z-index: 500; }
-        nav.collapsed { transform: translateX(-100%); }
-        
-        .user-info { padding: 20px; margin-bottom: 30px; border: 1px solid var(--border); position: relative; background: #000; text-align: center; }
-        .role-badge { color: var(--red); font-weight: bold; font-size: 0.8em; border: 1px solid var(--red); padding: 2px 5px; margin-top: 5px; display: inline-block; }
-
-        main { flex: 1; padding: 40px; overflow-y: auto; background: radial-gradient(circle at center, #1a0202 0%, #020202 100%); margin-left: 280px; transition: margin 0.4s; }
-        body.nav-collapsed main { margin-left: 0; }
-
-        .card { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; margin-bottom: 20px; backdrop-filter: blur(10px); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        
-        input, select, button { background: #000; border: 1px solid var(--red); color: #fff; padding: 8px; font-family: 'Ubuntu Mono'; }
-        button { cursor: pointer; text-transform: uppercase; font-weight: bold; transition: 0.3s; }
-        button:hover { background: var(--red); color: #000; }
-
-        .view-header { color: var(--red); font-size: 1.5em; border-bottom: 1px solid var(--red); margin-bottom: 20px; padding-bottom: 5px; }
-        
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-family: 'Ubuntu Mono'; }
-        th, td { border: 1px solid var(--border); padding: 8px; text-align: left; }
-        th { color: var(--red); }
-        .money-plus { color: var(--green); }
-        .money-minus { color: var(--red); }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="">
-
-    <audio id="fx-type" src="https://www.soundjay.com/communication/typewriter-key-1.mp3"></audio>
-    <audio id="fx-beep" src="https://www.soundjay.com/buttons/beep-07.mp3"></audio>
-    <audio id="fx-success" src="https://www.soundjay.com/buttons/button-20.mp3"></audio>
-
+<body>
     <div id="terminal-overlay">
-        <div class="term-box">
-            <div id="term-text"></div>
-        </div>
+        <div class="term-box" id="term-content"></div>
     </div>
 
-    <nav id="sidebar">
+    <nav>
         <div class="brand" style="color:var(--red); text-align:center; font-size: 2em; font-weight:bold; margin-bottom:20px;">CJNG</div>
         <div class="user-info">
             <div id="display-name" style="font-weight:bold;">NAČÍTÁNÍ...</div>
-            <div id="display-badge" class="role-badge">ROLE</div>
+            <div id="display-badge"></div>
         </div>
-        <button onclick="handleNav('welcome')">DOMŮ</button><br>
-        <button onclick="handleNav('dossier')">DOSSIER</button><br>
-        <div class="vedeni-only">
-            <button onclick="handleNav('management')">VEDENÍ / VÝPLATY</button>
-        </div>
+        <button onclick="loadModule('dossier')">Osobní Dossier</button>
+        <button class="vedeni-only" onclick="loadModule('management')" style="display:none;">Vedení</button>
+        <button class="maestro-only" onclick="loadModule('ledger')" style="display:none;">Účetní Kniha</button>
     </nav>
 
-    <main>
-        <div id="view-welcome">
-            <h1 class="view-header">VÍTEJTE V SYSTÉMU CJNG</h1>
-            <p>Váš přístup byl ověřen. Šifrování AES-256 aktivní.</p>
-        </div>
+    <main id="main-view"></main>
 
-        <div id="view-dossier" style="display:none;">
-            <h1 class="view-header">PERSONÁLNÍ DOSSIER</h1>
-            <div class="card">
-                <h3>HISTORIE VAŠICH VÝPLAT</h3>
-                <canvas id="userEarningsChart"></canvas>
-            </div>
-        </div>
-
-        <div id="view-management" style="display:none;">
-            <h1 class="view-header">VEDENÍ ORGANIZACE</h1>
-            
-            <div class="grid">
-                <div class="card">
-                    <h3>VYPLÁCENÍ ZAMĚSTNANCŮ</h3>
-                    <select id="employee-select">
-                        <option value="all">Všichni zaměstnanci</option>
-                        <option value="1">Ethan Harrow</option>
-                        <option value="2">Grim Black</option>
-                    </select>
-                    <input type="number" id="pay-amount" placeholder="Částka $">
-                    <button onclick="processPayment()">PROVÉST PLATBU</button>
-                </div>
-                <div class="card">
-                    <h3>FINANČNÍ ANALYTIKA</h3>
-                    <canvas id="orgFinChart"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3>ÚČETNÍ KNIHA (HISTORIE)</h3>
-                <table id="accounting-table">
-                    <thead>
-                        <tr>
-                            <th>DATUM</th>
-                            <th>SUBJEKT</th>
-                            <th>TYP</th>
-                            <th>ČÁSTKA</th>
-                        </tr>
-                    </thead>
-                    <tbody id="accounting-body">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-    </main>
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const uName = urlParams.get('user') || "Neznámý Operativec";
-        const uRole = urlParams.get('role') || "Rekrut";
-
-        const fxType = document.getElementById('fx-type');
-        const fxBeep = document.getElementById('fx-beep');
-        const fxSuccess = document.getElementById('fx-success');
-
-        function playFX(sound) {
-            sound.currentTime = 0;
-            sound.play().catch(()=>{});
-        }
-
-        // --- ANIMACE UVÍTÁNÍ ---
-        const termLines = [
-            "> INITIALIZING SYSTEM...",
-            "> BYPASSING FIREWALL...",
-            "> CHECKING ENCRYPTED FILES...",
-            "> ACCESS GRANTED.",
-            "> --------------------------",
-            `> Welcome: Vítejte uživateli ${uName}`,
-            `> Role: ${uRole}`,
-            "> --------------------------",
-            "> LOADING INTERFACE..."
-        ];
-
-        let lineIdx = 0;
-        function typeTerm() {
-            if (lineIdx < termLines.length) {
-                const p = document.createElement('p');
-                p.textContent = termLines[lineIdx];
-                document.getElementById('term-text').appendChild(p);
-                playFX(fxType);
-                lineIdx++;
-                setTimeout(typeTerm, 600);
-            } else {
-                setTimeout(() => {
-                    playFX(fxSuccess);
-                    document.getElementById('terminal-overlay').style.display = 'none';
-                    document.getElementById('display-name').textContent = uName;
-                    document.getElementById('display-badge').textContent = uRole;
-                }, 1000);
-            }
-        }
-        window.onload = typeTerm;
-
-        // --- NAVIGACE ---
-        function handleNav(view) {
-            playFX(fxBeep);
-            document.getElementById('view-welcome').style.display = 'none';
-            document.getElementById('view-dossier').style.display = 'none';
-            document.getElementById('view-management').style.display = 'none';
-            document.getElementById('view-' + view).style.display = 'block';
-            if(view === 'management') initOrgCharts();
-            if(view === 'dossier') initUserCharts();
-        }
-
-        // --- GRAFY & LOGIKA ---
-        let orgChart;
-        function initOrgCharts() {
-            const ctx = document.getElementById('orgFinChart').getContext('2d');
-            if(orgChart) orgChart.destroy();
-            orgChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
-                    datasets: [
-                        { label: 'Výdaje (Výplaty)', data: [10, 25, 15, 30, 45, 20, 50], borderColor: '#ff0000', fill: false },
-                        { label: 'Výdělek Org.', data: [50, 80, 60, 90, 120, 110, 150], borderColor: '#00ff41', fill: false }
-                    ]
-                },
-                options: { responsive: true, plugins: { legend: { labels: { color: '#fff' } } } }
-            });
-        }
-
-        function initUserCharts() {
-            const ctx = document.getElementById('userEarningsChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ['Týden 1', 'Týden 2', 'Týden 3', 'Týden 4'],
-                    datasets: [{ label: 'Tvoje Výplata $', data: [1200, 1500, 1100, 1800], backgroundColor: '#ff0000' }]
-                }
-            });
-        }
-
-        function processPayment() {
-            const emp = document.getElementById('employee-select').selectedOptions[0].text;
-            const amt = document.getElementById('pay-amount').value;
-            if(!amt) return alert("Zadej částku!");
-
-            playFX(fxSuccess);
-            const body = document.getElementById('accounting-body');
-            const row = `<tr>
-                <td>${new Date().toLocaleDateString()}</td>
-                <td>${emp}</td>
-                <td>VÝPLATA</td>
-                <td class="money-minus">-$${amt}</td>
-            </tr>`;
-            body.innerHTML = row + body.innerHTML;
-            alert(`Platba pro ${emp} ve výši $${amt} byla odeslána.`);
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
