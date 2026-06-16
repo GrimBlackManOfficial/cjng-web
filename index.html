@@ -128,7 +128,7 @@
                                 <input type="number" id="act-amount" min="1" required>
                             </div>
                             <div class="form-group" id="field-value" style="display: none;">
-                                <label>Celková prodejní hodnota (Kč)</label>
+                                <label>Celková prodejní hodnota ($)</label>
                                 <input type="number" id="act-value" min="0">
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                                     <textarea id="act-mat-desc" rows="2" placeholder="Např. 50x Chemikálie, 10x Lahve"></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label>Celkové náklady na nákup (Kč)</label>
+                                    <label>Celkové náklady na nákup ($)</label>
                                     <input type="number" id="act-mat-cost" min="0" value="0">
                                 </div>
                             </div>
@@ -159,11 +159,11 @@
                     <div class="grid-2" style="margin-bottom: 20px;">
                         <div>
                             <span style="color: var(--text-muted); font-size: 13px;">Celková hodnota struktuře</span>
-                            <h2 id="stats-total-org" style="color: var(--primary); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 Kč</h2>
+                            <h2 id="stats-total-org" style="color: var(--primary); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 $</h2>
                         </div>
                         <div>
                             <span style="color: var(--text-muted); font-size: 13px;">Vaše nevyplacená provize</span>
-                            <h2 id="stats-total-emp" style="color: var(--success); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 Kč</h2>
+                            <h2 id="stats-total-emp" style="color: var(--success); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 $</h2>
                         </div>
                     </div>
                     <div style="height: 160px; position: relative;">
@@ -293,7 +293,7 @@
             <div class="grid-3">
                 <div class="card">
                     <h2>Finanční hotovost v trezoru</h2>
-                    <h1 id="trezor-money-display" style="color: var(--success); font-size: 32px; margin-bottom: 15px;">0 Kč</h1>
+                    <h1 id="trezor-money-display" style="color: var(--success); font-size: 32px; margin-bottom: 15px;">0 $</h1>
                     <form onsubmit="handleTrezorCash(event)">
                         <div class="form-row">
                             <select id="trezor-cash-op">
@@ -588,7 +588,7 @@
                 akce: type.toUpperCase(),
                 hodnota: hodnota,
                 provize: cistaProvize,
-                material: naklady > 0 ? `${matText} (${naklady} Kč)` : "Žádný",
+                material: naklady > 0 ? `${matText} (${naklady} $)` : "Žádný",
                 vyplaceno: false,
                 ks: amount
             };
@@ -622,8 +622,8 @@
             let celkemOrg = myRecords.reduce((sum, r) => sum + r.hodnota, 0);
             let celkemEmp = myRecords.filter(r => !r.vyplaceno).reduce((sum, r) => sum + r.provize, 0);
 
-            document.getElementById("stats-total-org").innerText = `${celkemOrg.toLocaleString()} Kč`;
-            document.getElementById("stats-total-emp").innerText = `${celkemEmp.toLocaleString()} Kč`;
+            document.getElementById("stats-total-org").innerText = `${celkemOrg.toLocaleString()} $`;
+            document.getElementById("stats-total-emp").innerText = `${celkemEmp.toLocaleString()} $`;
 
             const tbody = document.getElementById("table-user-history");
             tbody.innerHTML = myRecords.map(r => `
@@ -631,8 +631,8 @@
                     <td>${r.datum}</td>
                     <td><span class="badge warning">${r.akce}</span></td>
                     <td>${r.ks} ks</td>
-                    <td>${r.hodnota.toLocaleString()} Kč</td>
-                    <td style="color:var(--success); font-weight:bold;">${r.provize.toLocaleString()} Kč</td>
+                    <td>${r.hodnota.toLocaleString()} $</td>
+                    <td style="color:var(--success); font-weight:bold;">${r.provize.toLocaleString()} $</td>
                     <td><span style="font-size:12px; color:var(--text-muted);">${r.material}</span></td>
                     <td>${r.vyplaceno ? '<span class="badge success">Vyplaceno</span>' : '<span class="badge danger">Nevyplaceno</span>'}</td>
                 </tr>
@@ -695,7 +695,7 @@
                 <tr>
                     <td>${r.clovek}</td>
                     <td>${r.popis}</td>
-                    <td style="color:var(--danger);">${r.castka.toLocaleString()} Kč</td>
+                    <td style="color:var(--danger);">${r.castka.toLocaleString()} $</td>
                     <td>
                         <button onclick="resolveRequest(${r.id}, true)" style="background:var(--success); border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; margin-right:5px;">SCHVÁLIT</button>
                         <button onclick="resolveRequest(${r.id}, false)" style="background:var(--danger); border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">ZAMÍTNOUT</button>
@@ -709,8 +709,8 @@
                 return `
                     <tr>
                         <td><strong>${z.jmeno_prijmeni} (${z.prezdivka})</strong></td>
-                        <td>${(z.celkem_odvedeno_ks * 2500).toLocaleString()} Kč</td>
-                        <td style="color:var(--success); font-weight:bold;">${z.dluh_provize.toLocaleString()} Kč</td>
+                        <td>${(z.celkem_odvedeno_ks * 2500).toLocaleString()} $</td>
+                        <td style="color:var(--success); font-weight:bold;">${z.dluh_provize.toLocaleString()} $</td>
                         <td><span class="badge ${splneno ? 'success' : 'danger'}">${z.celkem_odvedeno_ks}/10 ks</span></td>
                         <td>
                             <button onclick="payoutUser('${z.user_id}')" ${z.dluh_provize === 0 ? 'disabled style="background:#222; cursor:default;"' : ''} style="background:var(--primary); border:none; color:white; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">VYPLATIT</button>
@@ -743,7 +743,7 @@
 
         // --- TREZOR ---
         function renderTrezor() {
-            document.getElementById("trezor-money-display").innerText = `${trezorFinance.hotovost.toLocaleString()} Kč`;
+            document.getElementById("trezor-money-display").innerText = `${trezorFinance.hotovost.toLocaleString()} $`;
             const tbody = document.getElementById("table-trezor-items");
             tbody.innerHTML = trezorSklad.map(i => `
                 <tr>
@@ -810,7 +810,7 @@
                     <td>${r.datum}</td>
                     <td>\`${r.clovek}\`</td>
                     <td>Zápis činnosti: <span class="badge warning">${r.akce}</span> (${r.ks} ks)</td>
-                    <td style="color:${r.akce === 'PRODEJ' ? 'var(--success)' : 'var(--text-main)'}; font-weight:bold;">+ ${r.hodnota.toLocaleString()} Kč</td>
+                    <td style="color:${r.akce === 'PRODEJ' ? 'var(--success)' : 'var(--text-main)'}; font-weight:bold;">+ ${r.hodnota.toLocaleString()} $</td>
                 </tr>
             `).join('');
         }
@@ -869,7 +869,7 @@
                 data: {
                     labels: ['Minulý týden', 'Aktuální týden'],
                     datasets: [{
-                        label: 'Obrat sítě v Kč',
+                        label: 'Obrat sítě v $',
                         data: [1240000, 1850000],
                         backgroundColor: ['#747d8c', '#962d22']
                     }]
@@ -883,7 +883,7 @@
                 data: {
                     labels: globalProfitLabels,
                     datasets: [{
-                        label: 'Okamžitý zisk z prodejů (Kč)',
+                        label: 'Okamžitý zisk z prodejů ($)',
                         data: globalProfitData,
                         borderColor: '#2ed573',
                         backgroundColor: 'rgba(46, 213, 115, 0.05)',
