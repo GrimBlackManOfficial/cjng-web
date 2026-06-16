@@ -101,7 +101,6 @@
             </div>
         </header>
 
-        <!-- SEKCE 1: SLOŽKA -->
         <div id="sec-slozka" class="section-content active">
             <div class="grid-2">
                 <div class="card">
@@ -176,7 +175,6 @@
             </div>
         </div>
 
-        <!-- SEKCE 2: SKLAD -->
         <div id="sec-sklad" class="section-content">
             <div class="grid-2">
                 <div class="card">
@@ -219,7 +217,6 @@
             </div>
         </div>
 
-        <!-- SEKCE 3: ÚČETNICTVÍ -->
         <div id="sec-ucetnictvi" class="section-content">
             <div class="grid-2">
                 <div class="card"><h2>Graf obratu sítě</h2><div style="height: 200px;"><canvas id="chart-accounting"></canvas></div></div>
@@ -234,7 +231,6 @@
             </div>
         </div>
 
-        <!-- SEKCE 4: TREZOR -->
         <div id="sec-trezor" class="section-content">
             <div class="grid-3">
                 <div class="card">
@@ -263,7 +259,6 @@
             </div>
         </div>
 
-        <!-- SEKCE 5: MANAGEMENT -->
         <div id="sec-management" class="section-content">
             <div class="card"><h2>Globální graf zisků</h2><div style="height: 220px;"><canvas id="chart-admin-global"></canvas></div></div>
             <div class="card">
@@ -276,82 +271,98 @@
         </div>
     </main>
 
-    <!-- 🌟 KLASICKÉ ČISTÉ DISCORD PŘIHLÁŠENÍ 🌟 -->
     <script>
         const SUPABASE_URL = "https://ybzprivahzjqpanvunli.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5"; 
-        
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        let activeUser = null; 
 
+        // ID tvé Discord aplikace z Developer Portálu
+        const DISCORD_CLIENT_ID = "1344426549206126622"; 
+
+        let activeUser = null; 
         const fixniSazby = { sber: 100, vyroba: 250 }; 
         const provizeProcenta = 0.40;
 
-        // VYVOLÁNÍ KLASICKÉHO OKNA DISCORDU
+        // Přesměrování rovnou na Discord přihlášení
         function loginWithDiscord() {
-            const currentUrl = window.location.origin + window.location.pathname;
-            _supabase.auth.signInWithOAuth({
-                provider: 'discord',
-                options: {
-                    redirectTo: currentUrl
-                }
-            });
+            const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
+            window.location.href = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=identify`;
         }
 
-        // KONTROLA PO NÁVRATU Z DISCORDU
-        async function checkUserSession() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            
-            if (session && session.user) {
-                // Vezmeme skutečné nefalšovatelné ID z Discord tokenu
-                const discordId = session.user.user_metadata.provider_id;
+        // Zpracování tokenu z adresního řádku a ověření přes Discord API
+        async function checkDiscordAuth() {
+            const fragment = new URLSearchParams(window.location.hash.slice(1));
+            let accessToken = fragment.get('access_token');
 
-                // Podíváme se do tabulky zaměstnanců
-                const { data: profile } = await _supabase
-                    .from('zamestnanci')
-                    .select('*')
-                    .eq('user_id', discordId)
-                    .maybeSingle();
+            if (accessToken) {
+                localStorage.setItem('dc_access_token', accessToken);
+                window.location.hash = ''; // Vyčistíme URL bar
+            } else {
+                accessToken = localStorage.getItem('dc_access_token');
+            }
 
-                if (!profile) {
-                    alert("Tvoje Discord ID nebylo nalezeno v databázi 'zamestnanci'!");
+            if (accessToken) {
+                try {
+                    // Zeptáme se přímo Discordu, kdo je tento uživatel (nefalšovatelné)
+                    const res = await fetch('https://discord.com/api/users/@me', {
+                        headers: { Authorization: `Bearer ${accessToken}` }
+                    });
+
+                    if (!res.ok) throw new Error("Neplatný token");
+
+                    const discordUser = await res.json();
+                    const discordId = discordUser.id; // Získané pravé ID
+
+                    // Kontrola v Supabase tabulce zaměstnanců
+                    const { data: profile } = await _supabase
+                        .from('zamestnanci')
+                        .select('*')
+                        .eq('user_id', discordId)
+                        .maybeSingle();
+
+                    if (!profile) {
+                        alert(`Uživatel s Discord ID: ${discordId} není zaveden v databázi 'zamestnanci'!`);
+                        logout();
+                        return;
+                    }
+
+                    // Všechno sedí, naplníme panel daty
+                    activeUser = {
+                        jmeno_prijmeni: profile.jmeno_prijmeni || "Uživatel",
+                        prezdivka: profile.prezdivka || "Uživatel",
+                        user_id: profile.user_id,
+                        role: profile.role || "vedeni",
+                        strikes: profile.strikes || 0
+                    };
+
+                    document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
+                    document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | ID: ${activeUser.user_id}`;
+                    updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
+
+                    if (activeUser.role === "ucetnik") {
+                        document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
+                    } else if (activeUser.role === "vedeni") {
+                        document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
+                    }
+
+                    fetchSklad(); fetchUserHistory(); fetchAccountingData(); fetchTrezorData(); fetchManagementData();
+                    
+                    const overlay = document.getElementById("login-overlay");
+                    if(overlay) overlay.remove();
+
+                } catch (err) {
+                    console.error(err);
                     logout();
-                    return;
                 }
-
-                activeUser = {
-                    jmeno_prijmeni: profile.jmeno_prijmeni || "Uživatel",
-                    prezdivka: profile.prezdivka || "Uživatel",
-                    user_id: profile.user_id,
-                    role: profile.role || "vedeni",
-                    strikes: profile.strikes || 0
-                };
-
-                // Zobrazení UI dat
-                document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
-                document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | ID: ${activeUser.user_id}`;
-                updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
-
-                if (activeUser.role === "ucetnik") {
-                    document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
-                } else if (activeUser.role === "vedeni") {
-                    document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
-                }
-
-                // Načtení dat ze Supabase
-                fetchSklad(); fetchUserHistory(); fetchAccountingData(); fetchTrezorData(); fetchManagementData();
-                
-                const overlay = document.getElementById("login-overlay");
-                if(overlay) overlay.remove();
             } else {
                 renderLoginScreen();
             }
         }
 
-        document.addEventListener("DOMContentLoaded", checkUserSession);
+        document.addEventListener("DOMContentLoaded", checkDiscordAuth);
 
-        async function logout() { 
-            await _supabase.auth.signOut(); 
+        function logout() { 
+            localStorage.removeItem('dc_access_token'); 
             window.location.reload(); 
         }
 
@@ -372,7 +383,7 @@
             document.body.appendChild(div);
         }
 
-        // --- BD SYNC FUNKCE ---
+        // --- ZBYTEK OPERACÍ SE SUPABASE (ZÁPISY DAT DO TABULEK) ---
         async function actionSubmit(e) {
             e.preventDefault(); const type = document.getElementById("act-type").value; const amount = parseInt(document.getElementById("act-amount").value);
             let hodnota = (type === 'prodej') ? parseInt(document.getElementById("act-value").value) : (fixniSazby[type] * amount); let cistaProvize = hodnota * provizeProcenta; const buyMaterials = document.getElementById("act-buy-materials")?.checked || false;
@@ -414,7 +425,7 @@
             const { data: u } = await _supabase.from('zamestnanci').select('*'); if (u) document.getElementById("table-admin-users").innerHTML = u.map(x => `<tr><td>${x.jmeno_prijmeni}</td><td>${x.prezdivka}</td><td>${x.telefon||'-'}</td><td><code>${x.user_id}</code></td><td><span class="badge success">${(x.role||'zamestnanec').toUpperCase()}</span></td></tr>`).join(''); const { data: a } = await _supabase.from('aktivity').select('celkovy_vynos'); if (a) renderGlobalAdminChart(a.reduce((s, x) => s + (x.celkovy_vynos || 0), 0));
         }
 
-        // --- GRAFY ---
+        // --- CHARTS ---
         let empChart, accChart, adminChart;
         function renderEmployeeChart(l, d) { if (empChart) empChart.destroy(); empChart = new Chart(document.getElementById('chart-employee').getContext('2d'), { type: 'line', data: { labels: l, datasets: [{ data: d, borderColor: '#2ed573', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
         function renderAccountingChart(o) { if (accChart) accChart.destroy(); accChart = new Chart(document.getElementById('chart-accounting').getContext('2d'), { type: 'bar', data: { labels: ['Obrat'], datasets: [{ data: [o], backgroundColor: ['#962d22'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
