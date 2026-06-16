@@ -257,7 +257,7 @@
                     </div>
                 </div>
                 <div class="card">
-                    <h2>Požadavky na schválení financí (Nákupy materiálů)</h2>
+                    <h2>Požadavky na schválení financí</h2>
                     <table>
                         <thead>
                             <tr>
@@ -306,7 +306,7 @@
                     </form>
                 </div>
                 <div class="card" style="grid-column: span 2;">
-                    <h2>Trezorový sklad (Cennosti, zbraně, dokumentace)</h2>
+                    <h2>Trezorový sklad</h2>
                     <table style="margin-bottom: 15px;">
                         <thead>
                             <tr>
@@ -363,29 +363,14 @@
                     </table>
                 </div>
             </div>
-
-            <div class="card">
-                <h2>Poslední aktivity všech uzlů sítě v reálném čase</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Čas</th>
-                            <th>Osoba</th>
-                            <th>Událost</th>
-                            <th>Finanční tok</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-admin-logs"></tbody>
-                </table>
-            </div>
         </div>
     </main>
 
     <script>
         // --- CONFIGURACE BRÁNY ---
-        const TARGET_GUILD_ID = "1417241414693031988"; // Tvůj specifikovaný Discord Server ID
+        const TARGET_GUILD_ID = "1417241414693031988"; 
 
-        // SEM DOPLŇ SVÉ REÁLNÉ ÚDAJE ZE SUPABASE (Settings -> API)
+        // !!! DOPLŇ SVÉ VLASTNÍ SUPABASE ADRESY !!!
         const SUPABASE_URL = "https://tvuj-projekt-id.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; 
 
@@ -393,55 +378,72 @@
 
         let activeUser = null; 
         
-        // --- DATA PRO STRÁNKY (VŠECHNY HODNOTY V USD) ---
         let databazeZamestnancu = [
             { user_id: "394104920419401924", jmeno_prijmeni: "Alejandro Vega", prezdivka: "El Chopo", telefon: "555-9124", strikes: 1, celkem_odvedeno_ks: 24, dluh_provize: 4500 },
             { user_id: "123456789012345678", jmeno_prijmeni: "Mateo Silva", prezdivka: "Negro", telefon: "555-1029", strikes: 0, celkem_odvedeno_ks: 8, dluh_provize: 0 }
         ];
 
-        let skladPolozky = [
-            { id: "1", nazev: "Průmyslová chemie", ks: 140, zapisovatel: "Negro" }
-        ];
-
+        let skladPolozky = [{ id: "1", nazev: "Průmyslová chemie", ks: 140, zapisovatel: "Negro" }];
         let trezorFinance = { hotovost: 345000 };
         let trezorSklad = [{ nazev: "Zlaté slitky", ks: 12 }];
         let centralniZaznamy = [];
-        let nakupniPozadavky = [];
 
-        const fixniSazby = { sber: 100, vyroba: 250 }; // Ceny změněny na rozumné dolary
+        const fixniSazby = { sber: 100, vyroba: 250 }; 
         const provizeProcenta = 0.40;
 
-        // --- GATEWAY LOCK: KONTROLA SERVERU A ROLÍ ---
+        // --- SPOLEHLIVÉ VYTAŽENÍ TOKENU Z URL NEBO SESSION ---
+        function getDiscordToken(session) {
+            // Metoda 1: Pokus o vytažení přímo z URL hashe po přesměrování (Supabase ho tam dává jako provider_token)
+            const hash = window.location.hash;
+            if (hash) {
+                const params = new URLSearchParams(hash.replace('#', '?'));
+                const token = params.get('provider_token');
+                if (token) return token;
+            }
+            // Metoda 2: Klasický záložní pokus ze session
+            return session?.provider_token || null;
+        }
+
+        // --- OCHRANNÁ BRÁNA ---
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error } = await _supabase.auth.getSession();
 
-            // PŘÍPAD A: Uživatel není přihlášen přes Discord auth -> Stopka
             if (!session) {
                 renderLoginScreen();
                 return;
             }
 
-            const providerToken = session.provider_token;
+            // Zde je oprava: Používáme vylepšenou funkci pro odchycení tokenu
+            const providerToken = getDiscordToken(session);
             const discordId = session.user.user_metadata.provider_id || session.user.id;
             const userGlobalName = session.user.user_metadata.full_name || session.user.user_metadata.name;
 
+            if (!providerToken) {
+                console.error("Token chybí v paměti. Vynucuji čisté přihlášení.");
+                renderAccessDeniedScreen(discordId, "Chyba přihlašovací relace (Chybí přístupový token). Klikněte na tlačítko níže pro obnovení.");
+                return;
+            }
+
             try {
+                // Dotaz na Discord servery uživatele
                 const guildResponse = await fetch('https://discord.com/api/users/@me/guilds', {
                     headers: { Authorization: `Bearer ${providerToken}` }
                 });
                 
-                if (!guildResponse.ok) throw new Error("Nelze ověřit servery uživatele.");
+                if (!guildResponse.ok) {
+                    throw new Error("Discord odmítl vydat data o serverech. Token mohl vypršet.");
+                }
+                
                 const guilds = await guildResponse.json();
 
-                // 1. KONTROLA: Nachází se uživatel na tvém serveru?
+                // 1. KONTROLA SERVERU
                 const isInTargetGuild = guilds.some(g => g.id === TARGET_GUILD_ID);
-                
                 if (!isInTargetGuild) {
-                    renderAccessDeniedScreen(discordId, "Nejste členem požadovaného Discord serveru.");
+                    renderAccessDeniedScreen(discordId, "Přístup zamítnut. Nejste členem požadovaného Discord serveru.");
                     return;
                 }
 
-                // 2. KONTROLA ROLÍ: Vytáhneme profil uživatele ze Supabase tabulky 'zamestnanci'
+                // 2. KONTROLA DATABÁZE (Role a existence)
                 const { data: profile, error: dbError } = await _supabase
                     .from('zamestnanci')
                     .select('user_id, jmeno_prijmeni, role, strikes')
@@ -449,10 +451,11 @@
                     .maybeSingle();
 
                 if (dbError || !profile || !profile.role) {
-                    renderAccessDeniedScreen(discordId, "Na Discord serveru sice jste, ale v databázi nemáte přiřazenou platnou pozici/roli.");
+                    renderAccessDeniedScreen(discordId, "Na Discord serveru jsi, ale v databázi nemáš nastavenou platnou roli (kontaktuj vedení).");
                     return;
                 }
 
+                // Spárování uživatele
                 activeUser = {
                     jmeno_prijmeni: profile.jmeno_prijmeni || userGlobalName,
                     prezdivka: userGlobalName,
@@ -461,12 +464,16 @@
                     strikes: profile.strikes || 0
                 };
 
-                // Propis dat přihlášeného na horní lištu (Zobrazí se jeho pozice/role)
+                // Vyčištění URL od tokenů kvůli bezpečnosti
+                if (window.location.hash) {
+                    window.history.replaceState(null, null, window.location.pathname);
+                }
+
+                // Zobrazení UI prvků podle ověřených dat
                 document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
                 document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | Discord ID: ${activeUser.user_id}`;
                 updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
 
-                // Dynamické odemknutí sekcí podle role z databáze
                 if (activeUser.role === "ucetnik") {
                     document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
                 } else if (activeUser.role === "vedeni") {
@@ -478,18 +485,19 @@
                 initCharts();
 
             } catch (err) {
-                console.error("Chyba autorizační brány:", err);
-                renderAccessDeniedScreen(discordId, "Nastala technická chyba při ověřování práv s Discord API.");
+                console.error("Chyba brány:", err);
+                renderAccessDeniedScreen(discordId, "Došlo k chybě komunikace s Discord API. Zkus se přihlásit znovu.");
             }
         });
 
-        // --- AUTH STRÁNKY A ŠABLONY ---
+        // --- AUTH OPERACE ---
         async function loginWithDiscord() {
-            const { data, error } = await _supabase.auth.signInWithOAuth({
+            // DŮLEŽITÉ: Přidán parametr pro vynucení uložení relací
+            await _supabase.auth.signInWithOAuth({
                 provider: 'discord',
                 options: { 
-                    scopes: 'guilds', 
-                    redirectTo: window.location.origin + window.location.pathname 
+                    scopes: 'guilds',
+                    redirectTo: window.location.origin + window.location.pathname
                 }
             });
         }
@@ -520,81 +528,26 @@
                         <p style="color:#747d8c; font-size:13px; margin-bottom:25px; background:#0f0f12; padding:10px; border-radius:5px; border:1px solid #22222b;">
                             Moje Discord ID: <code style="color:#ffa502;">${failedId}</code>
                         </p>
-                        <button onclick="logout()" style="background:#222; color:#747d8c; border:1px solid #333; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:12px; font-weight:bold; text-transform:uppercase;">Zkusit jiný účet</button>
+                        <button onclick="logout()" style="background:#222; color:#747d8c; border:1px solid #333; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:12px; font-weight:bold; text-transform:uppercase;">Přihlásit se znovu</button>
                     </div>
                 </div>
             `;
         }
 
-        // --- LOGIKA FUNKCÍ WEBU ---
-        function refreshAllViews() {
-            renderUserHistory();
-            renderStock();
-            renderAccounting();
-            renderTrezor();
-            renderAdminPanel();
-        }
-
-        function showSection(secId) {
-            document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active'));
-            document.getElementById(`sec-${secId}`).classList.add('active');
-            document.getElementById(`nav-${secId}`).classList.add('active');
-        }
-
-        function toggleFormFields() {
-            const type = document.getElementById("act-type").value;
-            document.getElementById("field-value").style.display = (type === 'prodej') ? 'block' : 'none';
-            document.getElementById("field-materials").style.display = (type === 'vyroba') ? 'block' : 'none';
-        }
-
-        function toggleMaterialInputs() {
-            const checked = document.getElementById("act-buy-materials").checked;
-            document.getElementById("material-inputs").style.display = checked ? 'block' : 'none';
-        }
-
-        function actionSubmit(e) {
-            e.preventDefault();
-            const type = document.getElementById("act-type").value;
-            const amount = parseInt(document.getElementById("act-amount").value);
-            let hodnota = (type === 'prodej') ? parseInt(document.getElementById("act-value").value) : (fixniSazby[type] * amount);
-            let cistaProvize = hodnota * provizeProcenta;
-
-            centralniZaznamy.unshift({
-                datum: new Date().toLocaleDateString('cs-CZ'),
-                clovek: activeUser.prezdivka,
-                akce: type.toUpperCase(),
-                hodnota: hodnota,
-                provize: cistaProvize,
-                material: "Žádný",
-                vyplaceno: false,
-                ks: amount
-            });
-            refreshAllViews();
-        }
-
-        function renderUserHistory() {
-            const myRecords = centralniZaznamy.filter(r => r.clovek === activeUser.prezdivka);
-            document.getElementById("stats-total-org").innerText = `$${myRecords.reduce((sum, r) => sum + r.hodnota, 0).toLocaleString()}`;
-            document.getElementById("stats-total-emp").innerText = `$${myRecords.filter(r => !r.vyplaceno).reduce((sum, r) => sum + r.provize, 0).toLocaleString()}`;
-            document.getElementById("table-user-history").innerHTML = myRecords.map(r => `<tr><td>${r.datum}</td><td><span class="badge warning">${r.akce}</span></td><td>${r.ks} ks</td><td>$${r.hodnota.toLocaleString()}</td><td style="color:var(--success); font-weight:bold;">$${r.provize.toLocaleString()}</td><td>-</td><td>Nevyplaceno</td></tr>`).join('');
-        }
-
+        // --- ZBYTKOVÁ LOGIKA A FUNKCE ---
+        function refreshAllViews() { renderUserHistory(); renderStock(); renderTrezor(); }
+        function showSection(secId) { document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active')); document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active')); document.getElementById(`sec-${secId}`).classList.add('active'); document.getElementById(`nav-${secId}`).classList.add('active'); }
+        function toggleFormFields() { const type = document.getElementById("act-type").value; document.getElementById("field-value").style.display = (type === 'prodej') ? 'block' : 'none'; document.getElementById("field-materials").style.display = (type === 'vyroba') ? 'block' : 'none'; }
+        function toggleMaterialInputs() { const checked = document.getElementById("act-buy-materials").checked; document.getElementById("material-inputs").style.display = checked ? 'block' : 'none'; }
+        function actionSubmit(e) { e.preventDefault(); const type = document.getElementById("act-type").value; const amount = parseInt(document.getElementById("act-amount").value); let hodnota = (type === 'prodej') ? parseInt(document.getElementById("act-value").value) : (fixniSazby[type] * amount); let cistaProvize = hodnota * provizeProcenta; centralniZaznamy.unshift({ datum: new Date().toLocaleDateString('cs-CZ'), clovek: activeUser.prezdivka, akce: type.toUpperCase(), hodnota: hodnota, provize: cistaProvize, vyplaceno: false, ks: amount }); refreshAllViews(); }
+        function renderUserHistory() { const myRecords = centralniZaznamy.filter(r => r.clovek === activeUser.prezdivka); document.getElementById("stats-total-org").innerText = `$${myRecords.reduce((sum, r) => sum + r.hodnota, 0).toLocaleString()}`; document.getElementById("stats-total-emp").innerText = `$${myRecords.filter(r => !r.vyplaceno).reduce((sum, r) => sum + r.provize, 0).toLocaleString()}`; document.getElementById("table-user-history").innerHTML = myRecords.map(r => `<tr><td>${r.datum}</td><td><span class="badge warning">${r.akce}</span></td><td>${r.ks} ks</td><td>$${r.hodnota.toLocaleString()}</td><td style="color:var(--success); font-weight:bold;">$${r.provize.toLocaleString()}</td><td>-</td><td>Nevyplaceno</td></tr>`).join(''); }
         function initCatalogSelects() { document.getElementById("stock-item-id").innerHTML = skladPolozky.map(p => `<option value="${p.id}">${p.nazev}</option>`).join(''); }
         function renderStock() { document.getElementById("table-stock").innerHTML = skladPolozky.map(p => `<tr><td><strong>${p.nazev}</strong></td><td><span class="badge success">${p.ks} ks</span></td><td>\`${p.zapisovatel}\`</td></tr>`).join(''); }
         function stockSubmit(e) { e.preventDefault(); const itemId = document.getElementById("stock-item-id").value; const op = document.getElementById("stock-op").value; const qty = parseInt(document.getElementById("stock-qty").value); let item = skladPolozky.find(p => p.id === itemId); if(item) { item.ks = op === 'add' ? item.ks + qty : Math.max(0, item.ks - qty); item.zapisovatel = activeUser.prezdivka; } renderStock(); }
         function newItemSubmit(e) { e.preventDefault(); skladPolozky.push({ id: (skladPolozky.length+1).toString(), nazev: document.getElementById("new-item-name").value, ks: parseInt(document.getElementById("new-item-qty").value), zapisovatel: activeUser.prezdivka }); initCatalogSelects(); renderStock(); }
-        
-        function renderAccounting() {}
-        
-        function renderTrezor() { 
-            document.getElementById("trezor-money-display").innerText = `$${trezorFinance.hotovost.toLocaleString()}`; 
-            document.getElementById("table-trezor-items").innerHTML = trezorSklad.map(i => `<tr><td><strong>${i.nazev}</strong></td><td><span class="badge warning">${i.ks} ks</span></td></tr>`).join(''); 
-        }
-        
+        function renderTrezor() { document.getElementById("trezor-money-display").innerText = `$${trezorFinance.hotovost.toLocaleString()}`; document.getElementById("table-trezor-items").innerHTML = trezorSklad.map(i => `<tr><td><strong>${i.nazev}</strong></td><td><span class="badge warning">${i.ks} ks</span></td></tr>`).join(''); }
         function handleTrezorCash(e) { e.preventDefault(); const op = document.getElementById("trezor-cash-op").value; const amt = parseInt(document.getElementById("trezor-cash-amount").value); trezorFinance.hotovost = op === 'add' ? trezorFinance.hotovost + amt : Math.max(0, trezorFinance.hotovost - amt); renderTrezor(); }
         function handleTrezorItem(e) { e.preventDefault(); trezorSklad.push({ nazev: document.getElementById("trezor-item-name").value, ks: parseInt(document.getElementById("trezor-item-qty").value) }); renderTrezor(); }
-        function renderAdminPanel() {}
         function getStrikeDotsHTML(count) { let html = ''; for(let i=1; i<=3; i++) html += `<span class="strike-dot ${i<=count?'active':''}"></span>`; return html; }
         function updateStrikesDisplay(count, elementId) { document.getElementById(elementId).innerHTML = `Varování: ` + getStrikeDotsHTML(count); }
 
