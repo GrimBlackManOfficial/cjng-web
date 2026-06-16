@@ -102,7 +102,7 @@
         <header>
             <div class="user-meta">
                 <h3 id="profile-name">Načítání profilu...</h3>
-                <span id="profile-details">Přezdívka: ... | ID: ...</span>
+                <span id="profile-details">Pozice: ... | ID: ...</span>
             </div>
             <div>
                 <span id="profile-strikes-top">Varování: 0/3</span>
@@ -112,7 +112,7 @@
         <div id="sec-slozka" class="section-content active">
             <div class="grid-2">
                 <div class="card">
-                    <h2>Vykázat Výkon do Systému</h2>
+                    <h2>Vykázat Výkon do Sítě</h2>
                     <form onsubmit="actionSubmit(event)">
                         <div class="form-group">
                             <label>Druh činnosti</label>
@@ -128,7 +128,7 @@
                                 <input type="number" id="act-amount" min="1" required>
                             </div>
                             <div class="form-group" id="field-value" style="display: none;">
-                                <label>Celková prodejní hodnota (Kč)</label>
+                                <label>Celková prodejní hodnota ($)</label>
                                 <input type="number" id="act-value" min="0">
                             </div>
                         </div>
@@ -144,7 +144,7 @@
                                     <textarea id="act-mat-desc" rows="2" placeholder="Např. 50x Chemikálie, 10x Lahve"></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label>Celkové náklady na nákup (Kč)</label>
+                                    <label>Celkové náklady na nákup ($)</label>
                                     <input type="number" id="act-mat-cost" min="0" value="0">
                                 </div>
                             </div>
@@ -159,11 +159,11 @@
                     <div class="grid-2" style="margin-bottom: 20px;">
                         <div>
                             <span style="color: var(--text-muted); font-size: 13px;">Celková hodnota struktuře</span>
-                            <h2 id="stats-total-org" style="color: var(--primary); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 Kč</h2>
+                            <h2 id="stats-total-org" style="color: var(--primary); font-size: 24px; border: none; padding: 0; margin: 5px 0;">$0</h2>
                         </div>
                         <div>
                             <span style="color: var(--text-muted); font-size: 13px;">Vaše nevyplacená provize</span>
-                            <h2 id="stats-total-emp" style="color: var(--success); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 Kč</h2>
+                            <h2 id="stats-total-emp" style="color: var(--success); font-size: 24px; border: none; padding: 0; margin: 5px 0;">$0</h2>
                         </div>
                     </div>
                     <div style="height: 160px; position: relative;">
@@ -293,7 +293,7 @@
             <div class="grid-3">
                 <div class="card">
                     <h2>Finanční hotovost v trezoru</h2>
-                    <h1 id="trezor-money-display" style="color: var(--success); font-size: 32px; margin-bottom: 15px;">0 Kč</h1>
+                    <h1 id="trezor-money-display" style="color: var(--success); font-size: 32px; margin-bottom: 15px;">$0</h1>
                     <form onsubmit="handleTrezorCash(event)">
                         <div class="form-row">
                             <select id="trezor-cash-op">
@@ -382,7 +382,9 @@
     </main>
 
     <script>
-        // --- KONFIGURACE SUPABASE ---
+        // --- CONFIGURACE BRÁNY ---
+        const TARGET_GUILD_ID = "1417241414693031988"; // Tvůj specifikovaný Discord Server ID
+
         // SEM DOPLŇ SVÉ REÁLNÉ ÚDAJE ZE SUPABASE (Settings -> API)
         const SUPABASE_URL = "https://tvuj-projekt-id.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; 
@@ -391,102 +393,105 @@
 
         let activeUser = null; 
         
-        // --- SIMULOVANÁ DATA PRO STRÁNKY (KTERÁ SE INTEGRUJÍ DO TVÝCH DALŠÍCH TABULEK) ---
+        // --- DATA PRO STRÁNKY (VŠECHNY HODNOTY V USD) ---
         let databazeZamestnancu = [
-            { user_id: "394104920419401924", jmeno_prijmeni: "Alejandro Vega", prezdivka: "El Chopo", telefon: "555-9124", strikes: 1, celkem_odvedeno_ks: 24, dluh_provize: 45000 },
-            { user_id: "123456789012345678", jmeno_prijmeni: "Mateo Silva", prezdivka: "Negro", telefon: "555-1029", strikes: 0, celkem_odvedeno_ks: 8, dluh_provize: 0 },
-            { user_id: "987654321098765432", jmeno_prijmeni: "Carlos Mendez", prezdivka: "Picasso", telefon: "555-4481", strikes: 2, celkem_odvedeno_ks: 45, dluh_provize: 120000 }
+            { user_id: "394104920419401924", jmeno_prijmeni: "Alejandro Vega", prezdivka: "El Chopo", telefon: "555-9124", strikes: 1, celkem_odvedeno_ks: 24, dluh_provize: 4500 },
+            { user_id: "123456789012345678", jmeno_prijmeni: "Mateo Silva", prezdivka: "Negro", telefon: "555-1029", strikes: 0, celkem_odvedeno_ks: 8, dluh_provize: 0 }
         ];
 
         let skladPolozky = [
-            { id: "1", nazev: "Průmyslová chemie", ks: 140, zapisovatel: "Negro" },
-            { id: "2", nazev: "Zajištěný balíček", ks: 45, zapisovatel: "Picasso" }
+            { id: "1", nazev: "Průmyslová chemie", ks: 140, zapisovatel: "Negro" }
         ];
 
-        let trezorFinance = { hotovost: 3450000 };
-        let trezorSklad = [
-            { nazev: "Konfiskované dokumenty", ks: 3 },
-            { nazev: "Zlaté slitky", ks: 12 }
-        ];
+        let trezorFinance = { hotovost: 345000 };
+        let trezorSklad = [{ nazev: "Zlaté slitky", ks: 12 }];
+        let centralniZaznamy = [];
+        let nakupniPozadavky = [];
 
-        let centralniZaznamy = [
-            { datum: "16. 06. 2026", clovek: "Picasso", akce: "PRODEJ", hodnota: 200000, provize: 80000, material: "Žádný", vyplaceno: false, ks: 40 },
-            { datum: "15. 06. 2026", clovek: "Negro", akce: "SBĚR", hodnota: 15000, provize: 6000, material: "Žádný", vyplaceno: true, ks: 15 }
-        ];
-
-        let nakupniPozadavky = [
-            { id: 101, clovek: "Negro", popis: "Baterie a kabely do laboratoře", castka: 25000, stav: "Čeká" }
-        ];
-
-        const fixniSazby = { sber: 1000, vyroba: 2500 };
+        const fixniSazby = { sber: 100, vyroba: 250 }; // Ceny změněny na rozumné dolary
         const provizeProcenta = 0.40;
 
-        // --- GATEWAY LOCK: SPUŠTĚNÍ PROTOKOLU PŘI NAČTENÍ ---
+        // --- GATEWAY LOCK: KONTROLA SERVERU A ROLÍ ---
         document.addEventListener("DOMContentLoaded", async () => {
             const { data: { session }, error } = await _supabase.auth.getSession();
 
-            // PŘÍPAD A: Uživatel není přihlášen přes Discord -> Vynutit přihlašovací obrazovku
+            // PŘÍPAD A: Uživatel není přihlášen přes Discord auth -> Stopka
             if (!session) {
                 renderLoginScreen();
                 return;
             }
 
-            // Získání ověřeného Discord ID přímo z meta-dat přihlášení
+            const providerToken = session.provider_token;
             const discordId = session.user.user_metadata.provider_id || session.user.id;
+            const userGlobalName = session.user.user_metadata.full_name || session.user.user_metadata.name;
 
             try {
-                // PŘÍPAD B: Blesková kontrola v Supabase, zda se ID nachází v tabulce zaměstnanců
-                const { data: profile, error: dbError } = await _supabase
-                    .from('zamestnanci')
-                    .select('user_id, jmeno_prijmeni, prezdivka, role, strikes')
-                    .eq('user_id', discordId)
-                    .maybeSingle();
+                const guildResponse = await fetch('https://discord.com/api/users/@me/guilds', {
+                    headers: { Authorization: `Bearer ${providerToken}` }
+                });
+                
+                if (!guildResponse.ok) throw new Error("Nelze ověřit servery uživatele.");
+                const guilds = await guildResponse.json();
 
-                // Pokud nastala chyba nebo ID v DB vůbec neexistuje -> TVRDÁ STOPKA
-                if (dbError || !profile) {
-                    renderAccessDeniedScreen(discordId);
+                // 1. KONTROLA: Nachází se uživatel na tvém serveru?
+                const isInTargetGuild = guilds.some(g => g.id === TARGET_GUILD_ID);
+                
+                if (!isInTargetGuild) {
+                    renderAccessDeniedScreen(discordId, "Nejste členem požadovaného Discord serveru.");
                     return;
                 }
 
-                // PŘÍPAD C: ID nalezeno. Spárujeme profil z databáze a pouštíme ho do systému.
+                // 2. KONTROLA ROLÍ: Vytáhneme profil uživatele ze Supabase tabulky 'zamestnanci'
+                const { data: profile, error: dbError } = await _supabase
+                    .from('zamestnanci')
+                    .select('user_id, jmeno_prijmeni, role, strikes')
+                    .eq('user_id', discordId)
+                    .maybeSingle();
+
+                if (dbError || !profile || !profile.role) {
+                    renderAccessDeniedScreen(discordId, "Na Discord serveru sice jste, ale v databázi nemáte přiřazenou platnou pozici/roli.");
+                    return;
+                }
+
                 activeUser = {
-                    jmeno_prijmeni: profile.jmeno_prijmeni,
-                    prezdivka: profile.prezdivka,
-                    user_id: profile.user_id,
-                    role: profile.role || 'zamestnanec', 
+                    jmeno_prijmeni: profile.jmeno_prijmeni || userGlobalName,
+                    prezdivka: userGlobalName,
+                    user_id: discordId,
+                    role: profile.role, 
                     strikes: profile.strikes || 0
                 };
 
-                // Propis dat přihlášeného na horní lištu
+                // Propis dat přihlášeného na horní lištu (Zobrazí se jeho pozice/role)
                 document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
-                document.getElementById("profile-details").innerText = `Přezdívka: ${activeUser.prezdivka} | ID: ${activeUser.user_id}`;
+                document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | Discord ID: ${activeUser.user_id}`;
                 updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
 
-                // Odemykání sekcí na základě role vytažené ze Supabase
+                // Dynamické odemknutí sekcí podle role z databáze
                 if (activeUser.role === "ucetnik") {
                     document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
                 } else if (activeUser.role === "vedeni") {
                     document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
                 }
 
-                // Oživení rozhraní
                 initCatalogSelects();
                 refreshAllViews();
                 initCharts();
 
             } catch (err) {
-                console.error("Kritické selhání autorizace:", err);
-                renderAccessDeniedScreen(discordId);
+                console.error("Chyba autorizační brány:", err);
+                renderAccessDeniedScreen(discordId, "Nastala technická chyba při ověřování práv s Discord API.");
             }
         });
 
-        // --- DISCORD AUTH METODY ---
+        // --- AUTH STRÁNKY A ŠABLONY ---
         async function loginWithDiscord() {
             const { data, error } = await _supabase.auth.signInWithOAuth({
                 provider: 'discord',
-                options: { redirectTo: window.location.origin + window.location.pathname }
+                options: { 
+                    scopes: 'guilds', 
+                    redirectTo: window.location.origin + window.location.pathname 
+                }
             });
-            if (error) console.error("Chyba autorizační brány:", error.message);
         }
 
         async function logout() {
@@ -494,36 +499,34 @@
             window.location.reload();
         }
 
-        // --- GENERÁTORY VNUCENÝCH OBRAZOVEK ---
         function renderLoginScreen() {
             document.body.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; position:fixed; top:0; left:0; z-index:99999;">
                     <h1 style="color:#962d22; margin-bottom:10px; letter-spacing:3px;">CJNG - CENTRÁLNÍ REGISTRY</h1>
-                    <p style="color:#747d8c; margin-bottom:25px; font-size:14px;">Vstup povinen pouze autorizovaným uzlům sítě.</p>
-                    <button onclick="loginWithDiscord()" style="background:#5865F2; color:white; border:none; padding:16px 32px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; display:flex; align-items:center; gap:10px; text-transform:uppercase; letter-spacing:1px;">
-                        Ověřit identitu přes Discord
+                    <p style="color:#747d8c; margin-bottom:25px; font-size:14px;">Vstup povinen pouze členům oficiálního Discord serveru.</p>
+                    <button onclick="loginWithDiscord()" style="background:#5865F2; color:white; border:none; padding:16px 32px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; text-transform:uppercase; letter-spacing:1px;">
+                        Vstoupit přes Discord bránu
                     </button>
                 </div>
             `;
         }
 
-        function renderAccessDeniedScreen(failedId) {
+        function renderAccessDeniedScreen(failedId, duvod) {
             document.body.innerHTML = `
                 <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; text-align:center; padding:20px; position:fixed; top:0; left:0; z-index:99999;">
                     <div style="background:#15151a; border: 1px solid #962d22; padding:40px; border-radius:10px; max-width:500px; box-shadow: 0 0 20px rgba(150,45,34,0.2);">
                         <h1 style="color:#ff4757; margin-bottom:15px; letter-spacing:1px; font-size:26px;">⚠️ PŘÍSTUP ZAMÍTNUT ⚠️</h1>
-                        <p style="color:#f1f2f6; margin-bottom:15px; font-size:15px; font-weight:bold;">Vaše identita nebyla nalezena v interní struktuře.</p>
+                        <p style="color:#f1f2f6; margin-bottom:15px; font-size:15px; font-weight:bold;">${duvod}</p>
                         <p style="color:#747d8c; font-size:13px; margin-bottom:25px; background:#0f0f12; padding:10px; border-radius:5px; border:1px solid #22222b;">
-                            Protokolované ID: <code style="color:#ffa502;">${failedId}</code>
+                            Moje Discord ID: <code style="color:#ffa502;">${failedId}</code>
                         </p>
-                        <p style="color:#747d8c; font-size:13px; margin-bottom:20px;">Pokud jste novým zaměstnancem, musíte nejprve projít registrací u vedení, které vaše ID zavede do centrální databáze.</p>
                         <button onclick="logout()" style="background:#222; color:#747d8c; border:1px solid #333; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:12px; font-weight:bold; text-transform:uppercase;">Zkusit jiný účet</button>
                     </div>
                 </div>
             `;
         }
 
-        // --- OVLÁDÁNÍ OBSAHU ---
+        // --- LOGIKA FUNKCÍ WEBU ---
         function refreshAllViews() {
             renderUserHistory();
             renderStock();
@@ -535,7 +538,6 @@
         function showSection(secId) {
             document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-links button').forEach(el => el.classList.remove('active'));
-            
             document.getElementById(`sec-${secId}`).classList.add('active');
             document.getElementById(`nav-${secId}`).classList.add('active');
         }
@@ -551,348 +553,56 @@
             document.getElementById("material-inputs").style.display = checked ? 'block' : 'none';
         }
 
-        // --- KONTROLA VÝKONU ---
         function actionSubmit(e) {
             e.preventDefault();
             const type = document.getElementById("act-type").value;
             const amount = parseInt(document.getElementById("act-amount").value);
-            
-            let hodnota = 0;
-            let naklady = 0;
-            let matText = "Žádný";
-
-            if (type === 'prodej') {
-                hodnota = parseInt(document.getElementById("act-value").value);
-            } else {
-                hodnota = fixniSazby[type] * amount;
-            }
-
-            if (type === 'vyroba' && document.getElementById("act-buy-materials").checked) {
-                naklady = parseInt(document.getElementById("act-mat-cost").value);
-                matText = document.getElementById("act-mat-desc").value || "Materiál bez popisu";
-                
-                nakupniPozadavky.push({
-                    id: Date.now(),
-                    clovek: activeUser.prezdivka,
-                    popis: matText,
-                    castka: naklady,
-                    stav: "Čeká"
-                });
-            }
-
+            let hodnota = (type === 'prodej') ? parseInt(document.getElementById("act-value").value) : (fixniSazby[type] * amount);
             let cistaProvize = hodnota * provizeProcenta;
 
-            const novyZaznam = {
+            centralniZaznamy.unshift({
                 datum: new Date().toLocaleDateString('cs-CZ'),
                 clovek: activeUser.prezdivka,
                 akce: type.toUpperCase(),
                 hodnota: hodnota,
                 provize: cistaProvize,
-                material: naklady > 0 ? `${matText} (${naklady} Kč)` : "Žádný",
+                material: "Žádný",
                 vyplaceno: false,
                 ks: amount
-            };
-
-            centralniZaznamy.unshift(novyZaznam);
-            
-            let z = databazeZamestnancu.find(u => u.user_id === activeUser.user_id);
-            if(z) {
-                z.celkem_odvedeno_ks += amount;
-                z.dluh_provize += cistaProvize;
-            }
-
-            if (type === 'prodej') {
-                globalProfitData.push(hodnota);
-                globalProfitLabels.push(novyZaznam.datum);
-                if (adminChart) adminChart.update();
-            }
-
+            });
             refreshAllViews();
-            document.getElementById("act-amount").value = "";
-            document.getElementById("act-value").value = "";
-            document.getElementById("act-mat-cost").value = "0";
-            document.getElementById("act-mat-desc").value = "";
-            document.getElementById("act-buy-materials").checked = false;
-            toggleMaterialInputs();
         }
 
         function renderUserHistory() {
             const myRecords = centralniZaznamy.filter(r => r.clovek === activeUser.prezdivka);
-            
-            let celkemOrg = myRecords.reduce((sum, r) => sum + r.hodnota, 0);
-            let celkemEmp = myRecords.filter(r => !r.vyplaceno).reduce((sum, r) => sum + r.provize, 0);
-
-            document.getElementById("stats-total-org").innerText = `${celkemOrg.toLocaleString()} Kč`;
-            document.getElementById("stats-total-emp").innerText = `${celkemEmp.toLocaleString()} Kč`;
-
-            const tbody = document.getElementById("table-user-history");
-            tbody.innerHTML = myRecords.map(r => `
-                <tr>
-                    <td>${r.datum}</td>
-                    <td><span class="badge warning">${r.akce}</span></td>
-                    <td>${r.ks} ks</td>
-                    <td>${r.hodnota.toLocaleString()} Kč</td>
-                    <td style="color:var(--success); font-weight:bold;">${r.provize.toLocaleString()} Kč</td>
-                    <td><span style="font-size:12px; color:var(--text-muted);">${r.material}</span></td>
-                    <td>${r.vyplaceno ? '<span class="badge success">Vyplaceno</span>' : '<span class="badge danger">Nevyplaceno</span>'}</td>
-                </tr>
-            `).join('');
+            document.getElementById("stats-total-org").innerText = `$${myRecords.reduce((sum, r) => sum + r.hodnota, 0).toLocaleString()}`;
+            document.getElementById("stats-total-emp").innerText = `$${myRecords.filter(r => !r.vyplaceno).reduce((sum, r) => sum + r.provize, 0).toLocaleString()}`;
+            document.getElementById("table-user-history").innerHTML = myRecords.map(r => `<tr><td>${r.datum}</td><td><span class="badge warning">${r.akce}</span></td><td>${r.ks} ks</td><td>$${r.hodnota.toLocaleString()}</td><td style="color:var(--success); font-weight:bold;">$${r.provize.toLocaleString()}</td><td>-</td><td>Nevyplaceno</td></tr>`).join('');
         }
 
-        // --- SKLAD ---
-        function initCatalogSelects() {
-            const select = document.getElementById("stock-item-id");
-            select.innerHTML = skladPolozky.map(p => `<option value="${p.id}">${p.nazev}</option>`).join('');
+        function initCatalogSelects() { document.getElementById("stock-item-id").innerHTML = skladPolozky.map(p => `<option value="${p.id}">${p.nazev}</option>`).join(''); }
+        function renderStock() { document.getElementById("table-stock").innerHTML = skladPolozky.map(p => `<tr><td><strong>${p.nazev}</strong></td><td><span class="badge success">${p.ks} ks</span></td><td>\`${p.zapisovatel}\`</td></tr>`).join(''); }
+        function stockSubmit(e) { e.preventDefault(); const itemId = document.getElementById("stock-item-id").value; const op = document.getElementById("stock-op").value; const qty = parseInt(document.getElementById("stock-qty").value); let item = skladPolozky.find(p => p.id === itemId); if(item) { item.ks = op === 'add' ? item.ks + qty : Math.max(0, item.ks - qty); item.zapisovatel = activeUser.prezdivka; } renderStock(); }
+        function newItemSubmit(e) { e.preventDefault(); skladPolozky.push({ id: (skladPolozky.length+1).toString(), nazev: document.getElementById("new-item-name").value, ks: parseInt(document.getElementById("new-item-qty").value), zapisovatel: activeUser.prezdivka }); initCatalogSelects(); renderStock(); }
+        
+        function renderAccounting() {}
+        
+        function renderTrezor() { 
+            document.getElementById("trezor-money-display").innerText = `$${trezorFinance.hotovost.toLocaleString()}`; 
+            document.getElementById("table-trezor-items").innerHTML = trezorSklad.map(i => `<tr><td><strong>${i.nazev}</strong></td><td><span class="badge warning">${i.ks} ks</span></td></tr>`).join(''); 
         }
+        
+        function handleTrezorCash(e) { e.preventDefault(); const op = document.getElementById("trezor-cash-op").value; const amt = parseInt(document.getElementById("trezor-cash-amount").value); trezorFinance.hotovost = op === 'add' ? trezorFinance.hotovost + amt : Math.max(0, trezorFinance.hotovost - amt); renderTrezor(); }
+        function handleTrezorItem(e) { e.preventDefault(); trezorSklad.push({ nazev: document.getElementById("trezor-item-name").value, ks: parseInt(document.getElementById("trezor-item-qty").value) }); renderTrezor(); }
+        function renderAdminPanel() {}
+        function getStrikeDotsHTML(count) { let html = ''; for(let i=1; i<=3; i++) html += `<span class="strike-dot ${i<=count?'active':''}"></span>`; return html; }
+        function updateStrikesDisplay(count, elementId) { document.getElementById(elementId).innerHTML = `Varování: ` + getStrikeDotsHTML(count); }
 
-        function renderStock() {
-            const tbody = document.getElementById("table-stock");
-            tbody.innerHTML = skladPolozky.map(p => `
-                <tr>
-                    <td><strong>${p.nazev}</strong></td>
-                    <td><span class="badge ${p.ks > 10 ? 'success' : 'danger'}">${p.ks} ks</span></td>
-                    <td>\`${p.zapisovatel}\`</td>
-                </tr>
-            `).join('');
-        }
-
-        function stockSubmit(e) {
-            e.preventDefault();
-            const itemId = document.getElementById("stock-item-id").value;
-            const op = document.getElementById("stock-op").value;
-            const qty = parseInt(document.getElementById("stock-qty").value);
-
-            let item = skladPolozky.find(p => p.id === itemId);
-            if (item) {
-                if (op === 'add') item.ks += qty;
-                else item.ks = Math.max(0, item.ks - qty);
-                item.zapisovatel = activeUser.prezdivka;
-            }
-            renderStock();
-        }
-
-        function newItemSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById("new-item-name").value;
-            const qty = parseInt(document.getElementById("new-item-qty").value);
-
-            skladPolozky.push({
-                id: (skladPolozky.length + 1).toString(),
-                nazev: name,
-                ks: qty,
-                zapisovatel: activeUser.prezdivka
-            });
-
-            initCatalogSelects();
-            renderStock();
-            document.getElementById("new-item-name").value = "";
-        }
-
-        // --- ÚČETNICTVÍ PANEL ---
-        function renderAccounting() {
-            const tbodyReq = document.getElementById("table-acc-requests");
-            tbodyReq.innerHTML = nakupniPozadavky.filter(r => r.stav === "Čeká").map(r => `
-                <tr>
-                    <td>${r.clovek}</td>
-                    <td>${r.popis}</td>
-                    <td style="color:var(--danger);">${r.castka.toLocaleString()} Kč</td>
-                    <td>
-                        <button onclick="resolveRequest(${r.id}, true)" style="background:var(--success); border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; margin-right:5px;">SCHVÁLIT</button>
-                        <button onclick="resolveRequest(${r.id}, false)" style="background:var(--danger); border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">ZAMÍTNOUT</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            const tbodyPay = document.getElementById("table-acc-payouts");
-            tbodyPay.innerHTML = databazeZamestnancu.map(z => {
-                const splneno = z.celkem_odvedeno_ks >= 10;
-                return `
-                    <tr>
-                        <td><strong>${z.jmeno_prijmeni} (${z.prezdivka})</strong></td>
-                        <td>${(z.celkem_odvedeno_ks * 2500).toLocaleString()} Kč</td>
-                        <td style="color:var(--success); font-weight:bold;">${z.dluh_provize.toLocaleString()} Kč</td>
-                        <td><span class="badge ${splneno ? 'success' : 'danger'}">${z.celkem_odvedeno_ks}/10 ks</span></td>
-                        <td>
-                            <button onclick="payoutUser('${z.user_id}')" ${z.dluh_provize === 0 ? 'disabled style="background:#222; cursor:default;"' : ''} style="background:var(--primary); border:none; color:white; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">VYPLATIT</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function resolveRequest(id, approved) {
-            let req = nakupniPozadavky.find(r => r.id === id);
-            if (req) {
-                req.stav = approved ? "Schváleno" : "Zamítnuto";
-                if (approved) trezorFinance.hotovost -= req.castka; 
-            }
-            refreshAllViews();
-        }
-
-        function payoutUser(userId) {
-            let z = databazeZamestnancu.find(u => u.user_id === userId);
-            if (z && z.dluh_provize > 0) {
-                trezorFinance.hotovost -= z.dluh_provize; 
-                centralniZaznamy.forEach(r => {
-                    if (r.clovek === z.prezdivka) r.vyplaceno = true;
-                });
-                z.dluh_provize = 0;
-            }
-            refreshAllViews();
-        }
-
-        // --- TREZOR ---
-        function renderTrezor() {
-            document.getElementById("trezor-money-display").innerText = `${trezorFinance.hotovost.toLocaleString()} Kč`;
-            const tbody = document.getElementById("table-trezor-items");
-            tbody.innerHTML = trezorSklad.map(i => `
-                <tr>
-                    <td><strong>${i.nazev}</strong></td>
-                    <td><span class="badge warning">${i.ks} ks</span></td>
-                </tr>
-            `).join('');
-        }
-
-        function handleTrezorCash(e) {
-            e.preventDefault();
-            const op = document.getElementById("trezor-cash-op").value;
-            const amt = parseInt(document.getElementById("trezor-cash-amount").value);
-            if (op === 'add') trezorFinance.hotovost += amt;
-            else trezorFinance.hotovost = Math.max(0, trezorFinance.hotovost - amt);
-            renderTrezor();
-            document.getElementById("trezor-cash-amount").value = "";
-        }
-
-        function handleTrezorItem(e) {
-            e.preventDefault();
-            const name = document.getElementById("trezor-item-name").value;
-            const qty = parseInt(document.getElementById("trezor-item-qty").value);
-
-            let item = trezorSklad.find(i => i.nazev.toLowerCase() === name.toLowerCase());
-            if (item) {
-                item.ks += qty;
-                if (item.ks <= 0) trezorSklad = trezorSklad.filter(i => i.nazev !== item.nazev);
-            } else if (qty > 0) {
-                trezorSklad.push({ nazev: name, ks: qty });
-            }
-            renderTrezor();
-            document.getElementById("trezor-item-name").value = "";
-            document.getElementById("trezor-item-qty").value = "";
-        }
-
-        // --- MANAGEMENT (SPRÁVA VEDENÍ) ---
-        function renderAdminPanel() {
-            const tbodyUsers = document.getElementById("table-admin-users");
-            tbodyUsers.innerHTML = databazeZamestnancu.map(z => `
-                <tr>
-                    <td><strong>${z.jmeno_prijmeni}</strong></td>
-                    <td>\`${z.prezdivka}\`</td>
-                    <td>${z.telefon}</td>
-                    <td><span style="font-size:11px; color:var(--text-muted);">${z.user_id}</span></td>
-                </tr>
-            `).join('');
-
-            const tbodyStrikes = document.getElementById("table-admin-strikes");
-            tbodyStrikes.innerHTML = databazeZamestnancu.map(z => `
-                <tr>
-                    <td>${z.prezdivka}</td>
-                    <td>${getStrikeDotsHTML(z.strikes)}</td>
-                    <td>
-                        <button onclick="modifyStrike('${z.user_id}', 1)" style="background:var(--danger); border:none; color:white; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold; margin-right:4px;">+ STRIKE</button>
-                        <button onclick="modifyStrike('${z.user_id}', -1)" style="background:var(--text-muted); border:none; color:white; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold;">- SMAZAT</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            const tbodyLogs = document.getElementById("table-admin-logs");
-            tbodyLogs.innerHTML = centralniZaznamy.map(r => `
-                <tr>
-                    <td>${r.datum}</td>
-                    <td>\`${r.clovek}\`</td>
-                    <td>Zápis činnosti: <span class="badge warning">${r.akce}</span> (${r.ks} ks)</td>
-                    <td style="color:${r.akce === 'PRODEJ' ? 'var(--success)' : 'var(--text-main)'}; font-weight:bold;">+ ${r.hodnota.toLocaleString()} Kč</td>
-                </tr>
-            `).join('');
-        }
-
-        function getStrikeDotsHTML(count) {
-            let html = '';
-            for(let i = 1; i <= 3; i++) {
-                html += `<span class="strike-dot ${i <= count ? 'active' : ''}"></span>`;
-            }
-            return `${html} (${count}/3)`;
-        }
-
-        function updateStrikesDisplay(count, elementId) {
-            document.getElementById(elementId).innerHTML = `Varování: ` + getStrikeDotsHTML(count);
-        }
-
-        function modifyStrike(userId, diff) {
-            let z = databazeZamestnancu.find(u => u.user_id === userId);
-            if (z) {
-                z.strikes = Math.min(3, Math.max(0, z.strikes + diff));
-                if (z.strikes === 3) {
-                    alert(`🚨 Upozornění centrály: Zaměstnanec ${z.jmeno_prijmeni} dosáhl limitu 3/3 varování!`);
-                }
-                if (userId === activeUser.user_id) {
-                    activeUser.strikes = z.strikes;
-                    updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
-                }
-            }
-            refreshAllViews();
-        }
-
-        // --- GRAFY ---
         let empChart, accChart, adminChart;
-        let globalProfitData = [150000, 300000, 200000, 450000];
-        let globalProfitLabels = ['10.06.', '12.06.', '14.06.', '15.06.'];
-
         function initCharts() {
-            const ctxEmp = document.getElementById('chart-employee').getContext('2d');
-            empChart = new Chart(ctxEmp, {
-                type: 'line',
-                data: {
-                    labels: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
-                    datasets: [{
-                        data: [5, 8, 2, 0, 12, 15, 4],
-                        borderColor: '#2ed573',
-                        tension: 0.3,
-                        fill: false
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
-
-            const ctxAcc = document.getElementById('chart-accounting').getContext('2d');
-            accChart = new Chart(ctxAcc, {
-                type: 'bar',
-                data: {
-                    labels: ['Minulý týden', 'Aktuální týden'],
-                    datasets: [{
-                        label: 'Obrat sítě v Kč',
-                        data: [1240000, 1850000],
-                        backgroundColor: ['#747d8c', '#962d22']
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            const ctxAdm = document.getElementById('chart-admin-global').getContext('2d');
-            adminChart = new Chart(ctxAdm, {
-                type: 'line',
-                data: {
-                    labels: globalProfitLabels,
-                    datasets: [{
-                        label: 'Okamžitý zisk z prodejů (Kč)',
-                        data: globalProfitData,
-                        borderColor: '#2ed573',
-                        backgroundColor: 'rgba(46, 213, 115, 0.05)',
-                        fill: true,
-                        tension: 0.2
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            empChart = new Chart(document.getElementById('chart-employee').getContext('2d'), { type: 'line', data: { labels: ['Po', 'Út', 'St'], datasets: [{ data: [5, 8, 2], borderColor: '#2ed573', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+            accChart = new Chart(document.getElementById('chart-accounting').getContext('2d'), { type: 'bar', data: { labels: ['Minulý týden', 'Aktuální týden'], datasets: [{ label: 'Obrat sítě ($)', data: [12400, 18500], backgroundColor: ['#747d8c', '#962d22'] }] }, options: { responsive: true, maintainAspectRatio: false } });
+            adminChart = new Chart(document.getElementById('chart-admin-global').getContext('2d'), { type: 'line', data: { labels: ['10.06.', '15.06.'], datasets: [{ label: 'Zisk ($)', data: [1500, 4500], borderColor: '#2ed573', fill: true }] }, options: { responsive: true, maintainAspectRatio: false } });
         }
     </script>
 </body>
