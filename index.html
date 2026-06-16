@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CJNG - Centrální Sjednocený Registr</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Supabase používáme už jen jako čistou databázi -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
@@ -58,7 +57,7 @@
         input:focus, select:focus { border-color: var(--primary); outline: none; }
         button.btn { background-color: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-size: 14px; text-transform: uppercase; }
         button.btn:hover { background-color: var(--primary-hover); }
-        button.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; }
+        button.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { text-align: left; padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
@@ -69,7 +68,7 @@
         .badge.danger { background-color: rgba(255, 71, 87, 0.15); color: var(--danger); }
         .badge.warning { background-color: rgba(255, 165, 2, 0.15); color: var(--warning); }
 
-        .strike-dot { inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #2c2c35; margin-right: 5px; }
+        .strike-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #2c2c35; margin-right: 5px; }
         .strike-dot.active { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
     </style>
 </head>
@@ -102,7 +101,7 @@
             </div>
         </header>
 
-        <!-- OBSAH SEKCE 1: MOJE SLOŽKA -->
+        <!-- SEKCE 1: SLOŽKA -->
         <div id="sec-slozka" class="section-content active">
             <div class="grid-2">
                 <div class="card">
@@ -169,13 +168,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Datum</th>
-                            <th>Činnost</th>
-                            <th>Množství</th>
-                            <th>Celkový výnos</th>
-                            <th>Vaše provize</th>
-                            <th>Materiál</th>
-                            <th>Stav</th>
+                            <th>Datum</th><th>Činnost</th><th>Množství</th><th>Celkový výnos</th><th>Vaše provize</th><th>Materiál</th><th>Stav</th>
                         </tr>
                     </thead>
                     <tbody id="table-user-history"></tbody>
@@ -183,175 +176,216 @@
             </div>
         </div>
 
-        <!-- OSTATNÍ SEKCE ZŮSTÁVAJÍ STEJNÉ -->
+        <!-- SEKCE 2: SKLAD -->
         <div id="sec-sklad" class="section-content">
-            <div class="grid-2"><div class="card"><h2>Manipulace s inventářem</h2><form onsubmit="stockSubmit(event)"><div class="form-group"><label>Vybrat položku</label><select id="stock-item-id"></select></div><div class="form-row"><div class="form-group"><label>Operace</label><select id="stock-op"><option value="add">Naskladnit (+)</option><option value="remove">Vyskladnit (-)</option></select></div><div class="form-group"><label>Množství (ks)</label><input type="number" id="stock-qty" min="1" required></div></div><button type="submit" class="btn">Zapsat pohyb</button></form></div><div class="card"><h2>Zavést novou položku</h2><form onsubmit="newItemSubmit(event)"><div class="form-group"><label>Název komodity</label><input type="text" id="new-item-name" required></div><div class="form-group"><label>Počáteční stav</label><input type="number" id="new-item-qty" min="0" value="0" required></div><button type="submit" class="btn">Zavést</button></form></div></div><div class="card"><h2>Stav hlavního skladu</h2><table><thead><tr><th>Název položky</th><th>Skladový stav</th><th>Zapsal</th></tr></thead><tbody id="table-stock"></tbody></table></div>
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Manipulace s inventářem</h2>
+                    <form onsubmit="stockSubmit(event)">
+                        <div class="form-group">
+                            <label>Vybrat položku</label><select id="stock-item-id"></select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Operace</label>
+                                <select id="stock-op"><option value="add">Naskladnit (+)</option><option value="remove">Vyskladnit (-)</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Množství (ks)</label><input type="number" id="stock-qty" min="1" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Zapsat pohyb</button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h2>Zavést novou položku</h2>
+                    <form onsubmit="newItemSubmit(event)">
+                        <div class="form-group">
+                            <label>Název komodity</label><input type="text" id="new-item-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Počáteční stav</label><input type="number" id="new-item-qty" min="0" value="0" required>
+                        </div>
+                        <button type="submit" class="btn">Zavést</button>
+                    </form>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Stav hlavního skladu</h2>
+                <table>
+                    <thead><tr><th>Název položky</th><th>Skladový stav</th><th>Zapsal</th></tr></thead>
+                    <tbody id="table-stock"></tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- SEKCE 3: ÚČETNICTVÍ -->
         <div id="sec-ucetnictvi" class="section-content">
-            <div class="grid-2"><div class="card"><h2>Graf obratu sítě</h2><div style="height: 200px;"><canvas id="chart-accounting"></canvas></div></div><div class="card"><h2>Požadavky na proplacení</h2><table><thead><tr><th>Osoba</th><th>Popis</th><th>Částka</th><th>Akce</th></tr></thead><tbody id="table-acc-requests"></tbody></table></div></div><div class="card"><h2>Vypořádání zaměstnanců</h2><table><thead><tr><th>Jméno</th><th>Přezdívka</th><th>Výnos</th><th>Provize</th><th>Akce</th></tr></thead><tbody id="table-acc-payouts"></tbody></table></div>
+            <div class="grid-2">
+                <div class="card"><h2>Graf obratu sítě</h2><div style="height: 200px;"><canvas id="chart-accounting"></canvas></div></div>
+                <div class="card"><h2>Požadavky na proplacení</h2><table><thead><tr><th>Osoba</th><th>Popis</th><th>Částka</th><th>Akce</th></tr></thead><tbody id="table-acc-requests"></tbody></table></div>
+            </div>
+            <div class="card">
+                <h2>Vypořádání zaměstnanců</h2>
+                <table>
+                    <thead><tr><th>Jméno</th><th>Přezdívka</th><th>Výnos</th><th>Provize</th><th>Akce</th></tr></thead>
+                    <tbody id="table-acc-payouts"></tbody>
+                </table>
+            </div>
         </div>
 
+        <!-- SEKCE 4: TREZOR -->
         <div id="sec-trezor" class="section-content">
-            <div class="grid-3"><div class="card"><h2>Finance v trezoru</h2><h1 id="trezor-money-display" style="color: var(--success); font-size: 32px;">$0</h1><form onsubmit="handleTrezorCash(event)"><div class="form-row"><select id="trezor-cash-op"><option value="add">Vložit (+)</option><option value="remove">Vybrat (-)</option></select><input type="number" id="trezor-cash-amount" min="1" placeholder="Částka" required></div><button type="submit" class="btn">Provést</button></form></div><div class="card" style="grid-column: span 2;"><h2>Trezorový speciální sklad</h2><table><thead><tr><th>Položka</th><th>Množství</th><th>Akce</th></tr></thead><tbody id="table-trezor-items"></tbody></table><form onsubmit="handleTrezorItem(event)" class="form-row"><input type="text" id="trezor-item-name" placeholder="Název předmětu" required><input type="number" id="trezor-item-qty" min="1" placeholder="Množství" required><button type="submit" class="btn" style="grid-column: span 2;">Přidat věc</button></form></div></div>
+            <div class="grid-3">
+                <div class="card">
+                    <h2>Finance v trezoru</h2>
+                    <h1 id="trezor-money-display" style="color: var(--success); font-size: 32px; margin-bottom:10px;">$0</h1>
+                    <form onsubmit="handleTrezorCash(event)">
+                        <div class="form-row">
+                            <select id="trezor-cash-op"><option value="add">Vložit (+)</option><option value="remove">Vybrat (-)</option></select>
+                            <input type="number" id="trezor-cash-amount" min="1" placeholder="Částka" required>
+                        </div>
+                        <button type="submit" class="btn">Provést</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: span 2;">
+                    <h2>Trezorový speciální sklad</h2>
+                    <table>
+                        <thead><tr><th>Položka</th><th>Množství</th><th>Akce</th></tr></thead>
+                        <tbody id="table-trezor-items"></tbody>
+                    </table>
+                    <form onsubmit="handleTrezorItem(event)" class="form-row" style="margin-top:15px;">
+                        <input type="text" id="trezor-item-name" placeholder="Název předmětu" required>
+                        <input type="number" id="trezor-item-qty" min="1" placeholder="Množství" required>
+                        <button type="submit" class="btn" style="grid-column: span 2;">Přidat věc</button>
+                    </form>
+                </div>
+            </div>
         </div>
 
+        <!-- SEKCE 5: MANAGEMENT -->
         <div id="sec-management" class="section-content">
-            <div class="card"><h2>Globální graf zisků</h2><div style="height: 220px;"><canvas id="chart-admin-global"></canvas></div></div><div class="card"><h2>Evidence zaměstnanců</h2><table><thead><tr><th>Jméno</th><th>Přezdívka</th><th>Telefon</th><th>ID</th><th>Pozice</th></tr></thead><tbody id="table-admin-users"></tbody></table></div>
+            <div class="card"><h2>Globální graf zisků</h2><div style="height: 220px;"><canvas id="chart-admin-global"></canvas></div></div>
+            <div class="card">
+                <h2>Evidence zaměstnanců</h2>
+                <table>
+                    <thead><tr><th>Jméno</th><th>Přezdívka</th><th>Telefon</th><th>ID</th><th>Pozice</th></tr></thead>
+                    <tbody id="table-admin-users"></tbody>
+                </table>
+            </div>
         </div>
     </main>
 
-    <!-- 🌟 OPRAVENÁ REÁLNÁ DISCORD & SUPABASE LOGIKA 🌟 -->
+    <!-- 🌟 KLASICKÉ ČISTÉ DISCORD PŘIHLÁŠENÍ 🌟 -->
     <script>
-        // --- ⚙️ KONFIGURACE (Zadaná přímo tebou) ---
         const SUPABASE_URL = "https://ybzprivahzjqpanvunli.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5"; 
         
-        // Zde vyplň své Client ID aplikace z Discord Developer Portálu
-        const DISCORD_CLIENT_ID = "1465728809134326037"; 
-        const TARGET_GUILD_ID = "1417241414693031988"; 
-
-        // Inicializace databáze
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         let activeUser = null; 
 
         const fixniSazby = { sber: 100, vyroba: 250 }; 
         const provizeProcenta = 0.40;
 
-        // Pomocná funkce pro vytažení tokenu přímo z URL adresy po přesměrování od Discordu
-        function getDiscordTokenFromUrl() {
-            const fragment = new URLSearchParams(window.location.hash.slice(1));
-            return fragment.get('access_token');
+        // VYVOLÁNÍ KLASICKÉHO OKNA DISCORDU
+        function loginWithDiscord() {
+            const currentUrl = window.location.origin + window.location.pathname;
+            _supabase.auth.signInWithOAuth({
+                provider: 'discord',
+                options: {
+                    redirectTo: currentUrl
+                }
+            });
         }
 
-        // --- MAIN DISCORD AUTH FLOW ---
-        document.addEventListener("DOMContentLoaded", async () => {
-            let token = localStorage.getItem('discord_access_token');
-            const tokenFromUrl = getDiscordTokenFromUrl();
+        // KONTROLA PO NÁVRATU Z DISCORDU
+        async function checkUserSession() {
+            const { data: { session } } = await _supabase.auth.getSession();
+            
+            if (session && session.user) {
+                // Vezmeme skutečné nefalšovatelné ID z Discord tokenu
+                const discordId = session.user.user_metadata.provider_id;
 
-            if (tokenFromUrl) {
-                token = tokenFromUrl;
-                localStorage.setItem('discord_access_token', token);
-                window.history.replaceState(null, null, window.location.pathname); // Vyčistí URL hash
-            }
-
-            if (!token) { renderLoginScreen(); return; }
-
-            try {
-                // 1. Krok: Zeptáme se přímo Discordu, kdo je přihlášený člověk
-                const userResponse = await fetch('https://discord.com/api/users/@me', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (!userResponse.ok) throw new Error("Neplatný token");
-                const discordUser = await userResponse.json();
-
-                // 2. Krok: Ověříme na Discordu, jestli je členem tvé Guildy
-                const guildsResponse = await fetch('https://discord.com/api/users/@me/guilds', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (!guildsResponse.ok) throw new Error("Nelze načíst servery");
-                const guilds = await guildsResponse.json();
-
-                const isInTargetGuild = guilds.some(g => g.id === TARGET_GUILD_ID);
-                if (!isInTargetGuild) {
-                    renderAccessDeniedScreen(discordUser.id, "Přístup zamítnut. Nejste členem správného Discord serveru.");
-                    return;
-                }
-
-                // 3. Krok: Když prošel přes Discord, koukneme se pro detaily do Supabase tabulky 'zamestnanci'
-                const { data: profile, error: dbError } = await _supabase
+                // Podíváme se do tabulky zaměstnanců
+                const { data: profile } = await _supabase
                     .from('zamestnanci')
                     .select('*')
-                    .eq('user_id', discordUser.id)
+                    .eq('user_id', discordId)
                     .maybeSingle();
 
-                if (dbError || !profile) {
-                    renderAccessDeniedScreen(discordUser.id, "Jste na serveru, ale vaše ID se nenachází v databázové tabulce 'zamestnanci'.");
+                if (!profile) {
+                    alert("Tvoje Discord ID nebylo nalezeno v databázi 'zamestnanci'!");
+                    logout();
                     return;
                 }
 
-                // Spárujeme data a pokud v DB chybí role, dáme defaultně "vedeni" pro testování
                 activeUser = {
-                    jmeno_prijmeni: profile.jmeno_prijmeni || discordUser.global_name || discordUser.username,
-                    prezdivka: profile.prezdivka || discordUser.username,
-                    user_id: discordUser.id,
-                    role: profile.role || "vedeni", 
+                    jmeno_prijmeni: profile.jmeno_prijmeni || "Uživatel",
+                    prezdivka: profile.prezdivka || "Uživatel",
+                    user_id: profile.user_id,
+                    role: profile.role || "vedeni",
                     strikes: profile.strikes || 0
                 };
 
-                // Vykreslíme profil do hlavičky HTML
+                // Zobrazení UI dat
                 document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
                 document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | ID: ${activeUser.user_id}`;
                 updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
 
-                // Filtrování sekcí podle rolí
                 if (activeUser.role === "ucetnik") {
                     document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
                 } else if (activeUser.role === "vedeni") {
                     document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
                 }
 
-                // Spustíme načítání dat ze Supabase
-                fetchSklad();
-                fetchUserHistory();
-                fetchAccountingData();
-                fetchTrezorData();
-                fetchManagementData();
-
-            } catch (err) {
-                console.error(err);
-                localStorage.removeItem('discord_access_token');
+                // Načtení dat ze Supabase
+                fetchSklad(); fetchUserHistory(); fetchAccountingData(); fetchTrezorData(); fetchManagementData();
+                
+                const overlay = document.getElementById("login-overlay");
+                if(overlay) overlay.remove();
+            } else {
                 renderLoginScreen();
             }
-        });
-
-        // --- LOGIN & LOGOUT PŘES DISCORD OAUTH2 ODKAZ ---
-        function loginWithDiscord() {
-            const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
-            // Kompletní čisté OAuth2 volání bez prostředníka
-            window.location.href = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=identify%20guilds`;
         }
 
-        function logout() { 
-            localStorage.removeItem('discord_access_token'); 
+        document.addEventListener("DOMContentLoaded", checkUserSession);
+
+        async function logout() { 
+            await _supabase.auth.signOut(); 
             window.location.reload(); 
         }
 
-        // --- DATA SINK (SUPABASE METODY - ZŮSTÁVAJÍ FUNKČNÍ) ---
-        async function actionSubmit(e) {
-            e.preventDefault();
-            const type = document.getElementById("act-type").value;
-            const amount = parseInt(document.getElementById("act-amount").value);
-            let hodnota = (type === 'prodej') ? parseInt(document.getElementById("act-value").value) : (fixniSazby[type] * amount);
-            let cistaProvize = hodnota * provizeProcenta;
-            const buyMaterials = document.getElementById("act-buy-materials")?.checked || false;
-
-            await _supabase.from('aktivity').insert([{
-                user_id: activeUser.user_id, prezdivka: activeUser.prezdivka, akce: type.toUpperCase(),
-                mnozstvi: amount, celkovy_vynos: hodnota, provize: cistaProvize,
-                material_popis: buyMaterials ? document.getElementById("act-mat-desc").value : null,
-                material_cena: buyMaterials ? parseInt(document.getElementById("act-mat-cost").value) : 0,
-                material_schvaleno: buyMaterials ? false : null, vyplaceno: false, datum: new Date().toISOString().split('T')[0]
-            }]);
-            fetchUserHistory(); fetchAccountingData();
+        function renderLoginScreen() {
+            if(document.getElementById("login-overlay")) return;
+            const div = document.createElement("div");
+            div.id = "login-overlay";
+            div.style = "display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; position:fixed; top:0; left:0; z-index:99999;";
+            div.innerHTML = `
+                <div style="text-align:center; background:var(--bg-card); padding:40px; border-radius:10px; border:1px solid var(--border);">
+                    <h1 style="color:#962d22; margin-bottom:10px; letter-spacing:3px; font-size:24px;">CJNG PANEL</h1>
+                    <p style="color:#747d8c; margin-bottom:25px; font-size:14px;">Pro vstup se autorizuj svým účtem</p>
+                    <button onclick="loginWithDiscord()" style="background:#5865F2; color:white; border:none; padding:14px 28px; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:10px; margin:0 auto; transition:0.2s;">
+                        PŘIHLÁSIT SE PŘES DISCORD
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(div);
         }
 
+        // --- BD SYNC FUNKCE ---
+        async function actionSubmit(e) {
+            e.preventDefault(); const type = document.getElementById("act-type").value; const amount = parseInt(document.getElementById("act-amount").value);
+            let hodnota = (type === 'prodej') ? parseInt(document.getElementById("act-value").value) : (fixniSazby[type] * amount); let cistaProvize = hodnota * provizeProcenta; const buyMaterials = document.getElementById("act-buy-materials")?.checked || false;
+            await _supabase.from('aktivity').insert([{ user_id: activeUser.user_id, prezdivka: activeUser.prezdivka, akce: type.toUpperCase(), mnozstvi: amount, celkovy_vynos: hodnota, provize: cistaProvize, material_popis: buyMaterials ? document.getElementById("act-mat-desc").value : null, material_cena: buyMaterials ? parseInt(document.getElementById("act-mat-cost").value) : 0, material_schvaleno: buyMaterials ? false : null, vyplaceno: false, datum: new Date().toISOString().split('T')[0] }]); fetchUserHistory(); fetchAccountingData();
+        }
         async function fetchUserHistory() {
             const { data } = await _supabase.from('aktivity').select('*').eq('user_id', activeUser.user_id);
             if (data) {
                 let celkovyVynos = 0, dloznaProvize = 0, lbls = [], dta = [];
-                const html = data.map(r => {
-                    celkovyVynos += r.celkovy_vynos || 0; if(!r.vyplaceno) dloznaProvize += r.provize || 0;
-                    lbls.push(r.datum); dta.push(r.mnozstvi);
-                    return `<tr><td>${r.datum}</td><td><span class="badge warning">${r.akce}</span></td><td>${r.mnozstvi} ks</td><td>$${(r.celkovy_vynos||0).toLocaleString()}</td><td style="color:var(--success)">$${(r.provize||0).toLocaleString()}</td><td>${r.material_cena>0?(r.material_schvaleno?`+$${r.material_cena}`:`Čeká $${r.material_cena}`):'-'}</td><td>${r.vyplaceno?'Vyplaceno':'Nevyplaceno'}</td></tr>`;
-                }).join('');
-                document.getElementById("table-user-history").innerHTML = html;
-                document.getElementById("stats-total-org").innerText = `$${celkovyVynos.toLocaleString()}`;
-                document.getElementById("stats-total-emp").innerText = `$${dloznaProvize.toLocaleString()}`;
-                renderEmployeeChart(lbls.reverse(), dta.reverse());
+                const html = data.map(r => { celkovyVynos += r.celkovy_vynos || 0; if(!r.vyplaceno) dloznaProvize += r.provize || 0; lbls.push(r.datum); dta.push(r.mnozstvi); return `<tr><td>${r.datum}</td><td><span class="badge warning">${r.akce}</span></td><td>${r.mnozstvi} ks</td><td>$${(r.celkovy_vynos||0).toLocaleString()}</td><td style="color:var(--success)">$${(r.provize||0).toLocaleString()}</td><td>${r.material_cena>0?(r.material_schvaleno?`+$${r.material_cena}`:`Čeká $${r.material_cena}`):'-'}</td><td>${r.vyplaceno?'Vyplaceno':'Nevyplaceno'}</td></tr>`; }).join('');
+                document.getElementById("table-user-history").innerHTML = html; document.getElementById("stats-total-org").innerText = `$${celkovyVynos.toLocaleString()}`; document.getElementById("stats-total-emp").innerText = `$${dloznaProvize.toLocaleString()}`; renderEmployeeChart(lbls.reverse(), dta.reverse());
             }
         }
-
         async function fetchSklad() {
             const { data } = await _supabase.from('sklad').select('*');
             if (data) {
@@ -360,48 +394,27 @@
             }
         }
         async function stockSubmit(e) {
-            e.preventDefault(); const id = document.getElementById("stock-item-id").value; const op = document.getElementById("stock-op").value; const qty = parseInt(document.getElementById("stock-qty").value);
-            const { data } = await _supabase.from('sklad').select('ks').eq('id', id).single();
-            if (data) {
-                let n = op === 'add' ? data.ks + qty : Math.max(0, data.ks - qty);
-                await _supabase.from('sklad').update({ ks: n, zapisovatel: activeUser.prezdivka }).eq('id', id); fetchSklad();
-            }
+            e.preventDefault(); const id = document.getElementById("stock-item-id").value; const op = document.getElementById("stock-op").value; const qty = parseInt(document.getElementById("stock-qty").value); const { data } = await _supabase.from('sklad').select('ks').eq('id', id).single();
+            if (data) { let n = op === 'add' ? data.ks + qty : Math.max(0, data.ks - qty); await _supabase.from('sklad').update({ ks: n, zapisovatel: activeUser.prezdivka }).eq('id', id); fetchSklad(); }
         }
         async function newItemSubmit(e) { e.preventDefault(); await _supabase.from('sklad').insert([{ nazev: document.getElementById("new-item-name").value, ks: parseInt(document.getElementById("new-item-qty").value), zapisovatel: activeUser.prezdivka }]); fetchSklad(); }
-
         async function fetchAccountingData() {
-            if (activeUser.role !== 'ucetnik' && activeUser.role !== 'vedeni') return;
-            const { data: reqs } = await _supabase.from('aktivity').select('*').eq('material_schvaleno', false);
-            if (reqs) document.getElementById("table-acc-requests").innerHTML = reqs.map(r => `<tr><td>${r.prezdivka}</td><td>${r.material_popis}</td><td>$${r.material_cena}</td><td><button onclick="approveMaterial('${r.id}',true)">Vystavit</button></td></tr>`).join('');
-            const { data: allActs } = await _supabase.from('aktivity').select('*'); const { data: allUsers } = await _supabase.from('zamestnanci').select('*');
-            if (allActs && allUsers) {
-                let o = 0, l = {}; allUsers.forEach(u => { l[u.user_id] = { jmeno: u.jmeno_prijmeni, nick: u.prezdivka, vynos: 0, provize: 0 }; });
-                allActs.forEach(a => { o += a.celkovy_vynos||0; if(l[a.user_id]) { l[a.user_id].vynos += a.celkovy_vynos||0; if(!a.vyplaceno) l[a.user_id].provize += a.provize||0; } });
-                document.getElementById("table-acc-payouts").innerHTML = Object.keys(l).map(uid => `<tr><td>${l[uid].jmeno}</td><td>${l[uid].nick}</td><td>$${l[uid].vynos}</td><td>$${l[uid].provize}</td><td><button onclick="payoutUser('${uid}')">Vyplatit</button></td></tr>`).join('');
-                renderAccountingChart(o);
-            }
+            if (activeUser.role !== 'ucetnik' && activeUser.role !== 'vedeni') return; const { data: reqs } = await _supabase.from('aktivity').select('*').eq('material_schvaleno', false); if (reqs) document.getElementById("table-acc-requests").innerHTML = reqs.map(r => `<tr><td>${r.prezdivka}</td><td>${r.material_popis}</td><td>$${r.material_cena}</td><td><button onclick="approveMaterial('${r.id}',true)">Vystavit</button></td></tr>`).join(''); const { data: allActs } = await _supabase.from('aktivity').select('*'); const { data: allUsers } = await _supabase.from('zamestnanci').select('*');
+            if (allActs && allUsers) { let o = 0, l = {}; allUsers.forEach(u => { l[u.user_id] = { jmeno: u.jmeno_prijmeni, nick: u.prezdivka, vynos: 0, provize: 0 }; }); allActs.forEach(a => { o += a.celkovy_vynos||0; if(l[a.user_id]) { l[a.user_id].vynos += a.celkovy_vynos||0; if(!a.vyplaceno) l[a.user_id].provize += a.provize||0; } }); document.getElementById("table-acc-payouts").innerHTML = Object.keys(l).map(uid => `<tr><td>${l[uid].jmeno}</td><td>${l[uid].nick}</td><td>$${l[uid].vynos}</td><td>$${l[uid].provize}</td><td><button onclick="payoutUser('${uid}')" class="btn-sm">Vyplatit</button></td></tr>`).join(''); renderAccountingChart(o); }
         }
         async function approveMaterial(id,s) { await _supabase.from('aktivity').update({ material_schvaleno: s }).eq('id', id); fetchAccountingData(); }
         async function payoutUser(uid) { await _supabase.from('aktivity').update({ vyplaceno: true }).eq('user_id', uid); fetchAccountingData(); }
-
         async function fetchTrezorData() {
-            const { data: c } = await _supabase.from('trezor_finance').select('hotovost').eq('id', 1).maybeSingle();
-            if (c) document.getElementById("trezor-money-display").innerText = `$${c.hotovost.toLocaleString()}`;
-            const { data: i } = await _supabase.from('trezor_sklad').select('*');
-            if (i) document.getElementById("table-trezor-items").innerHTML = i.map(x => `<tr><td>${x.nazev}</td><td>${x.ks} ks</td><td><button onclick="removeTrezorItem('${x.id}',${x.ks})">-1</button></td></tr>`).join('');
+            const { data: c } = await _supabase.from('trezor_finance').select('hotovost').eq('id', 1).maybeSingle(); if (c) document.getElementById("trezor-money-display").innerText = `$${c.hotovost.toLocaleString()}`; const { data: i } = await _supabase.from('trezor_sklad').select('*'); if (i) document.getElementById("table-trezor-items").innerHTML = i.map(x => `<tr><td><strong>${x.nazev}</strong></td><td><span class="badge warning">${x.ks} ks</span></td><td><button onclick="removeTrezorItem('${x.id}',${x.ks})" class="btn-sm">-1</button></td></tr>`).join('');
         }
         async function handleTrezorCash(e) { e.preventDefault(); const op = document.getElementById("trezor-cash-op").value; const amt = parseInt(document.getElementById("trezor-cash-amount").value); const { data } = await _supabase.from('trezor_finance').select('hotovost').eq('id',1).single(); if(data) { await _supabase.from('trezor_finance').update({ hotovost: op==='add'?data.hotovost+amt:data.hotovost-amt }).eq('id',1); fetchTrezorData(); } }
         async function handleTrezorItem(e) { e.preventDefault(); const n = document.getElementById("trezor-item-name").value; const q = parseInt(document.getElementById("trezor-item-qty").value); await _supabase.from('trezor_sklad').insert([{ nazev: n, ks: q }]); fetchTrezorData(); }
         async function removeTrezorItem(id, q) { if (q <= 1) await _supabase.from('trezor_sklad').delete().eq('id', id); else await _supabase.from('trezor_sklad').update({ ks: q - 1 }).eq('id', id); fetchTrezorData(); }
-
         async function fetchManagementData() {
-            const { data: u } = await _supabase.from('zamestnanci').select('*');
-            if (u) document.getElementById("table-admin-users").innerHTML = u.map(x => `<tr><td>${x.jmeno_prijmeni}</td><td>${x.prezdivka}</td><td>${x.telefon||'-'}</td><td>${x.user_id}</td><td>${x.role}</td></tr>`).join('');
-            const { data: a } = await _supabase.from('aktivity').select('celkovy_vynos');
-            if (a) renderGlobalAdminChart(a.reduce((s, x) => s + (x.celkovy_vynos || 0), 0));
+            const { data: u } = await _supabase.from('zamestnanci').select('*'); if (u) document.getElementById("table-admin-users").innerHTML = u.map(x => `<tr><td>${x.jmeno_prijmeni}</td><td>${x.prezdivka}</td><td>${x.telefon||'-'}</td><td><code>${x.user_id}</code></td><td><span class="badge success">${(x.role||'zamestnanec').toUpperCase()}</span></td></tr>`).join(''); const { data: a } = await _supabase.from('aktivity').select('celkovy_vynos'); if (a) renderGlobalAdminChart(a.reduce((s, x) => s + (x.celkovy_vynos || 0), 0));
         }
 
-        // --- POMOCNÉ FUNKCE (GRAFY, UI) ---
+        // --- GRAFY ---
         let empChart, accChart, adminChart;
         function renderEmployeeChart(l, d) { if (empChart) empChart.destroy(); empChart = new Chart(document.getElementById('chart-employee').getContext('2d'), { type: 'line', data: { labels: l, datasets: [{ data: d, borderColor: '#2ed573', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
         function renderAccountingChart(o) { if (accChart) accChart.destroy(); accChart = new Chart(document.getElementById('chart-accounting').getContext('2d'), { type: 'bar', data: { labels: ['Obrat'], datasets: [{ data: [o], backgroundColor: ['#962d22'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
@@ -411,33 +424,6 @@
         function toggleFormFields() { const t = document.getElementById("act-type").value; document.getElementById("field-value").style.display = (t === 'prodej') ? 'block' : 'none'; document.getElementById("field-materials").style.display = (t === 'vyroba') ? 'block' : 'none'; }
         function toggleMaterialInputs() { document.getElementById("material-inputs").style.display = document.getElementById("act-buy-materials").checked ? 'block' : 'none'; }
         function updateStrikesDisplay(c, e) { let h = 'Varování: '; for(let i=1; i<=3; i++) h += `<span class="strike-dot ${i<=c?'active':''}"></span>`; document.getElementById(e).innerHTML = h; }
-
-        function renderLoginScreen() {
-            document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; position:fixed; top:0; left:0; z-index:99999;">
-                    <h1 style="color:#962d22; margin-bottom:10px; letter-spacing:3px;">CJNG - CENTRÁLNÍ REGISTRY</h1>
-                    <p style="color:#747d8c; margin-bottom:25px; font-size:14px;">Vstup povinen pouze členům oficiálního Discord serveru.</p>
-                    <button onclick="loginWithDiscord()" style="background:#5865F2; color:white; border:none; padding:16px 32px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; text-transform:uppercase; letter-spacing:1px;">
-                        Vstoupit přes Discord bránu
-                    </button>
-                </div>
-            `;
-        }
-
-        function renderAccessDeniedScreen(failedId, duvod) {
-            document.body.innerHTML = `
-                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; text-align:center; padding:20px; position:fixed; top:0; left:0; z-index:99999;">
-                    <div style="background:#15151a; border: 1px solid #962d22; padding:40px; border-radius:10px; max-width:500px;">
-                        <h1 style="color:#ff4757; margin-bottom:15px; font-size:26px;">⚠️ PŘÍSTUP ZAMÍTNUT ⚠️</h1>
-                        <p style="color:#f1f2f6; margin-bottom:15px; font-size:15px; font-weight:bold;">${duvod}</p>
-                        <p style="color:#747d8c; font-size:13px; margin-bottom:25px; background:#0f0f12; padding:10px; border-radius:5px;">
-                            Moje ID: <code style="color:#ffa502;">${failedId}</code>
-                        </p>
-                        <button onclick="logout()" style="background:#222; color:#747d8c; border:1px solid #333; padding:10px 20px; border-radius:5px; cursor:pointer;">Zkusit znovu</button>
-                    </div>
-                </div>
-            `;
-        }
     </script>
 </body>
 </html>
