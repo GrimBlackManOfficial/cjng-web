@@ -3,165 +3,843 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SÍŤ CJNG | AUTHENTICATION</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>CJNG - Centrální Registry</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --red: #ff0000; --red-glow: rgba(255, 0, 0, 0.6); --bg: #050000; }
-        body { background: var(--bg); color: #fff; font-family: 'Rajdhani', sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        body::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03)); background-size: 100% 4px, 3px 100%; z-index: 100; pointer-events: none; }
-        #main-wrapper { position: relative; width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center; }
-        #terminal-body { width: 100%; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-        .line { margin-bottom: 8px; opacity: 0; transform: translateX(-10px); animation: fadeIn 0.2s forwards; font-size: 1em; letter-spacing: 2px; color: #aaa; text-transform: uppercase; }
-        @keyframes fadeIn { to { opacity: 1; transform: translateX(0); } }
-        
-        /* Satelitní Tracking Animace */
-        .satellite-wrap { position: relative; width: 60px; height: 60px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; }
-        .sat-core { width: 10px; height: 10px; background: var(--red); border-radius: 50%; box-shadow: 0 0 15px var(--red); z-index: 2; }
-        .sat-wave { position: absolute; border: 2px solid var(--red); border-radius: 50%; animation: pulse 2s infinite; opacity: 0; }
-        .sat-wave:nth-child(2) { animation-delay: 0.5s; }
-        .sat-wave:nth-child(3) { animation-delay: 1s; }
-        @keyframes pulse {
-            0% { width: 10px; height: 10px; opacity: 0.8; }
-            100% { width: 60px; height: 60px; opacity: 0; }
+        :root {
+            --bg-dark: #0f0f12;
+            --bg-card: #15151a;
+            --primary: #962d22;
+            --primary-hover: #b8382b;
+            --text-main: #f1f2f6;
+            --text-muted: #747d8c;
+            --border: #22222b;
+            --success: #2ed573;
+            --warning: #ffa502;
+            --danger: #ff4757;
         }
-        .tracking-active .sat-wave { animation-duration: 0.6s !important; border-color: #fff; }
-        .tracking-active .sat-core { background: #fff; box-shadow: 0 0 20px #fff; }
 
-        #login-module { display: none; opacity: 0; transform: scale(0.8) translateY(20px); background: rgba(15, 0, 0, 0.9); border: 1px solid var(--red); padding: 40px; text-align: center; box-shadow: 0 0 50px rgba(255, 0, 0, 0.2); backdrop-filter: blur(15px); z-index: 50; position: absolute; }
-        .assemble-anim { animation: assemble 0.6s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes assemble { 0% { opacity: 0; transform: scale(1.5); filter: blur(20px) hue-rotate(90deg); } 100% { opacity: 1; transform: scale(1); filter: blur(0) hue-rotate(0deg); } }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        nav { width: 260px; background-color: var(--bg-card); border-right: 1px solid var(--border); padding: 25px 15px; display: flex; flex-direction: column; }
+        .nav-logo h2 { color: var(--primary); text-align: center; margin-bottom: 35px; letter-spacing: 3px; font-size: 22px; }
+        .nav-links button { width: 100%; background: none; border: none; color: var(--text-main); padding: 14px 18px; text-align: left; font-size: 15px; cursor: pointer; border-radius: 6px; margin-bottom: 8px; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .nav-links button:hover, .nav-links button.active { background-color: var(--primary); }
         
-        .status-ok { color: #00ff41; font-weight: bold; }
-        .status-critical { color: var(--red); text-shadow: 0 0 5px var(--red); }
-        .btn-auth { background: none; border: 1px solid var(--red); color: #fff; padding: 15px 40px; font-family: 'Orbitron', sans-serif; font-size: 0.9em; letter-spacing: 4px; transition: 0.4s; margin-top: 20px; position: relative; overflow: hidden; pointer-events: none; }
-        .module-title { font-family: 'Orbitron', sans-serif; color: var(--red); font-size: 1.4em; margin-bottom: 10px; letter-spacing: 5px; }
-        .module-subtitle { font-size: 0.7em; color: #666; margin-bottom: 30px; letter-spacing: 2px; }
-        .fade-out { opacity: 0 !important; transform: scale(1.1) !important; filter: blur(10px); }
+        /* Skrytí sekcí podle přístupu */
+        .role-section { display: none; }
+
+        /* Hlavní panel */
+        main { flex-grow: 1; padding: 35px; overflow-y: auto; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 25px; margin-bottom: 35px; }
+        .user-meta h3 { font-size: 20px; }
+        .user-meta span { font-size: 13px; color: var(--text-muted); display: block; margin-top: 4px; }
+
+        /* Karty a Grid */
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr; gap: 25px; }
+        @media (min-width: 992px) {
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+        }
+
+        .card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 25px; margin-bottom: 25px; }
+        .card h2 { margin-bottom: 22px; border-left: 5px solid var(--primary); padding-left: 12px; font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Formuláře */
+        .form-row { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 15px; }
+        @media (min-width: 600px) { .form-row { grid-template-columns: 1fr 1fr; } }
+        .form-group { margin-bottom: 15px; }
+        .form-group.checkbox { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .form-group.checkbox input { width: auto; }
+        label { display: block; margin-bottom: 8px; color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 12px; background-color: var(--bg-dark); border: 1px solid var(--border); color: var(--text-main); border-radius: 6px; font-size: 14px; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; }
+        button.btn { background-color: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-size: 14px; text-transform: uppercase; }
+        button.btn:hover { background-color: var(--primary-hover); }
+
+        /* Tabulky */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { text-align: left; padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        
+        /* Odznaky */
+        .badge { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge.success { background-color: rgba(46, 213, 115, 0.15); color: var(--success); }
+        .badge.danger { background-color: rgba(255, 71, 87, 0.15); color: var(--danger); }
+        .badge.warning { background-color: rgba(255, 165, 2, 0.15); color: var(--warning); }
+
+        .strike-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; background-color: #2c2c35; margin-right: 5px; }
+        .strike-dot.active { background-color: var(--danger); box-shadow: 0 0 8px var(--danger); }
     </style>
 </head>
 <body>
-    <div id="main-wrapper">
-        <div id="terminal-body"></div>
-        <div id="login-module">
-            <div class="satellite-wrap" id="sat-node">
-                <div class="sat-core"></div>
-                <div class="sat-wave"></div>
-                <div class="sat-wave"></div>
-                <div class="sat-wave"></div>
-            </div>
-            <div class="module-title">CJNG SÍŤ</div>
-            <div class="module-subtitle">PROBÍHÁ AUTOMATICKÁ AUTORIZACE</div>
-            <div style="width: 50px; height: 2px; background: var(--red); margin: 0 auto 25px;"></div>
-            <button class="btn-auth" id="auth-btn">INICIALIZACE...</button>
+
+    <!-- BOČNÍ PANEL NAVIGACE -->
+    <nav>
+        <div class="nav-logo">
+            <h2>CJNG PANEL</h2>
         </div>
-    </div>
-    <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(freq, type, duration, vol, sweep = false) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            if (sweep) {
-                osc.frequency.exponentialRampToValueAtTime(freq * 1.5, audioCtx.currentTime + duration);
-            }
-            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
-        }
-
-        const lines = [
-            "> NAVAZUJI SPOJENÍ S GLOBÁLNÍ SÍTÍ...",
-            "> STATUS: <span class='status-ok'>PŘIPOJENO</span>",
-            "> PROLAZÍM PROXY SERVERY: MEX, COL, PAN... OK",
-            "> AKTIVUJI KRYPTOGRAFICKÝ KLÍČ 'AZTEC-6'...",
-            "> ANALYZUJI DATABÁZI ZAMĚSTNANCŮ...",
-            "> <span class='status-critical'>VAROVÁNÍ: SLEDOVÁNÍ POLICIÍ DETEKOVÁNO</span>",
-            "> NASAZUJI ANTI-TRACKING PROTOKOL...",
-            "> ODESÍLÁM PAKETY PŘES SATELITNÍ MOST...",
-            "> STATUS: <span class='status-ok'>ANONYMITA ZAJIŠTĚNA</span>",
-            "> DEŠIFRUJI PERSONÁLNÍ SLOŽKY...",
-            "> GENERUJI PŘÍSTUPOVÝ TOKEN...",
-            "> PŘÍSTUP POVOLEN. IDENTIFIKUJI UŽIVATELE."
-        ];
-        
-        const terminalBody = document.getElementById('terminal-body');
-        const loginModule = document.getElementById('login-module');
-        const authBtn = document.getElementById('auth-btn');
-        const satNode = document.getElementById('sat-node');
-        let index = 0;
-
-        function addLine() {
-            if (index < lines.length) {
-                const div = document.createElement('div');
-                div.className = 'line';
-                div.innerHTML = lines[index++];
-                terminalBody.appendChild(div);
-                
-                if (div.innerText.includes("VAROVÁNÍ")) {
-                    playSound(100, 'square', 0.6, 0.15); 
-                } else if (div.innerText.includes("PŘÍSTUP POVOLEN")) {
-                    playSound(800, 'sine', 0.2, 0.1);
-                    setTimeout(() => playSound(1000, 'sine', 0.2, 0.1), 100); 
-                } else {
-                    playSound(400 + (Math.random() * 300), 'sine', 0.06, 0.04); 
-                }
-
-                let delay = Math.random() * (400 - 150) + 150;
-                if (index === 6 || index === 10) delay = 1000; 
-                setTimeout(addLine, delay);
-            } else {
-                setTimeout(transitionToLogin, 800);
-            }
-        }
-
-        function transitionToLogin() {
-            terminalBody.classList.add('fade-out');
-            playSound(60, 'sine', 1.2, 0.1);
-            setTimeout(() => {
-                terminalBody.style.display = 'none';
-                loginModule.style.display = 'block';
-                playSound(150, 'sawtooth', 0.8, 0.05, true);
-                setTimeout(() => { 
-                    loginModule.classList.add('assemble-anim'); 
-                    loginModule.style.opacity = '1'; 
-                    setTimeout(autoAuth, 1200);
-                }, 50);
-            }, 800);
-        }
-
-        function autoAuth() {
-            authBtn.innerHTML = "PROPOJOVÁNÍ...";
-            authBtn.style.background = "var(--red)";
-            authBtn.style.color = "#000";
-            satNode.classList.add('tracking-active'); // Spustí rychlou animaci satelitu
+        <div class="nav-links">
+            <button onclick="showSection('slozka')" id="nav-slozka" class="active">📁 Moje Složka</button>
+            <button onclick="showSection('sklad')" id="nav-sklad">📦 Sklad Komodit</button>
             
-            // Zvuk tracking signálu (rychlé pípání)
-            const interval = setInterval(() => {
-                playSound(1200, 'sine', 0.05, 0.05);
-            }, 150);
+            <!-- Sekce pro Účetníka -->
+            <button onclick="showSection('ucetnictvi')" id="nav-ucetnictvi" class="role-section role-ucetnik role-vedeni">📊 Účetnictví</button>
+            
+            <!-- Sekce pro Vedení -->
+            <button onclick="showSection('trezor')" id="nav-trezor" class="role-section role-vedeni">🏦 Trezor & Finance</button>
+            <button onclick="showSection('management')" id="nav-management" class="role-section role-vedeni">👑 Správa Sítě</button>
+        </div>
+    </nav>
 
-            playSound(440, 'triangle', 0.5, 0.1);
-            setTimeout(() => {
-                clearInterval(interval);
-                window.location.href = '/api/auth/login';
-            }, 1500); // Prodlouženo na 1.5s pro vyniknutí animace
+    <!-- HLAVNÍ OBSAH -->
+    <main>
+        <!-- HORNÍ STATUS PANEL -->
+        <header>
+            <div class="user-meta">
+                <h3 id="profile-name">Načítání profilu...</h3>
+                <span id="profile-details">Přezdívka: ... | ID: ...</span>
+            </div>
+            <div>
+                <span id="profile-strikes-top">Varování: 0/3</span>
+            </div>
+        </header>
+
+        <!-- 1. SEKCE: MOJE SLOŽKA -->
+        <div id="sec-slozka" class="section-content">
+            <div class="grid-2">
+                <!-- Zápis činnosti -->
+                <div class="card">
+                    <h2>Vykázat Výkon do Systému</h2>
+                    <form onsubmit="actionSubmit(event)">
+                        <div class="form-group">
+                            <label>Druh činnosti</label>
+                            <select id="act-type" onchange="toggleFormFields()">
+                                <option value="sber">Sběr surovin</option>
+                                <option value="vyroba">Výroba produktů</option>
+                                <option value="prodej">Realizovaný prodej distributorem</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Množství (ks)</label>
+                                <input type="number" id="act-amount" min="1" required>
+                            </div>
+                            <div class="form-group" id="field-value" style="display: none;">
+                                <label>Celková prodejní hodnota (Kč)</label>
+                                <input type="number" id="act-value" min="0">
+                            </div>
+                        </div>
+
+                        <!-- Dokupování materiálů -->
+                        <div id="field-materials" style="display: none;">
+                            <div class="form-group checkbox">
+                                <input type="checkbox" id="act-buy-materials" onchange="toggleMaterialInputs()">
+                                <label for="act-buy-materials">Musel jsem dokoupit materiál k výrobě</label>
+                            </div>
+                            <div id="material-inputs" style="display: none; padding-top: 10px;">
+                                <div class="form-group">
+                                    <label>Soupis nakoupených věcí</label>
+                                    <textarea id="act-mat-desc" rows="2" placeholder="Např. 50x Chemikálie, 10x Lahve"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Celkové náklady na nákup (Kč)</label>
+                                    <input type="number" id="act-mat-cost" min="0" value="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn">Odeslat k evidenci</button>
+                    </form>
+                </div>
+
+                <!-- Osobní statistika -->
+                <div class="card">
+                    <h2>Finanční Bilance & Výkon</h2>
+                    <div class="grid-2" style="margin-bottom: 20px;">
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 13px;">Celková hodnota struktuře</span>
+                            <h2 id="stats-total-org" style="color: var(--primary); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 Kč</h2>
+                        </div>
+                        <div>
+                            <span style="color: var(--text-muted); font-size: 13px;">Váše nevyplacená provize</span>
+                            <h2 id="stats-total-emp" style="color: var(--success); font-size: 24px; border: none; padding: 0; margin: 5px 0;">0 Kč</h2>
+                        </div>
+                    </div>
+                    <div style="height: 160px; position: relative;">
+                        <canvas id="chart-employee"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historie a výplaty -->
+            <div class="card">
+                <h2>Osobní historie a stav vyúčtování</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Datum</th>
+                            <th>Činnost</th>
+                            <th>Množství</th>
+                            <th>Celkový výnos</th>
+                            <th>Vaše provize</th>
+                            <th>Materiál</th>
+                            <th>Stav vyplacení</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-user-history"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. SEKCE: SKLAD KOMODIT -->
+        <div id="sec-sklad" class="section-content" style="display: none;">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Manipulace s inventářem</h2>
+                    <form onsubmit="stockSubmit(event)">
+                        <div class="form-group">
+                            <label>Vybrat položku</label>
+                            <select id="stock-item-id"></select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Operace</label>
+                                <select id="stock-op">
+                                    <option value="add">Naskladnit (+)</option>
+                                    <option value="remove">Vyskladnit (-)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Množství (ks)</label>
+                                <input type="number" id="stock-qty" min="1" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn">Zapsat pohyb</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h2>Zavést novou položku do evidence</h2>
+                    <form onsubmit="newItemSubmit(event)">
+                        <div class="form-group">
+                            <label>Název nové věci / komodity</label>
+                            <input type="text" id="new-item-name" required placeholder="Např. Automatická zbraň, Chemikálie X">
+                        </div>
+                        <div class="form-group">
+                            <label>Počáteční stav skladových zásob</label>
+                            <input type="number" id="new-item-qty" min="0" value="0" required>
+                        </div>
+                        <button type="submit" class="btn" style="background-color: var(--text-muted);">Zavést věc</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Aktuální stav hlavního skladu</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Název položky</th>
+                            <th>Skladový stav</th>
+                            <th>Zapsal naposledy</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-stock"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. SEKCE: ÚČETNICTVÍ -->
+        <div id="sec-ucetnictvi" class="section-content" style="display: none;">
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Srovnání výkonu sítě (Mezitýdenní přehled)</h2>
+                    <div style="height: 200px;">
+                        <canvas id="chart-accounting"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2>Požadavky na schválení financí (Nákupy materiálů)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Osoba</th>
+                                <th>Co kupuje</th>
+                                <th>Částka</th>
+                                <th>Akce</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-acc-requests"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Správa kvót a finanční vypořádání zaměstnanců</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Osoba (Přezdívka)</th>
+                            <th>Celkový výnos do kasy</th>
+                            <th>Dlužná provize</th>
+                            <th>Stav kvóty (min. 10ks)</th>
+                            <th>Akce</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-acc-payouts"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 4. SEKCE: TREZOR & FINANCE (POUZE VEDENÍ) -->
+        <div id="sec-trezor" class="section-content" style="display: none;">
+            <div class="grid-3">
+                <div class="card">
+                    <h2>Finanční hotovost v trezoru</h2>
+                    <h1 id="trezor-money-display" style="color: var(--success); font-size: 32px; margin-bottom: 15px;">0 Kč</h1>
+                    <form onsubmit="handleTrezorCash(event)">
+                        <div class="form-row">
+                            <select id="trezor-cash-op">
+                                <option value="add">Vložit hotovost (+)</option>
+                                <option value="remove">Vybrat hotovost (-)</option>
+                            </select>
+                            <input type="number" id="trezor-cash-amount" min="1" placeholder="Částka" required>
+                        </div>
+                        <button type="submit" class="btn">Provést transakci</button>
+                    </form>
+                </div>
+                <div class="card" style="grid-column: span 2;">
+                    <h2>Trezorový sklad (Cennosti, zbraně, dokumentace)</h2>
+                    <table style="margin-bottom: 15px;">
+                        <thead>
+                            <tr>
+                                <th>Položka</th>
+                                <th>Množství</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-trezor-items"></tbody>
+                    </table>
+                    <form onsubmit="handleTrezorItem(event)" class="form-row">
+                        <input type="text" id="trezor-item-name" placeholder="Název předmětu" required>
+                        <input type="number" id="trezor-item-qty" placeholder="Množství (+/-)" required>
+                        <button type="submit" class="btn" style="grid-column: span 2;">Aktualizovat trezorové zásoby</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. SEKCE: SPRÁVA SÍTĚ (POUZE VEDENÍ) -->
+        <div id="sec-management" class="section-content" style="display: none;">
+            <div class="card">
+                <h2>Globální graf okamžitých zisků organizace</h2>
+                <div style="height: 220px;">
+                    <canvas id="chart-admin-global"></canvas>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Evidence a profily všech registrovaných zaměstnanců</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Jméno a Příjmení</th>
+                                <th>Přezdívka</th>
+                                <th>Telefon</th>
+                                <th>Identifikace (ID)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-admin-users"></tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h2>Disciplinární systém (Strikes řízení)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Osoba</th>
+                                <th>Stav penalizace</th>
+                                <th>Řízení</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-admin-strikes"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Poslední aktivity všech uzlů sítě v reálném čase</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Čas</th>
+                            <th>Osoba</th>
+                            <th>Událost</th>
+                            <th>Finanční tok</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-admin-logs"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- DATA STAŽENÁ ZE SUPABASE / SIMULACE STAVU ---
+        const activeUser = {
+            jmeno_prijmeni: "Alejandro Vega",
+            prezdivka: "El Chopo",
+            user_id: "394104920419401924",
+            role: "vedeni", // Možnosti: "zamestnanec", "ucetnik", "vedeni"
+            strikes: 1
+        };
+
+        let databazeZamestnancu = [
+            { user_id: "394104920419401924", jmeno_prijmeni: "Alejandro Vega", prezdivka: "El Chopo", telefon: "555-9124", strikes: 1, celkem_odvedeno_ks: 24, dluh_provize: 45000 },
+            { user_id: "123456789012345678", jmeno_prijmeni: "Mateo Silva", prezdivka: "Negro", telefon: "555-1029", strikes: 0, celkem_odvedeno_ks: 8, dluh_provize: 0 },
+            { user_id: "987654321098765432", jmeno_prijmeni: "Carlos Mendez", prezdivka: "Picasso", telefon: "555-4481", strikes: 2, celkem_odvedeno_ks: 45, dluh_provize: 120000 }
+        ];
+
+        let skladPolozky = [
+            { id: "1", nazev: "Průmyslová chemie", ks: 140, zapisovatel: "Negro" },
+            { id: "2", nazev: "Zajištěný balíček", ks: 45, zapisovatel: "Picasso" }
+        ];
+
+        let trezorFinance = { hotovost: 3450000 };
+        let trezorSklad = [
+            { nazev: "Konfiskované dokumenty", ks: 3 },
+            { nazev: "Zlaté slitky", ks: 12 }
+        ];
+
+        let centralniZaznamy = [
+            { datum: "16. 06. 2026", clovek: "Picasso", akce: "PRODEJ", hodnota: 200000, provize: 80000, material: "Žádný", vyplaceno: false, ks: 40 },
+            { datum: "15. 06. 2026", clovek: "Negro", akce: "SBĚR", hodnota: 15000, provize: 6000, material: "Žádný", vyplaceno: true, ks: 15 }
+        ];
+
+        let nakupniPožadavky = [
+            { id: 101, clovek: "Negro", popis: "Baterie a kabely do laboratoře", castka: 25000, stav: "Čeká" }
+        ];
+
+        const fixniSazby = { sber: 1000, vyroba: 2500 };
+        const provizeProcenta = 0.40;
+
+        // --- INICIALIZACE SYSTÉMU ---
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!activeUser) {
+                document.body.innerHTML = "<h1 style='color:white; text-align:center; margin-top:20%;'>[CHYBA AUTORIZACE] Profil nenalezen v registrech sítě.</h1>";
+                return;
+            }
+
+            // Výpis profilu v horní liště
+            document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
+            document.getElementById("profile-details").innerText = `Přezdívka: ${activeUser.prezdivka} | ID: ${activeUser.user_id}`;
+            updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
+
+            // Správa oprávnění sekcí
+            if (activeUser.role === "ucetnik") {
+                document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'flex');
+            } else if (activeUser.role === "vedeni") {
+                document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'flex');
+            }
+
+            initCatalogSelects();
+            refreshAllViews();
+            initCharts();
+        });
+
+        function refreshAllViews() {
+            renderUserHistory();
+            renderStock();
+            renderAccounting();
+            renderTrezor();
+            renderAdminPanel();
         }
 
-        window.onclick = () => { 
-            if(audioCtx.state === 'suspended') {
-                audioCtx.resume();
-                playSound(40, 'sine', 2.0, 0.05);
+        function showSection(secId) {
+            document.querySelectorAll('.section-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.nav-links button').forEach(el => el.style.removeProperty('background-color'));
+            
+            document.getElementById(`sec-${secId}`).style.display = 'block';
+            document.getElementById(`nav-${secId}`).style.backgroundColor = 'var(--primary)';
+        }
+
+        // --- DYNAMICKÉ FORMULÁŘE ---
+        function toggleFormFields() {
+            const type = document.getElementById("act-type").value;
+            document.getElementById("field-value").style.display = (type === 'prodej') ? 'block' : 'none';
+            document.getElementById("field-materials").style.display = (type === 'vyroba') ? 'block' : 'none';
+        }
+
+        function toggleMaterialInputs() {
+            const checked = document.getElementById("act-buy-materials").checked;
+            document.getElementById("material-inputs").style.display = checked ? 'block' : 'none';
+        }
+
+        // --- LOGIKA FORMULÁŘŮ ---
+        function actionSubmit(e) {
+            e.preventDefault();
+            const type = document.getElementById("act-type").value;
+            const amount = parseInt(document.getElementById("act-amount").value);
+            
+            let hodnota = 0;
+            let naklady = 0;
+            let matText = "Žádný";
+
+            if (type === 'prodej') {
+                hodnota = parseInt(document.getElementById("act-value").value);
+            } else {
+                hodnota = fixniSazby[type] * amount;
             }
-        };
-        
-        window.onload = () => {
-            addLine();
-        };
+
+            if (type === 'vyroba' && document.getElementById("act-buy-materials").checked) {
+                naklady = parseInt(document.getElementById("act-mat-cost").value);
+                matText = document.getElementById("act-mat-desc").value || "Materiál bez popisu";
+                
+                // Přidání požadavku na proplacení účetnímu
+                nakupniPožadavky.push({
+                    id: Date.now(),
+                    clovek: activeUser.prezdivka,
+                    popis: matText,
+                    castka: naklady,
+                    stav: "Čeká"
+                });
+            }
+
+            let cistaProvize = hodnota * provizeProcenta;
+
+            const novyZaznam = {
+                datum: new Date().toLocaleDateString('cs-CZ'),
+                clovek: activeUser.prezdivka,
+                akce: type.toUpperCase(),
+                hodnota: hodnota,
+                provize: cistaProvize,
+                material: naklady > 0 ? `${matText} (${naklady} Kč)` : "Žádný",
+                vyplaceno: false,
+                ks: amount
+            };
+
+            centralniZaznamy.unshift(novyZaznam);
+            
+            // Aktualizace dluhu u přihlášeného v simulované DB zaměstnanců
+            let z = databazeZamestnancu.find(u => u.user_id === activeUser.user_id);
+            if(z) {
+                z.celkem_odvedeno_ks += amount;
+                z.dluh_provize += cistaProvize;
+            }
+
+            // Pokud to byl prodej, okamžitě přičíst finance do grafu a logu
+            if (type === 'prodej') {
+                globalProfitData.push(hodnota);
+                globalProfitLabels.push(novyZaznam.datum);
+                if (adminChart) adminChart.update();
+            }
+
+            refreshAllViews();
+            document.getElementById("act-amount").value = "";
+            document.getElementById("act-value").value = "";
+            document.getElementById("act-mat-cost").value = "0";
+            document.getElementById("act-mat-desc").value = "";
+            document.getElementById("act-buy-materials").checked = false;
+            toggleMaterialInputs();
+        }
+
+        // --- RENDEROVÁNÍ TABULEK ---
+        function renderUserHistory() {
+            const myRecords = centralniZaznamy.filter(r => r.clovek === activeUser.prezdivka);
+            
+            let celkemOrg = myRecords.reduce((sum, r) => sum + r.hodnota, 0);
+            let celkemEmp = myRecords.filter(r => !r.vyplaceno).reduce((sum, r) => sum + r.provize, 0);
+
+            document.getElementById("stats-total-org").innerText = `${celkemOrg.toLocaleString()} Kč`;
+            document.getElementById("stats-total-emp").innerText = `${celkemEmp.toLocaleString()} Kč`;
+
+            const tbody = document.getElementById("table-user-history");
+            tbody.innerHTML = myRecords.map(r => `
+                <tr>
+                    <td>${r.datum}</td>
+                    <td><span class="badge warning">${r.akce}</span></td>
+                    <td>${r.ks} ks</td>
+                    <td>${r.hodnota.toLocaleString()} Kč</td>
+                    <td style="color:var(--success); font-weight:bold;">${r.provize.toLocaleString()} Kč</td>
+                    <td><span style="font-size:12px; color:var(--text-muted);">${r.material}</span></td>
+                    <td>${r.vyplaceno ? '<span class="badge success">Vyplaceno</span>' : '<span class="badge danger">Nevyplaceno</span>'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function initCatalogSelects() {
+            const select = document.getElementById("stock-item-id");
+            select.innerHTML = skladPolozky.map(p => `<option value="${p.id}">${p.nazev}</option>`).join('');
+        }
+
+        function renderStock() {
+            const tbody = document.getElementById("table-stock");
+            tbody.innerHTML = skladPolozky.map(p => `
+                <tr>
+                    <td><strong>${p.nazev}</strong></td>
+                    <td><span class="badge ${p.ks > 10 ? 'success' : 'danger'}">${p.ks} ks</span></td>
+                    <td>\`${p.zapisovatel}\`</td>
+                </tr>
+            `).join('');
+        }
+
+        function stockSubmit(e) {
+            e.preventDefault();
+            const itemId = document.getElementById("stock-item-id").value;
+            const op = document.getElementById("stock-op").value;
+            const qty = parseInt(document.getElementById("stock-qty").value);
+
+            let item = skladPolozky.find(p => p.id === itemId);
+            if (item) {
+                if (op === 'add') item.ks += qty;
+                else item.ks = Math.max(0, item.ks - qty);
+                item.zapisovatel = activeUser.prezdivka;
+            }
+            renderStock();
+        }
+
+        function newItemSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById("new-item-name").value;
+            const qty = parseInt(document.getElementById("new-item-qty").value);
+
+            skladPolozky.push({
+                id: (skladPolozky.length + 1).toString(),
+                nazev: name,
+                ks: qty,
+                zapisovatel: activeUser.prezdivka
+            });
+
+            initCatalogSelects();
+            renderStock();
+            document.getElementById("new-item-name").value = "";
+        }
+
+        // --- ÚČETNICTVÍ PANEL ---
+        function renderAccounting() {
+            // Požadavky na materiál
+            const tbodyReq = document.getElementById("table-acc-requests");
+            tbodyReq.innerHTML = nakupniPožadavky.filter(r => r.stav === "Čeká").map(r => `
+                <tr>
+                    <td>${r.clovek}</td>
+                    <td>${r.popis}</td>
+                    <td style="color:var(--danger);">${r.castka.toLocaleString()} Kč</td>
+                    <td>
+                        <button onclick="resolveRequest(${r.id}, true)" style="background:var(--success); border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold; margin-right:5px;">SCHVÁLIT</button>
+                        <button onclick="resolveRequest(${r.id}, false)" style="background:var(--danger); border:none; color:white; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:11px; font-weight:bold;">ZAMÍTNOUT</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Výplaty a kvóty
+            const tbodyPay = document.getElementById("table-acc-payouts");
+            tbodyPay.innerHTML = databazeZamestnancu.map(z => {
+                const splneno = z.celkem_odvedeno_ks >= 10;
+                return `
+                    <tr>
+                        <td><strong>${z.jmeno_prijmeni} (${z.prezdivka})</strong></td>
+                        <td>${(z.celkem_odvedeno_ks * 2500).toLocaleString()} Kč</td>
+                        <td style="color:var(--success); font-weight:bold;">${z.dluh_provize.toLocaleString()} Kč</td>
+                        <td><span class="badge ${splneno ? 'success' : 'danger'}">${z.celkem_odvedeno_ks}/10 ks</span></td>
+                        <td>
+                            <button onclick="payoutUser('${z.user_id}')" ${z.dluh_provize === 0 ? 'disabled style="background:#222; cursor:default;"' : ''} style="background:var(--primary); border:none; color:white; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">VYPLATIT</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function resolveRequest(id, approved) {
+            let req = nakupniPožadavky.find(r => r.id === id);
+            if (req) {
+                req.stav = approved ? "Schváleno" : "Zamítnuto";
+                if (approved) {
+                    trezorFinance.hotovost -= req.castka; // Schválené peníze jdou z pokladny trezoru
+                }
+            }
+            refreshAllViews();
+        }
+
+        function payoutUser(userId) {
+            let z = databazeZamestnancu.find(u => u.user_id === userId);
+            if (z && z.dluh_provize > 0) {
+                trezorFinance.hotovost -= z.dluh_provize; // Odteče z trezoru
+                
+                // Nastavit historii centrály daného uživatele na vyplaceno
+                centralniZaznamy.forEach(r => {
+                    if (r.clovek === z.prezdivka) r.vyplaceno = true;
+                });
+                
+                z.dluh_provize = 0;
+            }
+            refreshAllViews();
+        }
+
+        // --- TREZOR (VEDENÍ) ---
+        function renderTrezor() {
+            document.getElementById("trezor-money-display").innerText = `${trezorFinance.hotovost.toLocaleString()} Kč`;
+            const tbody = document.getElementById("table-trezor-items");
+            tbody.innerHTML = trezorSklad.map(i => `
+                <tr>
+                    <td><strong>${i.nazev}</strong></td>
+                    <td><span class="badge warning">${i.ks} ks</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function handleTrezorCash(e) {
+            e.preventDefault();
+            const op = document.getElementById("trezor-cash-op").value;
+            const amt = parseInt(document.getElementById("trezor-cash-amount").value);
+            if (op === 'add') trezorFinance.hotovost += amt;
+            else trezorFinance.hotovost = Math.max(0, trezorFinance.hotovost - amt);
+            renderTrezor();
+            document.getElementById("trezor-cash-amount").value = "";
+        }
+
+        function handleTrezorItem(e) {
+            e.preventDefault();
+            const name = document.getElementById("trezor-item-name").value;
+            const qty = parseInt(document.getElementById("trezor-item-qty").value);
+
+            let item = trezorSklad.find(i => i.nazev.toLowerCase() === name.toLowerCase());
+            if (item) {
+                item.ks += qty;
+                if (item.ks <= 0) trezorSklad = trezorSklad.filter(i => i.nazev !== item.nazev);
+            } else if (qty > 0) {
+                trezorSklad.push({ nazev: name, ks: qty });
+            }
+            renderTrezor();
+            document.getElementById("trezor-item-name").value = "";
+            document.getElementById("trezor-item-qty").value = "";
+        }
+
+        // --- SPRÁVA SÍTĚ (VEDENÍ) ---
+        function renderAdminPanel() {
+            // Seznam registrovaných profilů podle tvých Supabase sloupců
+            const tbodyUsers = document.getElementById("table-admin-users");
+            tbodyUsers.innerHTML = databazeZamestnancu.map(z => `
+                <tr>
+                    <td><strong>${z.jmeno_prijmeni}</strong></td>
+                    <td>\`${z.prezdivka}\`</td>
+                    <td>${z.telefon}</td>
+                    <td><span style="font-size:11px; color:var(--text-muted);">${z.user_id}</span></td>
+                </tr>
+            `).join('');
+
+            // Tabulka Strikes systému
+            const tbodyStrikes = document.getElementById("table-admin-strikes");
+            tbodyStrikes.innerHTML = databazeZamestnancu.map(z => `
+                <tr>
+                    <td>${z.prezdivka}</td>
+                    <td>${getStrikeDotsHTML(z.strikes)}</td>
+                    <td>
+                        <button onclick="modifyStrike('${z.user_id}', 1)" style="background:var(--danger); border:none; color:white; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold; margin-right:4px;">+ STRIKE</button>
+                        <button onclick="modifyStrike('${z.user_id}', -1)" style="background:var(--text-muted); border:none; color:white; padding:3px 6px; border-radius:3px; cursor:pointer; font-size:11px; font-weight:bold;">- SMANZAT</button>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Logy aktivit sítě
+            const tbodyLogs = document.getElementById("table-admin-logs");
+            tbodyLogs.innerHTML = centralniZaznamy.map(r => `
+                <tr>
+                    <td>${r.datum}</td>
+                    <td>\`${r.clovek}\`</td>
+                    <td>Zápis činnosti: <span class="badge warning">${r.akce}</span> (${r.ks} ks)</td>
+                    <td style="color:${r.akce === 'PRODEJ' ? 'var(--success)' : 'var(--text-main)'}; font-weight:bold;">+ ${r.hodnota.toLocaleString()} Kč</td>
+                </tr>
+            `).join('');
+        }
+
+        function getStrikeDotsHTML(count) {
+            let html = '';
+            for(let i = 1; i <= 3; i++) {
+                html += `<span class="strike-dot ${i <= count ? 'active' : ''}"></span>`;
+            }
+            return `${html} (${count}/3)`;
+        }
+
+        function updateStrikesDisplay(count, elementId) {
+            document.getElementById(elementId).innerHTML = `Varování: ` + getStrikeDotsHTML(count);
+        }
+
+        function modifyStrike(userId, diff) {
+            let z = databazeZamestnancu.find(u => u.user_id === userId);
+            if (z) {
+                z.strikes = Math.min(3, Math.max(0, z.strikes + diff));
+                if (z.strikes === 3) {
+                    alert(`🚨 Upozornění centrály: Zaměstnanec ${z.jmeno_prijmeni} dosáhl limitu 3/3 varování. Spolupráce musí být okamžitě ukončena!`);
+                }
+                if (userId === activeUser.user_id) {
+                    activeUser.strikes = z.strikes;
+                    updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
+                }
+            }
+            refreshAllViews();
+        }
+
+        // --- GRAFY (CHART.JS) ---
+        let empChart, accChart, adminChart;
+        let globalProfitData = [150000, 300000, 200000, 450000];
+        let globalProfitLabels = ['10.06.', '12.06.', '14.06.', '15.06.'];
+
+        function initCharts() {
+            // Osobní graf zaměstnance
+            const ctxEmp = document.getElementById('chart-employee').getContext('2d');
+            empChart = new Chart(ctxEmp, {
+                type: 'line',
+                data: {
+                    labels: ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'],
+                    datasets: [{
+                        label: 'Váše denní kvóta (ks)',
+                        data: [5, 8, 2, 0, 12, 15, 4],
+                        borderColor: '#2ed573',
+                        tension: 0.3,
+                        fill: false
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Mezitýdenní graf pro účetníka
+            const ctxAcc = document.getElementById('chart-accounting').getContext('2d');
+            accChart = new Chart(ctxAcc, {
+                type: 'bar',
+                data: {
+                    labels: ['Minulý týden', 'Aktuální týden'],
+                    datasets: [{
+                        label: 'Obrát sítě v Kč',
+                        data: [1240000, 1850000],
+                        backgroundColor: ['#747d8c', '#962d22']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Globální okamžité zisky pro vedení
+            const ctxAdm = document.getElementById('chart-admin-global').getContext('2d');
+            adminChart = new Chart(ctxAdm, {
+                type: 'line',
+                data: {
+                    labels: globalProfitLabels,
+                    datasets: [{
+                        label: 'Okamžitý zisk z prodejů (Kč)',
+                        data: globalProfitData,
+                        borderColor: '#2ed573',
+                        backgroundColor: 'rgba(46, 213, 115, 0.05)',
+                        fill: true,
+                        tension: 0.2
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
     </script>
 </body>
 </html>
