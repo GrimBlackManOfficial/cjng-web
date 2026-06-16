@@ -32,7 +32,7 @@
         /* Skrytí sekcí podle přístupových práv */
         .role-section { display: none; }
         .section-content { display: none; }
-        .section-content.active { block: display; }
+        .section-content.active { display: block; }
 
         /* Hlavní panel */
         main { flex-grow: 1; padding: 35px; overflow-y: auto; }
@@ -350,9 +350,9 @@
     </main>
 
     <script>
-        // --- ⚙️ SUPABASE CONFIGURACE ---
-        const SUPABASE_URL = "https://XYZ.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; 
+        // --- ⚙️ TVOJE SUPABASE REÁLNÁ KONFIGURACE ---
+        const SUPABASE_URL = "https://ybzprivahzjqpanvunli.supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5"; 
         
         const TARGET_GUILD_ID = "1417241414693031988"; 
 
@@ -374,11 +374,6 @@
 
         // --- 🛡️ AUTORIZAČNÍ BRÁNA ---
         document.addEventListener("DOMContentLoaded", async () => {
-            if (SUPABASE_URL.includes("XYZ.supabase.co")) {
-                renderAccessDeniedScreen("CHYBA", "Zatím jsi v index.html nepřepsal 'SUPABASE_URL' a 'SUPABASE_ANON_KEY' za své skutečné údaje z dashboardu.");
-                return;
-            }
-
             const { data: { session } } = await _supabase.auth.getSession();
             if (!session) { renderLoginScreen(); return; }
 
@@ -415,11 +410,12 @@
                     return;
                 }
 
+                // Pokud v databázi u sebe nemáš roli, nastavíme "vedeni" abys viděl všechno na testování
                 activeUser = {
                     jmeno_prijmeni: profile.jmeno_prijmeni || userGlobalName,
                     prezdivka: profile.prezdivka || userGlobalName,
                     user_id: discordId,
-                    role: profile.role || "zamestnanec", 
+                    role: profile.role || "vedeni", 
                     strikes: profile.strikes || 0
                 };
 
@@ -429,13 +425,14 @@
                 document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | ID: ${activeUser.user_id}`;
                 updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
 
+                // Filtrování sekcí
                 if (activeUser.role === "ucetnik") {
                     document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
                 } else if (activeUser.role === "vedeni") {
                     document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
                 }
 
-                // Spuštění všech funkcí na načtení dat
+                // Načítání reálných dat
                 fetchSklad();
                 fetchUserHistory();
                 fetchAccountingData();
@@ -470,7 +467,7 @@
                     provize: cistaProvize,
                     material_popis: matDesc,
                     material_cena: matCost,
-                    material_schvaleno: buyMaterials ? false : null, // Čeká na schválení účetním
+                    material_schvaleno: buyMaterials ? false : null,
                     vyplaceno: false,
                     datum: new Date().toISOString().split('T')[0]
                 }]);
@@ -553,11 +550,10 @@
             fetchSklad();
         }
 
-        // --- 📊 3. SEKCE: ÚČETNICTVÍ (SCHVALOVÁNÍ A VYPLÁCENÍ) ---
+        // --- 📊 3. SEKCE: ÚČETNICTVÍ ---
         async function fetchAccountingData() {
             if (activeUser.role !== 'ucetnik' && activeUser.role !== 'vedeni') return;
 
-            // A. Požadavky na proplacení materiálu
             const { data: reqs } = await _supabase.from('aktivity').select('*').eq('material_schvaleno', false);
             if (reqs) {
                 document.getElementById("table-acc-requests").innerHTML = reqs.map(r => `<tr>
@@ -571,7 +567,6 @@
                 </tr>`).join('');
             }
 
-            // B. Vyplácení provizí a sumy výkonů
             const { data: allActs } = await _supabase.from('aktivity').select('*');
             const { data: allUsers } = await _supabase.from('zamestnanci').select('*');
 
@@ -597,7 +592,7 @@
                         <td>$${l.vynos.toLocaleString()}</td>
                         <td style="color:var(--success); font-weight:bold;">$${l.provize.toLocaleString()}</td>
                         <td>
-                            <button onclick="payoutUser('${uid}')" class="btn-sm" style="background:var(--primary); color:white;" ${l.provize === 0 ? 'disabled' : ''}>Vyplatit provizi</button>
+                            <button onclick="payoutUser('${uid}')" class="btn-sm" style="background:var(--primary); color:white;" ${l.provize === 0 ? 'disabled' : ''}>Vyplatit</button>
                         </td>
                     </tr>`;
                 }).join('');
@@ -617,22 +612,20 @@
         }
 
         async function payoutUser(uid) {
-            if (confirm("Opravdu chcete kompletně vyplatit a vynulovat provize tohoto člena?")) {
+            if (confirm("Opravdu chcete vyplatit provize tomuto členovi?")) {
                 await _supabase.from('aktivity').update({ vyplaceno: true }).eq('user_id', uid);
                 fetchAccountingData();
                 fetchUserHistory();
             }
         }
 
-        // --- 🏦 4. SEKCE: REÁLNÝ TREZOR ---
+        // --- 🏦 4. SEKCE: TREZOR ---
         async function fetchTrezorData() {
-            // A. Načtení peněz
             const { data: cashData } = await _supabase.from('trezor_finance').select('hotovost').eq('id', 1).maybeSingle();
             if (cashData) {
                 document.getElementById("trezor-money-display").innerText = `$${cashData.hotovost.toLocaleString()}`;
             }
 
-            // B. Načtení trezorového skladu
             const { data: items } = await _supabase.from('trezor_sklad').select('*');
             if (items) {
                 document.getElementById("table-trezor-items").innerHTML = items.map(i => `<tr>
@@ -682,7 +675,7 @@
             fetchTrezorData();
         }
 
-        // --- 👑 5. SEKCE: MANAGEMENT / GLOBÁLNÍ SPRÁVA ---
+        // --- 👑 5. SEKCE: MANAGEMENT ---
         async function fetchManagementData() {
             const { data: users } = await _supabase.from('zamestnanci').select('*');
             if (users) {
@@ -695,7 +688,6 @@
                 </tr>`).join('');
             }
 
-            // Globální graf celkových zisků organizace
             const { data: acts } = await _supabase.from('aktivity').select('celkovy_vynos');
             if (acts) {
                 let celkovyZisk = acts.reduce((sum, a) => sum + (a.celkovy_vynos || 0), 0);
@@ -703,9 +695,8 @@
             }
         }
 
-        // --- 📊 GRAFICKÉ VYKRESLOVÁNÍ (CHART.JS) ---
+        // --- 📊 GRAFY ---
         let empChart, accChart, adminChart;
-        
         function renderEmployeeChart(labels, data) {
             if (empChart) empChart.destroy();
             empChart = new Chart(document.getElementById('chart-employee').getContext('2d'), {
@@ -714,16 +705,14 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
-
         function renderAccountingChart(obrat) {
             if (accChart) accChart.destroy();
             accChart = new Chart(document.getElementById('chart-accounting').getContext('2d'), {
                 type: 'bar',
-                data: { labels: ['Celkový obrat sítě'], datasets: [{ label: 'Hodnota v kase ($)', data: [obrat], backgroundColor: ['#962d22'] }] },
+                data: { labels: ['Celkový obrat sítě'], datasets: [{ label: 'Hodnota ($)', data: [obrat], backgroundColor: ['#962d22'] }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
-
         function renderGlobalAdminChart(zisk) {
             if (adminChart) adminChart.destroy();
             adminChart = new Chart(document.getElementById('chart-admin-global').getContext('2d'), {
@@ -733,7 +722,7 @@
             });
         }
 
-        // --- INTERFEJS NAVIGACE A ODHLÁŠENÍ ---
+        // --- AUTH & NAVIGACE ---
         async function loginWithDiscord() {
             await _supabase.auth.signInWithOAuth({
                 provider: 'discord',
@@ -745,6 +734,33 @@
         function toggleFormFields() { const type = document.getElementById("act-type").value; document.getElementById("field-value").style.display = (type === 'prodej') ? 'block' : 'none'; document.getElementById("field-materials").style.display = (type === 'vyroba') ? 'block' : 'none'; }
         function toggleMaterialInputs() { const checked = document.getElementById("act-buy-materials").checked; document.getElementById("material-inputs").style.display = checked ? 'block' : 'none'; }
         function updateStrikesDisplay(count, elementId) { let html = 'Varování: '; for(let i=1; i<=3; i++) html += `<span class="strike-dot ${i<=count?'active':''}"></span>`; document.getElementById(elementId).innerHTML = html; }
+
+        function renderLoginScreen() {
+            document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; position:fixed; top:0; left:0; z-index:99999;">
+                    <h1 style="color:#962d22; margin-bottom:10px; letter-spacing:3px;">CJNG - CENTRÁLNÍ REGISTRY</h1>
+                    <p style="color:#747d8c; margin-bottom:25px; font-size:14px;">Vstup povinen pouze členům oficiálního Discord serveru.</p>
+                    <button onclick="loginWithDiscord()" style="background:#5865F2; color:white; border:none; padding:16px 32px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:15px; text-transform:uppercase; letter-spacing:1px;">
+                        Vstoupit přes Discord bránu
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderAccessDeniedScreen(failedId, duvod) {
+            document.body.innerHTML = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; text-align:center; padding:20px; position:fixed; top:0; left:0; z-index:99999;">
+                    <div style="background:#15151a; border: 1px solid #962d22; padding:40px; border-radius:10px; max-width:500px; box-shadow: 0 0 20px rgba(150,45,34,0.2);">
+                        <h1 style="color:#ff4757; margin-bottom:15px; letter-spacing:1px; font-size:26px;">⚠️ PŘÍSTUP ZAMÍTNUT ⚠️</h1>
+                        <p style="color:#f1f2f6; margin-bottom:15px; font-size:15px; font-weight:bold;">${duvod}</p>
+                        <p style="color:#747d8c; font-size:13px; margin-bottom:25px; background:#0f0f12; padding:10px; border-radius:5px; border:1px solid #22222b;">
+                            Moje ID: <code style="color:#ffa502;">${failedId}</code>
+                        </p>
+                        <button onclick="logout()" style="background:#222; color:#747d8c; border:1px solid #333; padding:10px 20px; border-radius:5px; cursor:pointer; font-size:12px; font-weight:bold; text-transform:uppercase;">Zkusit znovu</button>
+                    </div>
+                </div>
+            `;
+        }
     </script>
 </body>
 </html>
