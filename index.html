@@ -58,6 +58,9 @@
         button.btn { background-color: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; font-size: 14px; text-transform: uppercase; }
         button.btn:hover { background-color: var(--primary-hover); }
         button.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; background: var(--primary); color: white; }
+        
+        .btn-secondary { background-color: #2c2c35; color: var(--text-main); border: 1px solid var(--border); padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.2s; text-transform: uppercase; font-size: 13px; }
+        .btn-secondary:hover { background-color: #3e3e4a; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { text-align: left; padding: 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
@@ -101,7 +104,6 @@
             </div>
         </header>
 
-        <!-- OBSAH PANELU -->
         <div id="sec-slozka" class="section-content active">
             <div class="grid-2">
                 <div class="card">
@@ -261,105 +263,243 @@
         </div>
 
         <div id="sec-management" class="section-content">
-            <div class="card"><h2>Globální graf zisků</h2><div style="height: 220px;"><canvas id="chart-admin-global"></canvas></div></div>
+            <div class="grid-2">
+                <div class="card">
+                    <h2>Nábor nového zaměstnance</h2>
+                    <form onsubmit="adminAddNewUser(event)">
+                        <div class="form-group">
+                            <label>Discord ID Člena</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="adm-new-uid" placeholder="Např. 451487522514" required>
+                                <button type="button" onclick="loadUserDataFromBot()" class="btn-secondary" style="width: auto; white-space: nowrap; padding: 0 15px;">Načíst data</button>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Jméno a Příjmení</label>
+                                <input type="text" id="adm-new-name" placeholder="Načítá se..." required>
+                            </div>
+                            <div class="form-group">
+                                <label>Přezdívka</label>
+                                <input type="text" id="adm-new-nick" placeholder="Načítá se..." required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Telefon</label>
+                                <input type="text" id="adm-new-phone" placeholder="Načítá se...">
+                            </div>
+                            <div class="form-group">
+                                <label>Hodnost / Role (Ze serveru)</label>
+                                <select id="adm-new-role">
+                                    <option value="zamestnanec">Zaměstnanec</option>
+                                    <option value="ucetnik">Účetní</option>
+                                    <option value="vedeni">Vedení sítě</option>
+                                </select>
+                            </div>
+                        </div>
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Aktivací bude nastaveno dočasné heslo: <strong>ZmenMe123!</strong></p>
+                        <button type="submit" class="btn">Aktivovat přístup do panelu</button>
+                    </form>
+                </div>
+                <div class="card"><h2>Globální graf zisků</h2><div style="height: 180px;"><canvas id="chart-admin-global"></canvas></div></div>
+            </div>
+            
             <div class="card">
                 <h2>Evidence zaměstnanců</h2>
                 <table>
-                    <thead><tr><th>Jméno</th><th>Přezdívka</th><th>Telefon</th><th>ID</th><th>Pozice</th></tr></thead>
+                    <thead><tr><th>Jméno</th><th>Přezdívka</th><th>Telefon</th><th>ID / Login</th><th>Pozice</th></tr></thead>
                     <tbody id="table-admin-users"></tbody>
                 </table>
             </div>
         </div>
     </main>
 
-    <!-- 🌟 ČISTÁ DISCORD OAUTH2 AUTORIZACE 🌟 -->
     <script>
         const SUPABASE_URL = "https://ybzprivahzjqpanvunli.supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_cLNB6oc2TrhDxdelrq6mjQ_0pSZFVb5"; 
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 🛠️ AKTUALIZOVANÉ ID TVÉHO BOTA
-        const DISCORD_CLIENT_ID = "1465728809134326037"; 
+        const ADMIN_USER = "admin";
+        const ADMIN_PASS = "admin123";
 
         let activeUser = null; 
         const fixniSazby = { sber: 100, vyroba: 250 }; 
         const provizeProcenta = 0.40;
 
-        function loginWithDiscord() {
-            const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname);
-            window.location.href = `https://discord.com/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${redirectUri}&response_type=token&scope=identify`;
-        }
-
-        async function checkDiscordAuth() {
-            const fragment = new URLSearchParams(window.location.hash.slice(1));
-            let accessToken = fragment.get('access_token');
-
-            if (accessToken) {
-                localStorage.setItem('dc_access_token', accessToken);
-                window.location.hash = ''; 
-            } else {
-                accessToken = localStorage.getItem('dc_access_token');
+        // 🤖 FUNKCE PRO NAČTENÍ DAT ZE SUPABASE PODLE ID (Zapsané botem)
+        async function loadUserDataFromBot() {
+            const uid = document.getElementById("adm-new-uid").value.trim();
+            if (!uid) {
+                alert("Nejdříve zadej Discord ID!");
+                return;
             }
 
-            if (accessToken) {
-                try {
-                    const res = await fetch('https://discord.com/api/users/@me', {
-                        headers: { Authorization: `Bearer ${accessToken}` }
-                    });
+            try {
+                const { data, error } = await _supabase
+                    .from('zamestnanci')
+                    .select('*')
+                    .eq('user_id', uid)
+                    .maybeSingle();
 
-                    if (!res.ok) throw new Error("Neplatný token");
+                if (error) throw error;
 
-                    const discordUser = await res.json();
-                    const discordId = discordUser.id; 
-
-                    const { data: profile } = await _supabase
-                        .from('zamestnanci')
-                        .select('*')
-                        .eq('user_id', discordId)
-                        .maybeSingle();
-
-                    if (!profile) {
-                        alert(`Uživatel s Discord ID: ${discordId} není zaveden v databázi 'zamestnanci'!`);
-                        logout();
-                        return;
-                    }
-
-                    activeUser = {
-                        jmeno_prijmeni: profile.jmeno_prijmeni || "Uživatel",
-                        prezdivka: profile.prezdivka || "Uživatel",
-                        user_id: profile.user_id,
-                        role: profile.role || "vedeni",
-                        strikes: profile.strikes || 0
-                    };
-
-                    document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
-                    document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | ID: ${activeUser.user_id}`;
-                    updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
-
-                    if (activeUser.role === "ucetnik") {
-                        document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
-                    } else if (activeUser.role === "vedeni") {
-                        document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
-                    }
-
-                    fetchSklad(); fetchUserHistory(); fetchAccountingData(); fetchTrezorData(); fetchManagementData();
-                    
-                    const overlay = document.getElementById("login-overlay");
-                    if(overlay) overlay.remove();
-
-                } catch (err) {
-                    console.error(err);
-                    logout();
+                if (!data) {
+                    alert("Tento uživatel nebyl v databázi botem nalezen! Zkontroluj, zda ho bot na Discordu správně zavedl.");
+                    return;
                 }
+
+                // Automatické propsání hodnot do polí formuláře
+                document.getElementById("adm-new-name").value = data.jmeno_prijmeni || "";
+                document.getElementById("adm-new-nick").value = data.prezdivka || "";
+                document.getElementById("adm-new-phone").value = data.telefon || "";
+                
+                if (data.role) {
+                    document.getElementById("adm-new-role").value = data.role.toLowerCase();
+                }
+                
+                alert("Data z registrace bota byla úspěšně načtena!");
+
+            } catch (err) {
+                console.error(err);
+                alert("Chyba při stahování dat ze Supabase.");
+            }
+        }
+
+        async function handleInternalLogin(e) {
+            e.preventDefault();
+            const uid = document.getElementById("login-uid").value.trim();
+            const pass = document.getElementById("login-pass").value;
+
+            if (uid === ADMIN_USER && pass === ADMIN_PASS) {
+                activeUser = { jmeno_prijmeni: "Hlavní Administrátor", prezdivka: "Admin", user_id: "ADMIN", role: "vedeni", strikes: 0 };
+                localStorage.setItem("cjng_session", JSON.stringify(activeUser));
+                initPanel();
+                return;
+            }
+
+            try {
+                const { data: profile, error } = await _supabase
+                    .from('zamestnanci')
+                    .select('*')
+                    .eq('user_id', uid)
+                    .maybeSingle();
+
+                if (error) throw error;
+
+                if (!profile) {
+                    alert("Uživatel neexistuje!");
+                    return;
+                }
+
+                const dbPassword = profile.heslo || "ZmenMe123!";
+
+                if (pass !== dbPassword) {
+                    alert("Nesprávné heslo!");
+                    return;
+                }
+
+                activeUser = {
+                    jmeno_prijmeni: profile.jmeno_prijmeni || "Uživatel",
+                    prezdivka: profile.prezdivka || "Uživatel",
+                    user_id: profile.user_id,
+                    role: profile.role || "zamestnanec",
+                    strikes: profile.strikes || 0
+                };
+
+                if (dbPassword === "ZmenMe123!") {
+                    renderForcePasswordChange(profile.user_id);
+                    return;
+                }
+
+                localStorage.setItem("cjng_session", JSON.stringify(activeUser));
+                initPanel();
+
+            } catch (err) {
+                console.error(err);
+                alert("Chyba při komunikaci s databází.");
+            }
+        }
+
+        async function handleForceChange(e, uid) {
+            e.preventDefault();
+            const newPass = document.getElementById("new-force-pass").value;
+            if(newPass === "ZmenMe123!" || newPass.length < 4) {
+                alert("Zvol si bezpečnější heslo!");
+                return;
+            }
+
+            const { error } = await _supabase
+                .from('zamestnanci')
+                .update({ heslo: newPass })
+                .eq('user_id', uid);
+
+            if(!error) {
+                alert("Heslo nastaveno! Nyní se přihlas.");
+                window.location.reload();
+            } else {
+                alert("Chyba při ukládání hesla.");
+            }
+        }
+
+        // Potvrzení a aktivace (Update stávajícího řádku od bota)
+        async function adminAddNewUser(e) {
+            e.preventDefault();
+            const uid = document.getElementById("adm-new-uid").value.trim();
+            const name = document.getElementById("adm-new-name").value;
+            const nick = document.getElementById("adm-new-nick").value;
+            const phone = document.getElementById("adm-new-phone").value;
+            const role = document.getElementById("adm-new-role").value;
+
+            // Použijeme UPSERT (pokud existuje od bota, přepíše/doplní heslo, pokud ne, vytvoří nový)
+            const { error } = await _supabase.from('zamestnanci').upsert([{
+                user_id: uid, jmeno_prijmeni: name, prezdivka: nick, telefon: phone, role: role, heslo: "ZmenMe123!"
+            }]);
+
+            if(!error) {
+                alert(`Přístup pro ${nick} byl aktivován! Startovní heslo je ZmenMe123!`);
+                document.getElementById("adm-new-uid").value = "";
+                document.getElementById("adm-new-name").value = "";
+                document.getElementById("adm-new-nick").value = "";
+                document.getElementById("adm-new-phone").value = "";
+                fetchManagementData();
+            } else {
+                alert("Chyba při aktivaci v Supabase.");
+                console.error(error);
+            }
+        }
+
+        function initPanel() {
+            const overlay = document.getElementById("login-overlay");
+            if(overlay) overlay.remove();
+
+            document.getElementById("profile-name").innerText = activeUser.jmeno_prijmeni;
+            document.getElementById("profile-details").innerText = `Pozice: ${activeUser.role.toUpperCase()} | ID: ${activeUser.user_id}`;
+            updateStrikesDisplay(activeUser.strikes, "profile-strikes-top");
+
+            if (activeUser.role === "ucetnik") {
+                document.querySelectorAll('.role-ucetnik').forEach(el => el.style.display = 'block');
+            } else if (activeUser.role === "vedeni") {
+                document.querySelectorAll('.role-ucetnik, .role-vedeni').forEach(el => el.style.display = 'block');
+            }
+
+            fetchSklad(); fetchUserHistory(); fetchAccountingData(); fetchTrezorData(); fetchManagementData();
+        }
+
+        function checkAuth() {
+            const session = localStorage.getItem("cjng_session");
+            if (session) {
+                activeUser = JSON.parse(session);
+                initPanel();
             } else {
                 renderLoginScreen();
             }
         }
 
-        document.addEventListener("DOMContentLoaded", checkDiscordAuth);
+        document.addEventListener("DOMContentLoaded", checkAuth);
 
         function logout() { 
-            localStorage.removeItem('dc_access_token'); 
+            localStorage.removeItem('cjng_session'); 
             window.location.reload(); 
         }
 
@@ -369,15 +509,40 @@
             div.id = "login-overlay";
             div.style = "display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; width:100vw; background:#0f0f12; color:white; position:fixed; top:0; left:0; z-index:99999;";
             div.innerHTML = `
-                <div style="text-align:center; background:var(--bg-card); padding:40px; border-radius:10px; border:1px solid var(--border);">
-                    <h1 style="color:#962d22; margin-bottom:10px; letter-spacing:3px; font-size:24px;">CJNG PANEL</h1>
-                    <p style="color:#747d8c; margin-bottom:25px; font-size:14px;">Pro vstup se autorizuj svým účtem</p>
-                    <button onclick="loginWithDiscord()" style="background:#5865F2; color:white; border:none; padding:14px 28px; border-radius:6px; font-weight:bold; font-size:15px; cursor:pointer; display:flex; align-items:center; gap:10px; margin:0 auto; transition:0.2s;">
-                        PŘIHLÁSIT SE PŘES DISCORD
-                    </button>
+                <div style="width:360px; background:var(--bg-card); padding:40px; border-radius:10px; border:1px solid var(--border);">
+                    <h1 style="color:#962d22; margin-bottom:5px; text-align:center; letter-spacing:3px; font-size:24px;">CJNG PANEL</h1>
+                    <p style="color:#747d8c; margin-bottom:25px; text-align:center; font-size:14px;">Interní autorizační systém</p>
+                    <form onsubmit="handleInternalLogin(event)">
+                        <div class="form-group">
+                            <label>Discord ID / Přihlašovací jméno</label>
+                            <input type="text" id="login-uid" required style="margin-top:5px;">
+                        </div>
+                        <div class="form-group" style="margin-top:15px; margin-bottom:25px;">
+                            <label>Heslo</label>
+                            <input type="password" id="login-pass" required style="margin-top:5px;">
+                        </div>
+                        <button type="submit" class="btn">Přihlásit se</button>
+                    </form>
                 </div>
             `;
             document.body.appendChild(div);
+        }
+
+        function renderForcePasswordChange(uid) {
+            const overlay = document.getElementById("login-overlay");
+            overlay.innerHTML = `
+                <div style="width:360px; background:var(--bg-card); padding:40px; border-radius:10px; border:1px solid var(--border);">
+                    <h2 style="color:var(--warning); margin-bottom:10px; text-align:center; font-size:18px;">PRVNÍ PŘIHLÁŠENÍ</h2>
+                    <p style="color:var(--text-main); margin-bottom:20px; text-align:center; font-size:13px;">Musíš si změnit startovní heslo na své vlastní trvalé heslo.</p>
+                    <form onsubmit="handleForceChange(event, '${uid}')">
+                        <div class="form-group" style="margin-bottom:20px;">
+                            <label>Nové osobní heslo</label>
+                            <input type="password" id="new-force-pass" required style="margin-top:5px;">
+                        </div>
+                        <button type="submit" class="btn">Uložit heslo & vstoupit</button>
+                    </form>
+                </div>
+            `;
         }
 
         // --- BD SYNC FUNKCE ---
@@ -387,6 +552,7 @@
             await _supabase.from('aktivity').insert([{ user_id: activeUser.user_id, prezdivka: activeUser.prezdivka, akce: type.toUpperCase(), mnozstvi: amount, celkovy_vynos: hodnota, provize: cistaProvize, material_popis: buyMaterials ? document.getElementById("act-mat-desc").value : null, material_cena: buyMaterials ? parseInt(document.getElementById("act-mat-cost").value) : 0, material_schvaleno: buyMaterials ? false : null, vyplaceno: false, datum: new Date().toISOString().split('T')[0] }]); fetchUserHistory(); fetchAccountingData();
         }
         async function fetchUserHistory() {
+            if(activeUser.user_id === "ADMIN") return;
             const { data } = await _supabase.from('aktivity').select('*').eq('user_id', activeUser.user_id);
             if (data) {
                 let celkovyVynos = 0, dloznaProvize = 0, lbls = [], dta = [];
@@ -424,7 +590,7 @@
 
         // --- GRAFY ---
         let empChart, accChart, adminChart;
-        function renderEmployeeChart(l, d) { if (empChart) empChart.destroy(); empChart = new Chart(document.getElementById('chart-employee').getContext('2d'), { type: 'line', data: { labels: l, datasets: [{ data: d, borderColor: '#2ed573', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
+        function renderEmployeeChart(l, d) { const ctx = document.getElementById('chart-employee'); if(!ctx) return; if (empChart) empChart.destroy(); empChart = new Chart(ctx.getContext('2d'), { type: 'line', data: { labels: l, datasets: [{ data: d, borderColor: '#2ed573', tension: 0.3, fill: false }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } }); }
         function renderAccountingChart(o) { if (accChart) accChart.destroy(); accChart = new Chart(document.getElementById('chart-accounting').getContext('2d'), { type: 'bar', data: { labels: ['Obrat'], datasets: [{ data: [o], backgroundColor: ['#962d22'] }] }, options: { responsive: true, maintainAspectRatio: false } }); }
         function renderGlobalAdminChart(z) { if (adminChart) adminChart.destroy(); adminChart = new Chart(document.getElementById('chart-admin-global').getContext('2d'), { type: 'line', data: { labels: ['0', 'Surový stav'], datasets: [{ data: [0, z], borderColor: '#2ed573', fill: true }] }, options: { responsive: true, maintainAspectRatio: false } }); }
 
